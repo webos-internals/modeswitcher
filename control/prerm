@@ -23,10 +23,6 @@ rm -f /usr/share/ls2/roles/prv/${PID}.json /var/palm/ls2/roles/prv/${PID}.json
 rm -f /usr/share/ls2/roles/pub/${PID}.json /var/palm/ls2/roles/pub/${PID}.json
 
 # Stop the service if running
-/sbin/stop ${PID} || true
 /usr/bin/killall -9 ${PID} || true
-
-# Remove the upstart script
-rm -f /etc/event.d/${PID} /var/palm/event.d/${PID} /var/palm/event.d/${PID}-settings
 
 exit 0
