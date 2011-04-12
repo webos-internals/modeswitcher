@@ -1,0 +1,39 @@
+{
+	"description": "Mode Switcher Service",
+	"id": "org.webosinternals.modeswitcher.srv",
+	"engine": "node",
+	"activityTimeout": 90,
+	"commandTimeout": 90,
+	"services": [ {
+		"name": "org.webosinternals.modeswitcher.srv",
+		"description": "Background service for Mode Switcher",
+		"commands": [ 
+			{ 
+				"name": "control", 
+				"assistant": "ControlCommandAssistant",
+				"public": true
+			},
+			{
+				"name": "execute", 
+				"assistant": "ExecuteCommandAssistant",
+				"public": true
+			},
+			{
+				"name": "prefs", 
+				"assistant": "PrefsCommandAssistant",
+				"public": true
+			},
+			{
+				"name": "status", 
+				"assistant": "StatusCommandAssistant",
+				"public": true, 
+				"subscribe": true
+			},
+			{ 
+				"name": "trigger", 
+				"assistant": "TriggerCommandAssistant",
+				"public": true
+			},
+		] 
+	}]
+}

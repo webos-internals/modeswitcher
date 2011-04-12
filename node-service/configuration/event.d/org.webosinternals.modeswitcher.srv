@@ -1,0 +1,7 @@
+start on started LunaSysMgr
+
+script
+	/bin/sleep 15
+
+	luna-send -n 1 palm://org.webosinternals.modeswitcher.srv/control '{"action":"startup"}'
+end script

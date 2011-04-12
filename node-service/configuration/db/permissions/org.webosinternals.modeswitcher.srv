@@ -1,0 +1,24 @@
+[
+	{
+		"type": "db.kind",
+		"object": "org.webosinternals.modeswitcher:1",
+		"caller": "org.webosinternals.modeswitcher",
+		"operations": {
+			"create": "allow",
+			"read": "allow",
+			"update": "allow",
+			"delete": "allow"
+		}
+	},
+	{
+		"type": "db.kind",
+		"object": "org.webosinternals.modeswitcher:1",
+		"caller": "org.webosinternals.modeswitcher.srv",
+		"operations": {
+			"create": "allow",
+			"read": "allow",
+			"update": "allow",
+			"delete": "allow"
+		}
+	}
+]

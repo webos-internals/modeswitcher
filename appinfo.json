@@ -1,0 +1,12 @@
+{
+	"id": "org.webosinternals.modeswitcher",
+	"title": "Mode Switcher",
+	"type": "web",
+	"main": "index.html",
+	"icon": "icon.png",
+	"miniicon": "icon_mini.png",
+	"version": "2.0.0",
+	"vendor": "WebOS Internals",
+	"removable": "true",
+	"noWindow": "true"
+}

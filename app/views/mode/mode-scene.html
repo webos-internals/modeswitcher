@@ -1,0 +1,168 @@
+<div id="main">
+	<div id="ConfigurationView" style="display:none">
+		<div style="min-height:3px;"> </div>
+
+		<div class="palm-group">
+			<div class="palm-group-title">Mode Name</div>
+
+			<div class="palm-list">
+				<div class='palm-row single'>
+					<div class='palm-row-wrapper'>
+						<div class='textfield-group' x-mojo-focus-highlight="true">
+							<div class="title">
+								<div id="NameText" x-mojo-element="TextField"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div style="min-height:3px;"> </div>
+		
+		<div class="palm-group">
+			<div class="palm-group-title">Preferences</div>
+
+			<div class="palm-list">
+				<div class='palm-row single'>
+					<div class='palm-row-wrapper'>
+						<div id="ModeTypeSelector" x-mojo-element="ListSelector"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div style="min-height:3px;"> </div>
+		
+		<div id="ConfigurationCustom" style="display:none">
+			<div class="palm-group">
+				<div class="palm-group-title">Automation</div>
+			
+				<div class="palm-list">
+					<div class='palm-row first'>
+				 		<div class='palm-row-wrapper'>
+							<div id="StartSelector" x-mojo-element="ListSelector"></div>
+						</div>
+					</div>
+					<div class='palm-row last'>
+				 		<div class='palm-row-wrapper'>
+							<div id="CloseSelector" x-mojo-element="ListSelector"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="ConfigurationDefault" style="display:none">
+			<div class="palm-group">
+				<div class="palm-group-title">Miscellaneous</div>
+			
+				<div class="palm-list">
+					<div class='palm-row first'>
+				 		<div class='palm-row-wrapper'>
+							<div id="StartupSelector" x-mojo-element="ListSelector"></div>
+						</div>
+					</div>
+					<div class='palm-row last'>
+				 		<div class='palm-row-wrapper'>
+							<div id="AppsSelector" x-mojo-element="ListSelector"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="ModeSettingsView" style="display:none">
+		<div class="category" id="Preferences"><center>Preferences</center></div>
+
+		<div class="palm-group">
+			<div class="palm-group-title">Behaviour</div>
+
+			<div class="palm-list">
+				<div class='palm-row first'>
+					<div class='palm-row-wrapper'>
+						<div id="NotifySelector" x-mojo-element="ListSelector"></div>
+					</div>
+				</div>
+				<div class='palm-row last'>
+					<div class='palm-row-wrapper'>
+						<div id="AlertSelector" x-mojo-element="ListSelector"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="category" id="Settings"><center>System Settings</center></div>
+		
+		<div style="min-height: 8px;"></div>
+		
+		<div class="palm-list">
+			<div  id="SettingsList" x-mojo-element="List"></div>
+		</div>
+	</div>
+
+	<div id="ModeAppsView" style="display:none">
+		<div class="category"><center>Preferences</center></div>
+	
+		<div class="palm-group">
+			<div class="palm-group-title">Behaviour</div>
+		
+			<div class="palm-list">
+				<div class='palm-row first'>
+					<div class='palm-row-wrapper'>
+						<div  id="AppsStartSelector" x-mojo-element="ListSelector"></div>
+					</div>
+				</div>
+				<div class='palm-row last'>
+					<div class='palm-row-wrapper'>
+						<div  id="AppsCloseSelector" x-mojo-element="ListSelector"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="category"><center>Applications</center></div>
+
+		<div style="min-height: 8px;"></div>
+
+		<div class="palm-list">
+			<div  id="AppsList" x-mojo-element="List"></div>
+		</div>
+	</div>
+
+	<div id="ModeTriggersView" style="display:none">
+		<div class="category"><center>Preferences</center></div>
+			
+		<div class="palm-group">
+			<div class="palm-group-title">Behaviour</div>
+			
+			<div class="palm-list">
+				<div class='palm-row first'>
+			 		<div class='palm-row-wrapper'>
+				 		<div id="RequiredSelector" x-mojo-element="ListSelector"></div>
+			 		</div>
+				</div>
+				<div class='palm-row last'>
+			 		<div class='palm-row-wrapper'>
+				 		<div id="BlockSelector" x-mojo-element="ListSelector"></div>
+			 		</div>
+				</div>
+			</div>
+		</div>
+	
+		<div class="category"><center><div  id="TriggersTitle">Activation Triggers</div></center></div>
+
+		<div style="min-height: 8px;"></div>
+
+		<div class="palm-list">
+	 		<div id="TriggersList" x-mojo-element="List"></div>
+		</div>
+	</div>
+
+</div>
+
+<div class="palm-scrim" id="overlay-scrim" style="display: none;">
+    <div id="waitSpinner" x-mojo-element="Spinner" />
+</div>
+

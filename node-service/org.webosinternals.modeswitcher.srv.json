@@ -1,0 +1,15 @@
+{
+	"role": {
+		"exeName":"js",
+		"type": "privileged",
+		"allowedNames": ["org.webosinternals.modeswitcher.srv"]
+	},
+	"permissions": [
+		{
+			"service":"org.webosinternals.modeswitcher.srv",
+			"inbound":["*"],
+			"outbound":["*"]
+		}
+	]
+}
+

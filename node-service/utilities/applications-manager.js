@@ -1,0 +1,163 @@
+var apps = (function() {
+	var that = {};
+
+	var Foundations = IMPORTS.foundations;
+
+	var PalmCall = Foundations.Comms.PalmCall;
+
+	var executeUpdate = function(closeApps, startApps, doneCallback) {
+		// First handle close and start operations for services.
+		
+		for(var i = 0; i < closeApps.length; i++) {
+			if(closeApps[i].type == "srv") {
+				var closeSrv = closeApps.splice(i--, 1)[0];
+				
+				console.log("Executing service closing: " + closeSrv.name);
+
+				var params = closeSrv.params.close;
+
+				try {eval("var parameters = " + params);} catch(error) {var parameters = "";}
+
+				PalmCall.call(closeSrv.url, closeSrv.method, parameters);
+			}
+		}
+		
+		for(var i = 0; i < startApps.length; i++) {
+			if(startApps[i].type == "srv") {
+				var startSrv = startApps.splice(i--, 1)[0];
+				
+				console.log("Executing service starting: " + startSrv.name);
+
+				var params = startSrv.params.start;
+
+				try {eval("var parameters = " + params);} catch(error) {var parameters = "";}
+
+				PalmCall.call(startSrv.url, startSrv.method, parameters);
+			}
+		}
+
+		// Then handle the closing and starting normal applications.
+		
+		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+			'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
+				'method': "running", 'params': {}});
+
+		future.then(this, function(future) {
+			var runningApps = future.result.running;
+
+			if(closeApps == "all")
+				closeApps = runningApps;
+
+			runningApps.reverse();
+
+			// Remove apps that would have been closed and started right after.
+
+			for(var i = 0; i < closeApps.length; i++) {
+				if(closeApps[i].processid == undefined) {
+					for(var j = 0; j < startApps.length; j++) {
+						if((closeApps[i].appid == startApps[j].appid) &&
+							(closeApps[i].params == startApps[j].params))
+						{
+							closeApps.splice(i--, 1);
+							startApps.splice(j--, 1);
+				
+							break;
+						}
+					}
+				}
+			}
+
+			// Close the app if it is not set to be started and is started by MS.
+
+			for(var i = 0; i < closeApps.length; i++) {
+				var appid = null;
+				var processid = 0;
+	
+				if(closeApps[i].processid == undefined) {
+					/*for(var j = 0; j < config.startedApps.length; j++) {
+						if((config.startedApps[j].appid == closeApps[i].appid) &&
+							(config.startedApps[j].params == closeApps[i].params))
+						{
+							for(var k = 0; k < runningApps.length; k++) {
+								if(((config.startedApps[j].processid < 1010) &&
+									(runningApps[k].id == config.startedApps[j].appid)) ||
+									((runningApps[k].processid == config.startedApps[j].processid) &&
+									(runningApps[k].id == config.startedApps[j].appid)))
+								{
+									appid = runningApps[k].id;
+									processid = runningApps[k].processid;
+						
+									break;
+								}
+							}
+					
+							config.startedApps.splice(j--, 1);
+						}
+					}*/
+					
+					for(var k = 0; k < runningApps.length; k++) {
+						if((runningApps[k].processid > 1010) &&
+							(runningApps[k].id == closeApps[i].appid))
+						{
+							appid = runningApps[k].id;
+							processid = runningApps[k].processid;
+				
+							break;
+						}
+					}				
+				}
+				else {
+					appid = closeApps[i].appid;
+					processid = closeApps[i].processid;
+				}
+		
+				if((appid) && (processid)) {
+					executeClose(appid, processid);
+				}
+			}
+
+			// Start requested apps and collect and save the processid information.
+
+			for(var i = 0; i < startApps.length; i++)
+				this.setTimeout(executeLaunch.bind(this, startApps[i]), 250 * (i+1));
+
+			future.result = { returnValue: true };				
+		}); 
+
+		return future;
+	};
+
+	var executeLaunch = function(item) {
+		console.log("Started app " + item.appid);
+
+		try {eval("var parameters = " + item.params);} catch(error) {var parameters = "";}
+
+		PalmCall.call("palm://com.palm.applicationManager/", "launch", {'id': item.appid, 'params': parameters});
+	};
+
+	var executeClose = function(appId, processId) {
+		if((processId > 1010) && (appId != "com.palm.systemui") && (appId != "com.palm.app.phone") &&
+			(appId != "org.webosinternals.modeswitcher"))
+		{
+			console.log("Closed app " + appId + " " + processId);
+
+			PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
+				'method': "close", 'params': {'processId': processId}});
+		}
+	};
+
+//
+
+	that.update = function(closeApps, startApps) {
+		if(closeApps == "all")
+			console.log("Updating running applications: * " + startApps.length);
+		else
+			console.log("Updating running applications: " + closeApps.length + " " + startApps.length);
+	
+		return executeUpdate(closeApps, startApps);
+	};
+
+	return that;
+}());
+
