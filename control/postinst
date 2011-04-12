@@ -27,7 +27,7 @@ rm -f /usr/share/ls2/roles/pub/${PID}.json /var/palm/ls2/roles/pub/${PID}.json
 # Stop the service if running
 /usr/bin/killall -9 ${PID} || true
 
-# Install the govnah executable
+# Install the impersonate executable
 mkdir -p /var/usr/sbin/
 install -m 755 $APPS/usr/palm/applications/${AID}/bin/impersonate /var/usr/sbin/${PID}
 
