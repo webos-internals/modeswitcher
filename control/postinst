@@ -33,12 +33,12 @@ install -m 755 $APPS/usr/palm/applications/${AID}/bin/impersonate /var/usr/sbin/
 
 # Install the dbus service
 mkdir -p /var/palm/system-services
-cp $APPS/usr/palm/applications/${AID}/c-service/configuration/${PID}.service /var/palm/system-services/${PID}.service
+cp $APPS/usr/palm/applications/${AID}/cfg/${PID}.service /var/palm/system-services/${PID}.service
 
 # Install the ls2 roles
 mkdir -p /var/palm/ls2/roles/prv /var/palm/ls2/roles/pub
-cp $APPS/usr/palm/applications/${AID}/c-service/configuration/${PID}.json /var/palm/ls2/roles/prv/${PID}.json
-cp $APPS/usr/palm/applications/${AID}/c-service/configuration/${PID}.json /var/palm/ls2/roles/pub/${PID}.json
+cp $APPS/usr/palm/applications/${AID}/cfg/${PID}.json /var/palm/ls2/roles/prv/${PID}.json
+cp $APPS/usr/palm/applications/${AID}/cfg/${PID}.json /var/palm/ls2/roles/pub/${PID}.json
 /usr/bin/ls-control scan-services || true
 
 exit 0
