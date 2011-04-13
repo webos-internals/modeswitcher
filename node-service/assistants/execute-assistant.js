@@ -713,11 +713,14 @@ ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, confi
 					if((oldActiveModes[i].appssrvs.list[j].event == "close") ||
 						(oldActiveModes[i].appssrvs.list[j].event == "both"))
 					{
-						if(((oldActiveModes[i].appssrvs.list[j].type == "app") && 
-							(!newCloseAllStartedApps)) || 
-							(oldActiveModes[i].appssrvs.list[j].type == "srv"))
+						if((oldActiveModes[i].appssrvs.list[j].type == "app") && 
+							(!newCloseAllStartedApps)) 
 						{
 							startAppsSrvs.push(oldActiveModes[i].appssrvs.list[j]);
+						}
+						else if(oldActiveModes[i].appssrvs.list[j].type == "srv")
+						{
+							closeAppsSrvs.push(oldActiveModes[i].appssrvs.list[j]);
 						}
 					}
 				}
