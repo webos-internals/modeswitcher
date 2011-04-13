@@ -281,7 +281,7 @@ MainAssistant.prototype.setTimerPreferences = function(event) {
 MainAssistant.prototype.handleModesListTap = function(event) {
 	var index = event.model.items.indexOf(event.item);
 	
-	if((event.originalEvent.up) && (event.originalEvent.up.altKey || event.originalEvent.up.metaKey)) {
+	if((event.originalEvent.up) && (event.originalEvent.up.altKey)) {
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", { 
 			'method': "execute", 'parameters': {'action': "toggle", 'name': this.customModes[index + 1].name}});
 	}
@@ -307,7 +307,7 @@ MainAssistant.prototype.handleRemoveModeFromList = function(event) {
 }
 
 MainAssistant.prototype.handleAddModeButtonPress = function() {
-	if((event.up) && (event.up.altKey || event.up.metaKey)) {
+	if((event.originalEvent.up) && (event.originalEvent.up.altKey)) {
 		if(this.customModes.length > 1)
 			this.customModes.splice(1, this.customModes.length - 1);		
 			
@@ -323,7 +323,7 @@ MainAssistant.prototype.handleAddModeButtonPress = function() {
 }
 
 MainAssistant.prototype.handleDefModeButtonPress = function() {
-	if((event.up) && (event.up.altKey || event.up.metaKey)) {
+	if((event.originalEvent.up) && (event.originalEvent.up.altKey)) {
 		var id = this.customModes[0]._id;
 	
 		this.customModes[0] = {'_id': id, 
