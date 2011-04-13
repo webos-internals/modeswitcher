@@ -295,12 +295,19 @@ MainAssistant.prototype.handleModesListReorder = function(event) {
 	this.customModes.splice(event.fromIndex + 1, 1);
 	this.customModes.splice(event.toIndex + 1, 0, tempMode);
 
+	tempMode = this.modelModesList.items[event.fromIndex];
+
+	this.modelModesList.items.splice(event.fromIndex, 1);
+	this.modelModesList.items.splice(event.toIndex, 0, tempMode);
+	
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 		method: 'prefs', parameters: {customModes: this.customModes}});
 }
 
 MainAssistant.prototype.handleRemoveModeFromList = function(event) {
 	this.customModes.splice(event.index + 1, 1);
+
+	this.modelModesList.items.splice(event.index, 1);
 
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 		method: 'prefs', parameters: {customModes: this.customModes}});
