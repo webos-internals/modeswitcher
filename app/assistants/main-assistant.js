@@ -307,7 +307,7 @@ MainAssistant.prototype.handleRemoveModeFromList = function(event) {
 }
 
 MainAssistant.prototype.handleAddModeButtonPress = function() {
-	if((event.originalEvent.up) && (event.originalEvent.up.altKey)) {
+	if((event.up) && (event.up.altKey)) {
 		if(this.customModes.length > 1)
 			this.customModes.splice(1, this.customModes.length - 1);		
 			
@@ -323,7 +323,7 @@ MainAssistant.prototype.handleAddModeButtonPress = function() {
 }
 
 MainAssistant.prototype.handleDefModeButtonPress = function() {
-	if((event.originalEvent.up) && (event.originalEvent.up.altKey)) {
+	if((event.up) && (event.up.altKey)) {
 		var id = this.customModes[0]._id;
 	
 		this.customModes[0] = {'_id': id, 
