@@ -1,4 +1,5 @@
 {
 	"id": "org.webosinternals.modeswitcher:1",
-	"indexes": []
+	"indexes": [],
+	"sync": true
 }
