@@ -12,7 +12,7 @@ var apps = (function() {
 			if(closeApps[i].type == "srv") {
 				var closeSrv = closeApps.splice(i--, 1)[0];
 				
-				console.log("Executing service closing: " + closeSrv.name);
+				console.error("Executing service closing: " + closeSrv.name + " " + closeSrv.params.close);
 
 				var params = closeSrv.params.close;
 
@@ -26,7 +26,7 @@ var apps = (function() {
 			if(startApps[i].type == "srv") {
 				var startSrv = startApps.splice(i--, 1)[0];
 				
-				console.log("Executing service starting: " + startSrv.name);
+				console.error("Executing service starting: " + startSrv.name + " " + startSrv.params.start);
 
 				var params = startSrv.params.start;
 
@@ -128,7 +128,7 @@ var apps = (function() {
 	};
 
 	var executeLaunch = function(item) {
-		console.log("Started app " + item.appid);
+		console.error("Launching application: " + item.appid);
 
 		try {eval("var parameters = " + item.params);} catch(error) {var parameters = "";}
 
@@ -139,7 +139,7 @@ var apps = (function() {
 		if((processId > 1010) && (appId != "com.palm.systemui") && (appId != "com.palm.app.phone") &&
 			(appId != "org.webosinternals.modeswitcher"))
 		{
-			console.log("Closed app " + appId + " " + processId);
+			console.error("Closing application: " + appId + " " + processId);
 
 			PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
 				'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
@@ -151,9 +151,9 @@ var apps = (function() {
 
 	that.update = function(closeApps, startApps) {
 		if(closeApps == "all")
-			console.log("Updating running applications: * " + startApps.length);
+			console.error("Updating running applications: * " + startApps.length);
 		else
-			console.log("Updating running applications: " + closeApps.length + " " + startApps.length);
+			console.error("Updating running applications: " + closeApps.length + " " + startApps.length);
 	
 		return executeUpdate(closeApps, startApps);
 	};
