@@ -5,18 +5,6 @@ var utils = (function() {
 
 	var PalmCall = Foundations.Comms.PalmCall;
 
-	that.display = function(state) {
-		// TODO
-	
-	//	if(this.config.currentMode.settings.charging == 1)
-//		DisplayControlWrapper.setMode("default");
-//	else if(this.config.currentMode.settings.charging == 2)
-//		DisplayControlWrapper.setMode("alwayson");
-//	else if(this.config.currentMode.settings.charging == 3)
-//		DisplayControlWrapper.setMode("turnoff");
-	
-	};
-
 	that.notify = function(alert, notify, mode, event) {
 		if((mode) && (notify == 2)) {
 			PalmCall.call("palm://com.palm.applicationManager/", "launch", {

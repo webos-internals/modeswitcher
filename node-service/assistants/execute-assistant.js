@@ -39,225 +39,254 @@ ExecuteCommandAssistant.prototype.cleanup = function() {
 //
 
 ExecuteCommandAssistant.prototype.executeStartMode = function(future, config, args) {  
-	console.error("Executing starting of: " + args.name);
+	if(args.name) {
+		console.error("Executing starting of: " + args.name);
 
-	// Check and find information for requested mode.
+		// Check and find information for requested mode.
 
-	var requestedMode = null;
+		var requestedMode = null;
 
-	if((args.name == "Current Mode") && (config.activeModes.length > 0))
-		args.name = config.activeModes[0].name;
-	else if((args.name == "Previous Mode") && (config.historyList.length > 0))
-		args.name = config.historyList[0].name;
+		if((args.name == "Current Mode") && (config.activeModes.length > 0))
+			args.name = config.activeModes[0].name;
+		else if((args.name == "Previous Mode") && (config.historyList.length > 0))
+			args.name = config.historyList[0].name;
 	
-	var index = utils.findArray(config.customModes, "name", args.name);
+		var index = utils.findArray(config.customModes, "name", args.name);
 
-	if(index != -1)
-		requestedMode = config.customModes[index];
+		if(index != -1)
+			requestedMode = config.customModes[index];
 		
-	// If requested mode not found then do nothing.
+		// If requested mode not found then do nothing.
 		
-	if(requestedMode == null)
-		future.result = { returnValue: false, errorText: "Mode not found" };
-	else {
-		// Define and locate original mode for update.
+		if(requestedMode == null)
+			future.result = { returnValue: false, errorText: "Mode not found" };
+		else {
+			// Define and locate original mode for update.
 
-		var newActiveModes = [config.customModes[0]];
+			var newActiveModes = [config.customModes[0]];
 
-		if(requestedMode.type == "normal")
-			newActiveModes[0] = requestedMode;
-		else if((requestedMode.type == "modifier") && (config.activeModes.length > 0)) {
-			var index = utils.findArray(config.customModes, "name", config.activeModes[0].name);
+			if(requestedMode.type == "normal")
+				newActiveModes[0] = requestedMode;
+			else if((requestedMode.type == "modifier") && (config.activeModes.length > 0)) {
+				var index = utils.findArray(config.customModes, "name", config.activeModes[0].name);
 
-			if((index != -1) && (config.customModes[index].type == "normal"))
-				newActiveModes[0] = config.customModes[index];
-		}
+				if((index != -1) && (config.customModes[index].type == "normal"))
+					newActiveModes[0] = config.customModes[index];
+			}
 			
-		// Generate list of modifier modes for update.
+			// Generate list of modifier modes for update.
 
-		if(args.name != "Current Mode") {
-			for(var i = 1; i < config.activeModes.length; i++) {
-				var index = utils.findArray(config.customModes, "name", config.activeModes[i].name);
+			if(args.name != "Current Mode") {
+				for(var i = 1; i < config.activeModes.length; i++) {
+					var index = utils.findArray(config.customModes, "name", config.activeModes[i].name);
 		
-				if((index != -1) && (config.customModes[index].type == "modifier")) {
-					if(config.activeModes[i].name != args.name)
-						newActiveModes.push(config.customModes[index]);
+					if((index != -1) && (config.customModes[index].type == "modifier")) {
+						if(config.activeModes[i].name != args.name)
+							newActiveModes.push(config.customModes[index]);
+					}
 				}
 			}
+			
+			if(requestedMode.type == "modifier")
+				newActiveModes.push(requestedMode);
+
+			// Notify about the mode starting.
+		
+			var alert = 1, notify = 1;
+		
+			if(requestedMode.settings.alert != 0)
+				alert = requestedMode.settings.alert;
+			else
+				alert = config.customModes[0].settings.alert;
+		
+			if(requestedMode.settings.notify != 0)
+				notify = requestedMode.settings.notify;
+			else
+				notify = config.customModes[0].settings.notify;
+		
+			if((requestedMode.type == "default") || (config.activeModes.length == 0))
+				utils.notify(alert, notify, requestedMode.name, "start");
+			else if(requestedMode.type == "normal")
+				utils.notify(alert, notify, newActiveModes[0].name, "switch");
+			else if(requestedMode.type == "modifier")
+				utils.notify(alert, notify, requestedMode.name, "start");
+			
+			// Initiate the actual updating of the mode.
+
+			this.prepareModeChange(future, config, newActiveModes, "init", 0);
 		}
-			
-		if(requestedMode.type == "modifier")
-			newActiveModes.push(requestedMode);
-
-		// Notify about the mode starting.
-		
-		var alert = 1, notify = 1;
-		
-		if(requestedMode.settings.alert != 0)
-			alert = requestedMode.settings.alert;
-		else
-			alert = config.customModes[0].settings.alert;
-		
-		if(requestedMode.settings.notify != 0)
-			notify = requestedMode.settings.notify;
-		else
-			notify = config.customModes[0].settings.notify;
-		
-		if((requestedMode.type == "default") || (config.activeModes.length == 0))
-			utils.notify(alert, notify, requestedMode.name, "start");
-		else if(requestedMode.type == "normal")
-			utils.notify(alert, notify, newActiveModes[0].name, "switch");
-		else if(requestedMode.type == "modifier")
-			utils.notify(alert, notify, requestedMode.name, "start");
-			
-		// Initiate the actual updating of the mode.
-
-		this.prepareModeChange(future, config, newActiveModes, "init", 0);
+	}
+	else {
+		console.error("Start mode called without name!");
+	
+		future.result = { returnValue: false, errorText: "No name given" };
 	}
 }
 
 ExecuteCommandAssistant.prototype.executeCloseMode = function(future, config, args) {  
-	console.error("Executing closing of: " + args.name);
+	if(args.name) {
+		console.error("Executing closing of: " + args.name);
 
-	// Check that requested mode is currently active.
+		// Check that requested mode is currently active.
 
-	var requestedMode = null;
+		var requestedMode = null;
 
-	if((args.name == "Current Mode") && (config.activeModes.length > 0))
-		args.name = config.activeModes[0].name;
-	else if((args.name == "Previous Mode") && (config.historyList.length > 0))
-		args.name = config.historyList[0].name;
+		if((args.name == "Current Mode") && (config.activeModes.length > 0))
+			args.name = config.activeModes[0].name;
+		else if((args.name == "Previous Mode") && (config.historyList.length > 0))
+			args.name = config.historyList[0].name;
 
-	var index = utils.findArray(config.customModes, "name", args.name);
+		var index = utils.findArray(config.customModes, "name", args.name);
 
-	if(index != -1)
-		requestedMode = config.customModes[index];
+		if(index != -1)
+			requestedMode = config.customModes[index];
 	
-	// If requested mode not found then do nothing.
+		// If requested mode not found then do nothing.
 	
-	if(requestedMode == null)
-		future.result = { returnValue: false, errorText: "Mode not found" };
-	else {
-		// Define and locate original mode for update.
+		if(requestedMode == null)
+			future.result = { returnValue: false, errorText: "Mode not found" };
+		else {
+			// Define and locate original mode for update.
 
-		var newActiveModes = [config.customModes[0]];
+			var newActiveModes = [config.customModes[0]];
 
-		if((requestedMode.type == "modifier") && (config.activeModes.length > 0)) {
-			var index = utils.findArray(config.customModes, "name", config.activeModes[0].name);
+			if((requestedMode.type == "modifier") && (config.activeModes.length > 0)) {
+				var index = utils.findArray(config.customModes, "name", config.activeModes[0].name);
 
-			if((index != -1) && (config.customModes[index].type == "normal"))
-				newActiveModes[0] = config.customModes[index];
-		}
+				if((index != -1) && (config.customModes[index].type == "normal"))
+					newActiveModes[0] = config.customModes[index];
+			}
 	
-		// Generate list of modifier modes for update.
+			// Generate list of modifier modes for update.
 
-		if(args.name != "Current Mode") {
-			for(var i = 1; i < config.activeModes.length; i++) {
-				var index = utils.findArray(config.customModes, "name", config.activeModes[i]);
+			if(args.name != "Current Mode") {
+				for(var i = 1; i < config.activeModes.length; i++) {
+					var index = utils.findArray(config.customModes, "name", config.activeModes[i]);
 		
-				if((index != -1) && (config.customModes[index].type == "modifier")) {
-					oldActiveModes.push(config.customModes[index]);
-					
-					if(config.activeModes[i] != args.name)
-						newActiveModes.push(config.customModes[index]);
+					if((index != -1) && (config.customModes[index].type == "modifier")) {
+						if(config.activeModes[i] != args.name)
+							newActiveModes.push(config.customModes[index]);
+					}
 				}
 			}
-		}
 			
-		// Notify about the mode closing.
+			// Notify about the mode closing.
 
-		var alert = 1, notify = 1;
+			var alert = 1, notify = 1;
 		
-		if(requestedMode.settings.alert != 0)
-			alert = requestedMode.settings.alert;
-		else
-			alert = config.customModes[0].settings.alert;
+			if(requestedMode.settings.alert != 0)
+				alert = requestedMode.settings.alert;
+			else
+				alert = config.customModes[0].settings.alert;
 		
-		if(requestedMode.settings.notify != 0)
-			notify = requestedMode.settings.notify;
-		else
-			notify = config.customModes[0].settings.notify;
+			if(requestedMode.settings.notify != 0)
+				notify = requestedMode.settings.notify;
+			else
+				notify = config.customModes[0].settings.notify;
 
-		if(requestedMode.type == "default")
-			utils.notify(alert, notify, requestedMode.name, "close");
-		else if(requestedMode.type == "normal")
-			utils.notify(alert, notify, newActiveModes[0].name, "switch");
-		else if(requestedMode.type == "modifier")
-			utils.notify(alert, notify, requestedMode.name, "close");
+			if(requestedMode.type == "default")
+				utils.notify(alert, notify, requestedMode.name, "close");
+			else if(requestedMode.type == "normal")
+				utils.notify(alert, notify, newActiveModes[0].name, "switch");
+			else if(requestedMode.type == "modifier")
+				utils.notify(alert, notify, requestedMode.name, "close");
 
-		// Initiate the actual updating of the mode.
+			// Initiate the actual updating of the mode.
 
-		this.prepareModeChange(future, config, newActiveModes, "init", 0);
+			this.prepareModeChange(future, config, newActiveModes, "init", 0);
+		}
+	}
+	else {
+		console.error("Close mode called without name!");
+
+		future.result = { returnValue: false, errorText: "No name given" };
 	}
 }
 
 ExecuteCommandAssistant.prototype.executeToggleMode = function(future, config, args) {  
-	console.error("Executing toggling of: " + args.name);
+	if(args.name) {
+		console.error("Executing toggling of: " + args.name);
 
-	if((args.name == "Current Mode") && (config.activeModes.length > 0))
-		args.name = config.activeModes[0].name;
-	else if((args.name == "Previous Mode") && (config.historyList.length > 0))
-		args.name = config.historyList[0].name;
+		if((args.name == "Current Mode") && (config.activeModes.length > 0))
+			args.name = config.activeModes[0].name;
+		else if((args.name == "Previous Mode") && (config.historyList.length > 0))
+			args.name = config.historyList[0].name;
 
-	if(utils.findArray(config.activeModes, "name", args.name) != -1)
-		this.executeCloseMode(future, config, args);
-	else if(utils.findArray(config.customModes, "name", args.name) != -1)
-		this.executeStartMode(future, config, args);
+		if(utils.findArray(config.activeModes, "name", args.name) != -1)
+			this.executeCloseMode(future, config, args);
+		else if(utils.findArray(config.customModes, "name", args.name) != -1)
+			this.executeStartMode(future, config, args);
+		else {
+			utils.notify(0, 2, null, "unknown");
+
+			future.result = { returnValue: false, errorText: "Mode not found" };
+		}
+	}
 	else {
-		utils.notify(0, 2, null, "unknown");
-
-		future.result = { returnValue: false, errorText: "Mode not found" };
+		console.error("Toggle mode called without name!");
+		
+		future.result = { returnValue: false, errorText: "No name given" };
 	}
 }
 
 ExecuteCommandAssistant.prototype.executeReloadMode = function(future, config, args) {  
-	if(config.activeModes.length == 0)
-		this.executeStartMode(future, config, "Default Mode");
-	else {
-		console.error("Executing reloading of: Current Mode");
+	if(args.name) {
+		if(config.activeModes.length == 0) {
+			console.error("Executing reloading of: Default Mode");
 
-		// On reload inform the user even if notifications are disabled.
-
-		utils.notify(0, 2, null, "reload");
-
-		if((config.activeModes.length > 0) && (config.customModes.length > 0)) {
-			var curActiveModes = [config.customModes[0]];
-
-			// Check that original mode still exists and triggers are valid.
-
-			var index = utils.findArray(config.customModes, "name", config.activeModes[0].name);
-
-			if((index != -1) && (config.customModes[index].type == "normal")) {
-				if(this.checkModeTriggers(future, config, config.customModes[index]))
-					curActiveModes[0] = config.customModes[index];
-			}
-		
-			// Check that modifier modes still exists and triggers are valid.
-
-			for(var i = 1; i < config.activeModes.length; i++) {
-				var index = utils.findArray(config.customModes, "name", config.activeModes[i].name);
-
-				if((index != -1) && (config.customModes[index].type == "modifier")) {
-					if(this.checkModeTriggers(future, config, config.customModes[index]))
-						curActiveModes.push(config.customModes[index]);
-				}
-			}
-		
-			// Execute the actual updating of current mode (if there's changes).
-
-			this.prepareModeChange(future, config, curActiveModes, "init", 0);
+			this.executeStartMode(future, config, "Default Mode");
 		}
-		else
-			future.result = { returnValue: false, errorText: "No current mode" };
+		else {
+			console.error("Executing reloading of: Current Mode");
+
+			// On reload inform the user even if notifications are disabled.
+
+			utils.notify(0, 2, null, "reload");
+
+			if((config.activeModes.length > 0) && (config.customModes.length > 0)) {
+				var curActiveModes = [config.customModes[0]];
+
+				// Check that original mode still exists and triggers are valid.
+
+				var index = utils.findArray(config.customModes, "name", config.activeModes[0].name);
+
+				if((index != -1) && (config.customModes[index].type == "normal")) {
+					if(this.checkModeTriggers(future, config, config.customModes[index]))
+						curActiveModes[0] = config.customModes[index];
+				}
+		
+				// Check that modifier modes still exists and triggers are valid.
+
+				for(var i = 1; i < config.activeModes.length; i++) {
+					var index = utils.findArray(config.customModes, "name", config.activeModes[i].name);
+
+					if((index != -1) && (config.customModes[index].type == "modifier")) {
+						if(this.checkModeTriggers(future, config, config.customModes[index]))
+							curActiveModes.push(config.customModes[index]);
+					}
+				}
+		
+				// Execute the actual updating of current mode (if there's changes).
+
+				this.prepareModeChange(future, config, curActiveModes, "init", 0);
+			}
+			else
+				future.result = { returnValue: false, errorText: "No current mode" };
+		}
+	}
+	else {
+		console.error("Reload mode called without name!");
+		
+		future.result = { returnValue: false, errorText: "No name given" };
 	}
 }
 
 ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, args) {  
-	console.error("Executing updating of: Current Mode");
-
-	var newActiveModes = [config.customModes[0]];
-
 	if(args.names) {
+		console.error("Executing mode update: " + JSON.stringify(args.names));
+
+		var newActiveModes = [config.customModes[0]];
+
 		var index = utils.findArray(config.customModes, "name", args.names[0]);
 		
 		if((index != -1) && (config.customModes[index].type == "normal"))
@@ -274,43 +303,47 @@ ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, a
 
 		this.prepareModeChange(future, config, newActiveModes, "init", 0);
 	}
-	else
+	else {
+		console.error("Update mode called without names!");
+	
 		future.result = { returnValue: false, errorText: "No names given" };
+	}
 }
 
 ExecuteCommandAssistant.prototype.executeTriggerMode = function(future, config, args) {  
-	console.error("Executing triggering of: " + args.name);
+	if(args.name) {
+		console.error("Executing triggering of: " + args.name);
 
-	if((args.name == "Current Mode") && (config.activeModes.length > 0))
-		args.name = config.activeModes[0].name;
-	else if((args.name == "Previous Mode") && (config.historyList.length > 0))
-		args.name = config.historyList[0].name;
+		if((args.name == "Current Mode") && (config.activeModes.length > 0))
+			args.name = config.activeModes[0].name;
+		else if((args.name == "Previous Mode") && (config.historyList.length > 0))
+			args.name = config.historyList[0].name;
 
-	var index = utils.findArray(config.customModes, "name", args.name);
+		var index = utils.findArray(config.customModes, "name", args.name);
 
-	if(index != -1) {
-		if(utils.findArray(config.activeModes, "name", args.name) == -1)
-		{
-			if(this.checkModeTriggers(future, config, config.customModes[index]))
-				this.executeStartMode(future, config, args.name);
-			else
-				future.result = { returnValue: true };
+		if(index != -1) {
+			if(utils.findArray(config.activeModes, "name", args.name) == -1)
+			{
+				if(this.checkModeTriggers(future, config, config.customModes[index]))
+					this.executeStartMode(future, config, args.name);
+				else
+					future.result = { returnValue: true };
+			}
+			else {
+				if(!this.checkModeTriggers(future, config, config.customModes[index]))
+					this.executeCloseMode(future, config, args.name);
+				else
+					future.result = { returnValue: true };
+			}
 		}
-		else {
-			if(!this.checkModeTriggers(future, config, config.customModes[index]))
-				this.executeCloseMode(future, config, args.name);
-			else
-				future.result = { returnValue: true };
-		}
-	}
-	else if(index != -1) {
-		if(this.checkModeTriggers(future, config, config.customModes[index]))
-			this.executeStartMode(future, config, args.name);
 		else
-			future.result = { returnValue: true };
+			future.result = { returnValue: false, errorText: "Mode not found" };
 	}
-	else
-		future.result = { returnValue: false, errorText: "Mode not found" };
+	else {
+		console.error("Trigger mode called without name!");
+	
+		future.result = { returnValue: false, errorText: "No name given" };
+	}
 }
 
 //
@@ -562,17 +595,6 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 ExecuteCommandAssistant.prototype.executeModeChange = function(future, config, newActiveModes, roundPhase, roundCount) {
 	console.error("Executing mode updating: exec " + roundCount);
 
-	var newDisplayState = 0;
-
-	var modes = [config.customModes[0]].concat(newActiveModes);
-
-	for(var i = 0; i < modes.length; i++) {
-		if(modes[i].settings.screen)
-			newDisplayState = modes[i].settings.screen;
-	}
-
-	utils.display(newDisplayState);
-	
 	this.executeSettingsUpdate(future, config, config.activeModes, newActiveModes, 
 		function(config, newActiveModes, roundPhase, roundCount, newFuture) {
 			// When done updating the system settings then call apps update.

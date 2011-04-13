@@ -181,7 +181,7 @@ TriggerCommandAssistant.prototype.executeModeLaunching = function(future, config
 				'modes': {'start': startModes, 'close': closeModes, 'modifiers': modifiers},
 				'timers': {'start': config.startTimer, 'close': config.closeTimer}}}));
 	}
-	else {
+	else if(config.activeModes.length > 0) {
 		var newModes = [config.activeModes[0].name];
 		
 		if(startNModes.length == 1)

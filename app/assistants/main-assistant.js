@@ -532,6 +532,6 @@ MainAssistant.prototype.cleanup = function(event) {
 	 */ 
 
  	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-		method: 'control', parameters: {action: "reload"}});
+		method: 'control', parameters: {action: "reload", name: "Current Mode"}});
 }
 

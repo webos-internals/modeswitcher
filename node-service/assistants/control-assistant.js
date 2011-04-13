@@ -100,12 +100,14 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 			future.nest(prefs.save(newConfig));
 
 			future.then(this, function(future) {
-				if(config.customModes[0].startup)
+				if(config.customModes[0].startup) {
 					future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
 						'action': "start", 'name': "Default Mode", 'startup': true}));
-				else
+				}
+				else{
 					future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
 						'action': "reload", 'name': "Current Mode", 'startup': true}));
+				}
 
 				future.then(this, function(future) {
 					future.result = { returnValue: true };
