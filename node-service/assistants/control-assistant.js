@@ -79,12 +79,18 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 				}
 			}				
 			
-			console.error("Initializing trigger extension: " + item);
+			// Do shutdown for luna restarts (would otherwise not be needed)
 			
-			eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
-
+			console.error("Re-initializing trigger extension: " + item);
+			
+			eval("future.nest(" + item + "Triggers.shutdown(configData));");
+			
 			future.then(this, function(future) {
-				next(future);
+				eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
+
+				future.then(this, function(future) {
+					next(future);
+				});
 			});
 		}.bind(this, future, config),
 		function(future, config, newFuture) {

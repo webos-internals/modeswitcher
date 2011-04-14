@@ -453,7 +453,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 		control = new Array();
 	
 		for(var i = 0; i < modesA[loop].length; i++) {
-			if(utils.findArray(modesB[loop], "name", modesA[loop][i].name) == -1) {
+			if((this.controller.args.startup) || utils.findArray(modesB[loop], "name", modesA[loop][i].name) == -1)) {
 				for(var j = 0; j < modesA[loop][i].appssrvs.list.length; j++) {
 					if(modesA[loop][i].appssrvs.list[j].type == "ms") {
 						// Should check for: reloading, starting, switching and closing.
@@ -461,7 +461,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 						if(((modesA[loop][i].appssrvs.list[j].event == events[loop]) ||
 							((modesA[loop][i].appssrvs.list[j].event == "switch") && (roundPhase == "init")) ||
 							((modesA[loop][i].appssrvs.list[j].event == "switched") && (roundPhase == "done"))) &&
-							((((newActiveModes[0].type != "default") ||
+							((((this.controller.args.startup) || (newActiveModes[0].type != "default") ||
 							(oldActiveModes.length == 0) || (oldActiveModes[0].type == "default")) && 
 							((events[loop] == "start") || (events[loop] == "started"))) ||
 							(modesA[loop][i].appssrvs.list[j].force == "yes") || 
