@@ -453,7 +453,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 		control = new Array();
 	
 		for(var i = 0; i < modesA[loop].length; i++) {
-			if((this.controller.args.startup) || utils.findArray(modesB[loop], "name", modesA[loop][i].name) == -1)) {
+			if((this.controller.args.startup) || (utils.findArray(modesB[loop], "name", modesA[loop][i].name) == -1)) {
 				for(var j = 0; j < modesA[loop][i].appssrvs.list.length; j++) {
 					if(modesA[loop][i].appssrvs.list[j].type == "ms") {
 						// Should check for: reloading, starting, switching and closing.
