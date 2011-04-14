@@ -34,10 +34,10 @@ var chargerTriggers = (function() {
 				else
 					config.state = "none";
 
-				if(future.result.chargerStatus.orientation)
+				if((config.state != "none") && (future.result.chargerStatus.orientation))
 					config.orientation = future.result.chargerStatus.orientation;
 				else
-					config.orientation = "unknown";
+					config.orientation = "any";
 			}
 		
 			future.result = { returnValue: true };
@@ -101,8 +101,8 @@ var chargerTriggers = (function() {
 //
 
 	var checkState = function(config, trigger) {
-		if((config.state == trigger.charger) && ((trigger.orientation == "any") ||
-			(config.orientation == trigger.orientation)))
+		if((config.state == trigger.charger) && ((config.orientation == "any") ||
+			(trigger.orientation == "any") || (config.orientation == trigger.orientation)))
 		{
 			return true;
 		}
@@ -111,7 +111,27 @@ var chargerTriggers = (function() {
 	};
 
 	var triggerState = function(config, trigger, args) {
-		return true;
+		if((args.$activity) && (args.$activity.trigger) &&
+			(args.$activity.trigger.chargerStatus))
+		{
+			if(((config.state == "none") && 
+				(args.$activity.trigger.chargerStatus.state != "none") &&
+				((trigger.charger == "none") ||
+				(args.$activity.trigger.chargerStatus.state == trigger.charger)) &&
+				((trigger.orientation == "any") || 
+				(args.$activity.trigger.chargerStatus.orientation == trigger.orientation))) ||
+				((config.state != "none") && 
+				(args.$activity.trigger.chargerStatus.state == "none") &&
+				((trigger.charger == "none") ||
+				(config.state == trigger.charger)) && 
+				((config.orientation == "any") || (trigger.orientation == "any") ||
+				(config.orientation == trigger.orientation))))
+			{
+				return true;
+			}
+		}
+		
+		return false;
 	};
 
 // Asynchronous public functions
@@ -183,7 +203,7 @@ var chargerTriggers = (function() {
 				if(args.$activity.trigger.chargerStatus.orientation)
 					config.orientation = args.$activity.trigger.chargerStatus.orientation;
 				else
-					config.orientation = "unknown";
+					config.orientation = "any";
 			}
 
 			future.nest(addActivity(config));

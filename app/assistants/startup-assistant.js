@@ -4,7 +4,7 @@ function StartupAssistant() {
 
 	this.firstMessage = $L(
 		"<center><b>Here are some basic info for new users:</b></center><br><ul>" +
-		"<li>On first start <i>Mode Switcher</i> will fetch your current settings into <i>Default Mode</i> which is actived when no other mode is active</li>" +
+		"<li>On first start <i>Mode Switcher</i> will fetch your current settings into <i>Default Mode</i> which is activated when no other mode is active</li>" +
 		"<li>You can create basic <i>Normal Modes</i> and special <i>Modifier Modes</i> which can be activated manually or set to activate automatically</li>" + 
 		"<li>Only one <i>Normal Mode</i> can be active at once and it overrides settings from <i>Default Mode</i>, name of the mode is shown in Top Bar</li>" +
 		"<li>Multiple <i>Modifier Modes</i> can be active at once and they override settings from <i>Normal Modes</i>, indicated with '+' sign in Top Bar</li>" +
@@ -14,6 +14,11 @@ function StartupAssistant() {
 	this.secondMessage = $L("Please consider making a <a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=7A4RPR9ZX3TYS&lc=FI&item_name=Mode%20Switcher%20Application&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted\">donation</a> if you wish to show your appreciation.");
 
 	this.newMessages = [
+	{
+		version: '2.0.1', log: [
+			'Bug fix release, see wiki for details'
+		]
+	},
 	{
 		version: '2.0.0', log: [
 			'<b>Requires WebOS 2.0.0 or newer to work!</b>',

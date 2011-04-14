@@ -140,7 +140,7 @@ TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config,
 		}
 	}
 	
-	console.error("MS - Trigger - Launch " + startNModes.length + " " + closeNModes.length);
+	console.error("MS - Trigger - Launch " + startNModes.length + " " + closeNModes.length + " " + startMModes.length + " " + closeMModes.length);
 	
 	if((startNModes.length == 0) && (startMModes.length == 0) && 
 		(closeNModes.length == 0) && (closeMModes.length == 0))

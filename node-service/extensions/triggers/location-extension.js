@@ -296,7 +296,7 @@ var locationTriggers = (function() {
 				if(index != -1)
 					config.active.splice(index, 1);
 			
-				if(tmpTime < time)
+				if(tmpTime < config.refresh)
 					config.refresh = tmpTime;
 			}
 		}

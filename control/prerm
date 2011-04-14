@@ -15,6 +15,9 @@ APPS=/media/cryptofs/apps
 
 [ -d $APPS ] || { echo "Requires webOS 1.3.5 or later" ; exit 1 ; }
 
+# Remove the cache file
+rm -f /var/cache/configurator/_media_cryptofs_apps_usr_palm_services_${SID}_configuration_db_permissions_${SID}
+
 # Remove the upstart file
 rm -f /var/palm/event.d/${PID}
 

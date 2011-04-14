@@ -462,7 +462,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 							((modesA[loop][i].appssrvs.list[j].event == "switch") && (roundPhase == "init")) ||
 							((modesA[loop][i].appssrvs.list[j].event == "switched") && (roundPhase == "done"))) &&
 							((((newActiveModes[0].type != "default") ||
-							(oldActiveModes[0].type == "default")) && 
+							(oldActiveModes.length == 0) || (oldActiveModes[0].type == "default")) && 
 							((events[loop] == "start") || (events[loop] == "started"))) ||
 							(modesA[loop][i].appssrvs.list[j].force == "yes") || 
 							(((newActiveModes[0].type == "default") || 
@@ -488,7 +488,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 				if(control[i].action == "trigger") {
 					for(var j = 0; j < config.customModes.length; j++) {
 						if((config.customModes[j].type == "normal") &&
-							(config.customModes[j].autoStartMode != 0) &&
+							(config.customModes[j].start != 0) &&
 							(config.customModes[j].name != newActiveModes[0].name) &&
 							(this.checkModeTriggers(future, config, config.customModes[j])))
 						{
@@ -510,7 +510,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 							(utils.findArray(newActiveModes, "name", config.customModes[j].name) == -1))
 						{
 							if((control[i].action == "start") ||
-								((config.customModes[j].autoStartMode != 0) &&
+								((config.customModes[j].start != 0) &&
 								(this.checkModeTriggers(future, config, config.customModes[j]))))
 							{
 								changed = true;

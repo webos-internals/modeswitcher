@@ -137,7 +137,7 @@ var bluetoothTriggers = (function() {
 				(args.$activity.trigger.notification == "notifnconnected")) ||
 				((index != -1) && (((args.$activity.trigger.error) &&
 				(args.$activity.trigger.notification == "notifnconnected")) ||
-				(args.$activity.trigger.notification == "notifndisconnected"))))
+				(args.$activity.trigger.notification == "notifndisconnecting"))))
 			{
 				if((trigger.state == 0) && ((trigger.profile == "any") || 
 					(trigger.profile == profile)))
@@ -244,7 +244,7 @@ var bluetoothTriggers = (function() {
 			}
 			else if((index != -1) && (((args.$activity.trigger.error) &&
 				(args.$activity.trigger.notification == "notifnconnected")) ||
-				(args.$activity.trigger.notification == "notifndisconnected")))
+				(args.$activity.trigger.notification == "notifndisconnecting")))
 			{
 				config.connected.splice(index, 1);			
 			}
