@@ -68,6 +68,9 @@ EmailConfig.prototype.setup = function(defaultChoiseLabel) {
 		'labelPlacement': "left", 'modelProperty': "emailSyncInterval",
 		'choices': this.choicesEmailSyncSelector});
 
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	// Listen for change event for ringtone selector
 	
 	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.propertyChange, 
@@ -247,6 +250,46 @@ EmailConfig.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+EmailConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "EmailAccountHelp") {
+		var helpTitle = "Account Selector";
+
+		var helpText = "This only selects the account for which the settings are shown below. Note that the account settings wont get updated automatically if you add new accounts. You need to re-add the settings into your modes for the new accounts to show up.";
+	}
+	else if(event.originalEvent.target.id == "EmailBlinkHelp") {
+		var helpTitle = "Blink";
+
+		var helpText = "Email blink notification setting. When enabled, the gesture area blinks when there is new emails.";
+	}
+	else if(event.originalEvent.target.id == "EmailAlertHelp") {
+		var helpTitle = "Alert";
+
+		var helpText = "Email notification alert setting. The sound alert type for new email notification.";
+	}
+	else if(event.originalEvent.target.id == "EmailRingtoneHelp") {
+		var helpTitle = "Ringtone";
+
+		var helpText = "Email notification ringtone setting. The ringtone for new email notification alert.";
+	}
+	else if(event.originalEvent.target.id == "EmailSyncHelp") {
+		var helpTitle = "Get Email";
+
+		var helpText = "Email synchronization setting. The interval configuration for checking new emails.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

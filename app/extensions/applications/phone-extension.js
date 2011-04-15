@@ -25,6 +25,9 @@ PhoneConfig.prototype.setup = function() {
 	this.controller.setupWidget("PhoneNumberText", { 'hintText': $L("Enter phone number..."), 
 		'multiline': false, 'enterSubmits': false, 'focus': false, 
 		'textCase': Mojo.Widget.steModeLowerCase, 'modelProperty': "launchNumber"} );
+
+	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -70,5 +73,30 @@ PhoneConfig.prototype.save = function(extensionConfig) {
 		'params': params };
 	
 	return extensionPreferences;
+}
+
+//
+
+PhoneConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "PhoneLaunchHelp") {
+		var helpTitle = "Launch";
+
+		var helpText = "Determines when the application is started.";
+	}
+	else if(event.originalEvent.target.id == "PhoneNumberHelp") {
+		var helpTitle = "Number";
+
+		var helpText = "Number string to prefill for the dialing. Can be used to set call redirection etc.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

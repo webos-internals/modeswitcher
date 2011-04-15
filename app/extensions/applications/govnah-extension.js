@@ -68,6 +68,9 @@ GovnahConfig.prototype.setup = function() {
 		'labelPlacement': "left", 'modelProperty': "closeProfile",
 		'choices': this.choicesGovnahCloseSelector});
 
+	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	// Listen for change event for action selector
 	
 	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.propertyChange, 
@@ -178,6 +181,36 @@ GovnahConfig.prototype.save = function(appConfig) {
 	}
 		
 	return appPreferences;
+}
+
+//
+
+GovnahConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "GovnahLaunchHelp") {
+		var helpTitle = "Launch";
+
+		var helpText = "Determines when the application is launched.";
+	}
+	else if(event.originalEvent.target.id == "GovnahStartHelp") {
+		var helpTitle = "On Start";
+
+		var helpText = "Determines which profile is requested to be set when the mode starts.";
+	}
+	else if(event.originalEvent.target.id == "GovnahCloseHelp") {
+		var helpTitle = "On Close";
+
+		var helpText = "Determines which profile is requested to be set when the mode closes.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

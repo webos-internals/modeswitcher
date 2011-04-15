@@ -27,6 +27,9 @@ BrowserConfig.prototype.setup = function() {
 	this.controller.setupWidget("BrowserURLText", { 'hintText': $L("Enter URL to load..."), 
 		'multiline': false, 'enterSubmits': false, 'focus': false, 
 		'textCase': Mojo.Widget.steModeLowerCase, 'modelProperty': "launchURL"});
+
+	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -77,5 +80,30 @@ BrowserConfig.prototype.save = function(extensionConfig) {
 		'params': params };
 	
 	return extensionPreferences;
+}
+
+//
+
+BrowserConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "BrowserLaunchHelp") {
+		var helpTitle = "Launch";
+
+		var helpText = "Determines when the application is launched.";
+	}
+	else if(event.originalEvent.target.id == "BrowserURLHelp") {
+		var helpTitle = "URL";
+
+		var helpText = "Address to load when browser is started.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

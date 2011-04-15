@@ -20,6 +20,9 @@ SilentswConfig.prototype.setup = function() {
 	this.controller.setupWidget("SilentswStateSelector", {'label': $L("State"), 
 		'labelPlacement': "left", 'modelProperty': "silentswState",
 		'choices': this.choicesSwitchStateSelector});
+
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -57,5 +60,25 @@ SilentswConfig.prototype.save = function(extensionConfig) {
 		'state': state };
 	
 	return extensionPreferences;
+}
+
+//
+
+SilentswConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "SilentswStateHelp") {
+		var helpTitle = "State";
+
+		var helpText = "State of the silent switch when the mode should be active.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

@@ -1,4 +1,12 @@
-<div id="main">
+<div id="mode" class="config">
+	<div class="palm-page-header multi-line">
+		<div class="palm-page-header-wrapper">
+			<div class="help-toggle" id="help-toggle" x-mojo-tap-highlight="persistent"></div>
+			<div class="icon"></div>
+			<div class="title">Mode Configuration</div>
+		</div>
+	</div>
+
 	<div id="ConfigurationView" style="display:none">
 		<div style="min-height:3px;"> </div>
 
@@ -8,6 +16,7 @@
 			<div class="palm-list">
 				<div class='palm-row single'>
 					<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="NameTextHelp"></div>
 						<div class='textfield-group' x-mojo-focus-highlight="true">
 							<div class="title">
 								<div id="NameText" x-mojo-element="TextField"></div>
@@ -26,6 +35,7 @@
 			<div class="palm-list">
 				<div class='palm-row single'>
 					<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="ModeTypeHelp"></div>
 						<div id="ModeTypeSelector" x-mojo-element="ListSelector"></div>
 					</div>
 				</div>
@@ -41,11 +51,13 @@
 				<div class="palm-list">
 					<div class='palm-row first'>
 				 		<div class='palm-row-wrapper'>
+							<div class="help-overlay" id="ModeStartHelp"></div>
 							<div id="StartSelector" x-mojo-element="ListSelector"></div>
 						</div>
 					</div>
 					<div class='palm-row last'>
 				 		<div class='palm-row-wrapper'>
+							<div class="help-overlay" id="ModeCloseHelp"></div>
 							<div id="CloseSelector" x-mojo-element="ListSelector"></div>
 						</div>
 					</div>
@@ -60,11 +72,13 @@
 				<div class="palm-list">
 					<div class='palm-row first'>
 				 		<div class='palm-row-wrapper'>
+							<div class="help-overlay" id="ModeStartupHelp"></div>
 							<div id="StartupSelector" x-mojo-element="ListSelector"></div>
 						</div>
 					</div>
 					<div class='palm-row last'>
 				 		<div class='palm-row-wrapper'>
+							<div class="help-overlay" id="ModeAppsHelp"></div>
 							<div id="AppsSelector" x-mojo-element="ListSelector"></div>
 						</div>
 					</div>
@@ -82,11 +96,13 @@
 			<div class="palm-list">
 				<div class='palm-row first'>
 					<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="SettingsNotifyHelp"></div>
 						<div id="NotifySelector" x-mojo-element="ListSelector"></div>
 					</div>
 				</div>
 				<div class='palm-row last'>
 					<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="SettingsAlertHelp"></div>
 						<div id="AlertSelector" x-mojo-element="ListSelector"></div>
 					</div>
 				</div>
@@ -111,11 +127,13 @@
 			<div class="palm-list">
 				<div class='palm-row first'>
 					<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="AppsStartHelp"></div>
 						<div  id="AppsStartSelector" x-mojo-element="ListSelector"></div>
 					</div>
 				</div>
 				<div class='palm-row last'>
 					<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="AppsCloseHelp"></div>
 						<div  id="AppsCloseSelector" x-mojo-element="ListSelector"></div>
 					</div>
 				</div>
@@ -140,11 +158,13 @@
 			<div class="palm-list">
 				<div class='palm-row first'>
 			 		<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="TriggersRequiredHelp"></div>
 				 		<div id="RequiredSelector" x-mojo-element="ListSelector"></div>
 			 		</div>
 				</div>
 				<div class='palm-row last'>
 			 		<div class='palm-row-wrapper'>
+						<div class="help-overlay" id="TriggersBlockHelp"></div>
 				 		<div id="BlockSelector" x-mojo-element="ListSelector"></div>
 			 		</div>
 				</div>

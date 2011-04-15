@@ -27,6 +27,9 @@ WirelessConfig.prototype.setup = function() {
 		'multiline': false, 'enterSubmits': false, 'focus': true, 
 		'textCase': Mojo.Widget.steModeLowerCase, 'modelProperty': "wirelessSSID"}); 
 
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	// Listen for state selector change event
 
 	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.propertyChange, 
@@ -73,6 +76,31 @@ WirelessConfig.prototype.save = function(extensionConfig) {
 		'ssid': extensionConfig.wirelessSSID };
 	
 	return extensionPreferences;
+}
+
+//
+
+WirelessConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "WirelessStateHelp") {
+		var helpTitle = "State";
+
+		var helpText = "When the mode should be started / closed. Mode can be set to be active when connected / disconnected to certain wireless network.";
+	}
+	else if(event.originalEvent.target.id == "WirelessSSIDHelp") {
+		var helpTitle = "SSID";
+
+		var helpText = "SSID limitation for the wireless networks that activate the mode.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

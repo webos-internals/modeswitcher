@@ -27,6 +27,9 @@ ApplicationConfig.prototype.setup = function() {
 		'labelPlacement': "left", 'modelProperty': "applicationId",
 		'choices': this.choicesApplicationSelector});
 
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	this.listApplications();
 }
 
@@ -63,6 +66,31 @@ ApplicationConfig.prototype.save = function(triggerConfig) {
 		'appId': triggerConfig.applicationId };
 	
 	return triggerPreferences;
+}
+
+//
+
+ApplicationConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "ApplicationStateHelp") {
+		var helpTitle = "State";
+
+		var helpText = "When the mode should be started / closed.<br><br><b>On Foregound:</b> mode active when application is running on foreground.<br><b>On Background:</b> mode active when application is in background or closed.";
+	}
+	else if(event.originalEvent.target.id == "ApplicationIdHelp") {
+		var helpTitle = "Application";
+
+		var helpText = "The application that triggers starting / closing of the mode.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

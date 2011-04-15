@@ -32,6 +32,9 @@ CaleventConfig.prototype.setup = function() {
 		'multiline': false, 'enterSubmits': false, 'focus': true, 
 		'textCase': Mojo.Widget.steModeLowerCase, 'modelProperty': "caleventMatch"}); 
 
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	this.retrieveCalendarAccounts();
 }
 
@@ -66,6 +69,36 @@ CaleventConfig.prototype.save = function(extensionConfig) {
 		'matchText': extensionConfig.caleventMatch };
 	
 	return extensionPreferences;
+}
+
+//
+
+CaleventConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "CaleventCalendarHelp") {
+		var helpTitle = "Calendar";
+
+		var helpText = "Calendar limitation for mode being started / closed.";
+	}
+	else if(event.originalEvent.target.id == "CaleventMatchHelp") {
+		var helpTitle = "Active On";
+
+		var helpText = "Controls when the mode is active, when the text below is matched or when its not matched to the calendar event.";
+	}
+	else if(event.originalEvent.target.id == "CaleventTextHelp") {
+		var helpTitle = "Text to Match";
+
+		var helpText = "Text to be matched on calendar events subject / location / note fields.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

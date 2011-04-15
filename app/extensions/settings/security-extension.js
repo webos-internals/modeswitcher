@@ -56,6 +56,9 @@ SecurityConfig.prototype.setup = function(defaultChoiseLabel) {
 		'labelPlacement': "left", 'modelProperty': "securityLockTimeout",
 		'choices': this.choicesSecurityTimeoutSelector});
 
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	// Listen for keyboard event for secret text field
 
 	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.propertyChange, 
@@ -161,6 +164,45 @@ SecurityConfig.prototype.save = function(extensionConfig) {
 	}
 
 	return extensionPreferences;
+}
+
+//
+
+SecurityConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "SecurityLockHelp") {
+		var helpTitle = "Unlock Mode";
+
+		var helpText = "Security lock mode setting. Lock mode for screen when turned off.";
+	}
+	else if((event.originalEvent.target.id == "SecurityPINHelp") ||
+		(event.originalEvent.target.id == "SecurityPINHelp2"))
+	{
+		var helpTitle = "PIN Code";
+
+		var helpText = "PIN code for the screen lock. When the entered pins match the second input field gets hidden.";
+	}
+	else if((event.originalEvent.target.id == "SecurityPWHelp") ||
+		(event.originalEvent.target.id == "SecurityPWHelp2"))
+	{
+		var helpTitle = "Password";
+
+		var helpText = "Password for the screen lock. When entered passwords match the second input field gets hidden.";
+	}
+	else if(event.originalEvent.target.id == "SecurityTimeoutHelp") {
+		var helpTitle = "Lock After";
+
+		var helpText = "Security timeout setting. Timeout for the security lock to take place after turning screen off.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

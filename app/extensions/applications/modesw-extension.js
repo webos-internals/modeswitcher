@@ -26,7 +26,7 @@ ModeswConfig.prototype.setup = function() {
 		{'label': $L("After Mode Close"), value: "closed"},
 		{'label': $L("After Mode Switch"), value: "switched"} ];  
 
-	this.controller.setupWidget("ModeswProcessSelector", {'label': $L("Process"), 
+	this.controller.setupWidget("ModeswProcessSelector", {'label': $L("Execute"), 
 		'labelPlacement': "left", 'modelProperty': "modeProcess",
 		'choices': this.choicesModeswProcessSelector});
 	
@@ -44,6 +44,9 @@ ModeswConfig.prototype.setup = function() {
 	this.controller.setupWidget("ModeswModeSelector", {'label': $L("Mode"), 
 		'labelPlacement': "left", 'modelProperty': "modeName",
 		'choices': this.choicesModeswModeSelector});
+
+	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 
 	// Listen for change event for action selector
 	
@@ -109,6 +112,36 @@ ModeswConfig.prototype.save = function(extensionConfig) {
 		'force': force };
 	
 	return extensionPreferences;
+}
+
+//
+
+ModeswConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "ModeswProcessHelp") {
+		var helpTitle = "Execute";
+
+		var helpText = "Determines when the action is executed, before or after processing modes settings and apps.<br><br><b>Before/After Mode Start:</b> before/after processing when this mode is started.<br><b>Before/After Mode Close:</b> before/after processing when this mode is closed.<br><b>Before Mode Switch:</b> before processing when switched to this mode.<br><b>After Mode Switch:</b> after processing when switched to this mode.";
+	}
+	else if(event.originalEvent.target.id == "ModeswActionHelp") {
+		var helpTitle = "Action";
+
+		var helpText = "Action to be executed when processed. Can be used to start/close/trigger modes and to enable/disable triggers. Trigger mode means that mode is started if its triggers are valid and closed if its triggers are not valid.";
+	}
+	else if(event.originalEvent.target.id == "ModeswModeHelp") {
+		var helpTitle = "Mode";
+
+		var helpText = "Mode or modes to start/close/trigger. If you change the target modes name then you need to remove and re-add this configuration.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

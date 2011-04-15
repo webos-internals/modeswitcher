@@ -27,24 +27,6 @@ ScreenConfig.prototype.setup = function(defaultChoiseLabel) {
 	this.controller.setupWidget("ScreenBrightnessSlider", {'minValue': -1, 'maxValue': 100, 
 		'round': true, 'modelProperty': "screenBrightnessLevel"});
 
-	this.choicesBlinkSelector = [
-		{'label': defaultChoiseLabel, 'value': -1},		
-		{'label': $L("Enabled"), 'value': 1},
-		{'label': $L("Disabled"), 'value': 0} ];  
-
-	this.controller.setupWidget("ScreenBlinkSelector", {'label': $L("Blink Notify"), 
-		'labelPlacement': "left", 'modelProperty': "screenBlinkNotify",
-		'choices': this.choicesBlinkSelector});
-
-	this.choicesLockedSelector = [
-		{'label': defaultChoiseLabel, 'value': -1},		
-		{'label': $L("Enabled"), 'value': 1},
-		{'label': $L("Disabled"), 'value': 0} ];  
-
-	this.controller.setupWidget("ScreenLockedSelector", {'label': $L("Locked Notify"), 
-		'labelPlacement': "left", 'modelProperty': "screenLockedNotify",
-		'choices': this.choicesBlinkSelector});
-
 	if(this.prefs.advancedPrefs) {
 		this.choicesTimeoutSelector = [
 			{'label': defaultChoiseLabel, 'value': -1},
@@ -65,9 +47,27 @@ ScreenConfig.prototype.setup = function(defaultChoiseLabel) {
 			{'label': "3 " + $L("Minutes"), 'value': 180} ];  
 	}
 		
-	this.controller.setupWidget("ScreenTimeoutSelector",	{'label': $L("Turn off After"), 
+	this.controller.setupWidget("ScreenTimeoutSelector",	{'label': $L("Turn Off After"), 
 		'labelPlacement': "left", 'modelProperty': "screenTurnOffTimeout",
 		'choices': this.choicesTimeoutSelector});
+
+	this.choicesBlinkSelector = [
+		{'label': defaultChoiseLabel, 'value': -1},		
+		{'label': $L("Enabled"), 'value': 1},
+		{'label': $L("Disabled"), 'value': 0} ];  
+
+	this.controller.setupWidget("ScreenBlinkSelector", {'label': $L("Blink Notify"), 
+		'labelPlacement': "left", 'modelProperty': "screenBlinkNotify",
+		'choices': this.choicesBlinkSelector});
+
+	this.choicesLockedSelector = [
+		{'label': defaultChoiseLabel, 'value': -1},		
+		{'label': $L("Enabled"), 'value': 1},
+		{'label': $L("Disabled"), 'value': 0} ];  
+
+	this.controller.setupWidget("ScreenLockedSelector", {'label': $L("Locked Notify"), 
+		'labelPlacement': "left", 'modelProperty': "screenLockedNotify",
+		'choices': this.choicesBlinkSelector});
 
 	this.choicesWallpaperSelector = [
 		{'label': defaultChoiseLabel, 'value': ""},
@@ -76,6 +76,9 @@ ScreenConfig.prototype.setup = function(defaultChoiseLabel) {
 	this.controller.setupWidget("ScreenWallpaperSelector", {'label': $L("Wallpaper"), 
 		'labelPlacement': "left", 'modelProperty': "screenWallpaperName",
 		'choices': this.choicesWallpaperSelector});
+
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 			
 	// Listen for tap event for wallpaper selector
 	
@@ -152,6 +155,46 @@ ScreenConfig.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+ScreenConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "ScreenBrightnessHelp") {
+		var helpTitle = "Brightness";
+
+		var helpText = "Screen brightness setting. Sets the brightness level for the display.";
+	}
+	else if(event.originalEvent.target.id == "ScreenTimeoutHelp") {
+		var helpTitle = "Turn Off After";
+
+		var helpText = "Screen timeout setting. Idle timeout for the screen to turn off.";
+	}
+	else if(event.originalEvent.target.id == "ScreenBlinkHelp") {
+		var helpTitle = "Blink Notify";
+
+		var helpText = "Blink notification setting. Global control for blink notifications.";
+	}
+	else if(event.originalEvent.target.id == "ScreenLockedHelp") {
+		var helpTitle = "Locked Notify";
+
+		var helpText = "Locked notifications setting. When enabled, notifications are shown on the lock screen.";
+	}
+	else if(event.originalEvent.target.id == "ScreenWallpaperHelp") {
+		var helpTitle = "Wallpaper";
+
+		var helpText = "Screen wallpaper setting. Wallpaper image to set as screen background.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

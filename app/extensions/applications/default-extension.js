@@ -21,6 +21,9 @@ DefaultConfig.prototype.setup = function() {
 	this.controller.setupWidget("DefaultLaunchSelector", {'label': $L("Launch"), 
 		'labelPlacement': "left", 'modelProperty': "launchMode",
 		'choices': this.choicesDefaultLaunchSelector} );
+
+	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -54,5 +57,25 @@ DefaultConfig.prototype.save = function(extensionConfig) {
 		'params': "" };
 	
 	return extensionPreferences;
+}
+
+//
+
+DefaultConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "DefaultLaunchHelp") {
+		var helpTitle = "Launch";
+
+		var helpText = "Determines when the application is launched.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

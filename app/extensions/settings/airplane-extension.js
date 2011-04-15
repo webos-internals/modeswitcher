@@ -21,6 +21,9 @@ AirplaneConfig.prototype.setup = function(defaultChoiseLabel) {
 	this.controller.setupWidget("AirplaneModeSelector", {'label': $L("Flight Mode"),	
 		'labelPlacement': "left", 'modelProperty': "airplaneFlightMode", 
 		'choices': this.choicesAirplaneModeSelector});
+
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -67,6 +70,26 @@ AirplaneConfig.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+AirplaneConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "AirplaneModeHelp") {
+		var helpTitle = "Flight Mode";
+
+		var helpText = "Airplane mode setting. When enabled, all radios (phone, wifi and bluetooth) are disabled.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

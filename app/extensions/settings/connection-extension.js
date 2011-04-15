@@ -57,6 +57,9 @@ ConnectionConfig.prototype.setup = function(defaultChoiseLabel) {
 	this.controller.setupWidget("ConnectionGPSSelector",	{'label': $L("GPS"), 
 		'labelPlacement': "left", 'modelProperty': "connectionGpsState",
 		'choices': this.choicesGPSSelector});
+
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -163,6 +166,46 @@ ConnectionConfig.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+ConnectionConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "ConnectionPhoneHelp") {
+		var helpTitle = "Phone";
+
+		var helpText = "Phone connection state. When disabled, the phones GSM/CDMA radio is turned off.";
+	}
+	else if(event.originalEvent.target.id == "ConnectionDataHelp") {
+		var helpTitle = "Phone";
+
+		var helpText = "Data connection state. When disabled, no data connection is used.";
+	}
+	else if(event.originalEvent.target.id == "ConnectionWIFIHelp") {
+		var helpTitle = "Phone";
+
+		var helpText = "Wi-Fi connection state. When disabled, the wireless connection is not used.";
+	}
+	else if(event.originalEvent.target.id == "ConnectionBTHelp") {
+		var helpTitle = "Phone";
+
+		var helpText = "Bluetooth connection state. When disabled, bluetooth connection is not used.";
+	}
+	else if(event.originalEvent.target.id == "ConnectionGPSHelp") {
+		var helpTitle = "Phone";
+
+		var helpText = "GPS connection state. When disabled, the GPS connection is not used.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

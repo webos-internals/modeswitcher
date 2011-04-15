@@ -50,6 +50,9 @@ SoundConfig.prototype.setup = function(defaultChoiseLabel) {
 
 	this.controller.setupWidget("SoundMediaSlider", {'minValue': -1, 'maxValue': 100, 
 		'round': true, 'modelProperty': "soundMedia"});
+
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -102,6 +105,36 @@ SoundConfig.prototype.save = function(extensionConfig) {
 		extensionPreferences.mediaVolume = extensionConfig.soundMedia;
 	
 	return extensionPreferences;
+}
+
+//
+
+SoundConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "SoundRingerHelp") {
+		var helpTitle = "Ringer";
+
+		var helpText = "Volume level for ringer alert.";
+	}
+	else if(event.originalEvent.target.id == "SoundSystemHelp") {
+		var helpTitle = "System";
+
+		var helpText = "Volume level for system sounds.";
+	}
+	else if(event.originalEvent.target.id == "SoundMediaHelp") {
+		var helpTitle = "Media";
+
+		var helpText = "Volume level for media (audio, video etc.).";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

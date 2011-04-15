@@ -24,6 +24,9 @@ IntervalConfig.prototype.setup = function() {
 
 	this.controller.setupWidget("IntervalActiveMinutes",
 	 	{label: ' ', modelProperty: 'intervalActiveMinutes', min: 0, max: 60 }); 
+
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -60,5 +63,30 @@ IntervalConfig.prototype.save = function(extensionConfig) {
 		'activeMinutes': extensionConfig.intervalActiveMinutes };
 	
 	return extensionPreferences;
+}
+
+//
+
+IntervalConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "IntervalIntervalHelp") {
+		var helpTitle = "Interval";
+
+		var helpText = "The interval (hours and minutes) for when the mode should be started.";
+	}
+	else if(event.originalEvent.target.id == "IntervalActiveHelp") {
+		var helpTitle = "Active";
+
+		var helpText = "The active time (hours and minutes) of the mode. Mode is active for this time and closes after this time has passed.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

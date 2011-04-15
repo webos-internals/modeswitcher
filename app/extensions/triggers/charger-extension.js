@@ -34,6 +34,9 @@ ChargerConfig.prototype.setup = function() {
 	this.controller.setupWidget("ChargerOrientationSelector", {'label': $L("Orientation"), 
 		'labelPlacement': "left", 'modelProperty': "chargerOrientation",
 		'choices': this.choicesOrientationSelector});
+
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 	
 	// Listen for change event for charger selector
 	
@@ -87,6 +90,31 @@ ChargerConfig.prototype.save = function(extensionConfig) {
 		'orientation': orientation};
 	
 	return extensionPreferences;
+}
+
+//
+
+ChargerConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "ChargerSourceHelp") {
+		var helpTitle = "Charger";
+
+		var helpText = "The charger state when the mode is active. The charger events controls when mode gets started / closed.";
+	}
+	else if(event.originalEvent.target.id == "ChargerOrientationHelp") {
+		var helpTitle = "Orientation";
+
+		var helpText = "Orientation limitation for the touchstone charger. You might need to turn the phone in this orientation just before placing to the charger for the phone to pick the correct orientation.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

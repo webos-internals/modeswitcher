@@ -47,6 +47,9 @@ BatteryConfig.prototype.setup = function() {
 	this.controller.setupWidget("BatteryLowSelector", {'label': $L("Low Limit"), 
 		'labelPlacement': "left", 'modelProperty': "batteryLow",
 		'choices': this.choicesLowLimitSelector});
+
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -77,5 +80,30 @@ BatteryConfig.prototype.save = function(extensionConfig) {
 		'levelLow': extensionConfig.batteryLow };
 	
 	return extensionPreferences;
+}
+
+//
+
+BatteryConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "BatteryHighHelp") {
+		var helpTitle = "High Limit";
+
+		var helpText = "The high limit for when the mode is active. Mode is closed when battery level gets higher than this value and started when battery level gets to this or to lower level.";
+	}
+	else if(event.originalEvent.target.id == "BatteryLowHelp") {
+		var helpTitle = "Low Limit";
+
+		var helpText = "The low limit for when the mode is active. Mode is closed when battery level gets lower than this value and started when battery level gets to this or higher level.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

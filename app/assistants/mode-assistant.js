@@ -103,15 +103,6 @@ ModeAssistant.prototype.setup = function() {
 	
 	this.configurationView.style.display = 'block';
 		
-	if(this.modeIndex == 0)
-		this.itemsViewMenu = [{'label': $L("Default Mode Settings"), 'command': "configuration", 'width': 320}];
-	else
-		this.itemsViewMenu = [{'label': $L("Mode Configuration"), 'command': "configuration", 'width': 320}];
-
-	this.modelViewMenu = {'visible': true, 'items': this.itemsViewMenu};
-
-	this.controller.setupWidget(Mojo.Menu.viewMenu, undefined, this.modelViewMenu);
-
 //
 // Command menu
 //
@@ -166,6 +157,9 @@ ModeAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("NameText"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
 
+	Mojo.Event.listen(this.controller.get("NameTextHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "NameTextHelp"));
+
 	// Mode type selector
 
 	if(this.modeIndex == 0)
@@ -190,6 +184,9 @@ ModeAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("ModeTypeSelector"), Mojo.Event.propertyChange, 
 		this.setModeType.bind(this));
 
+	Mojo.Event.listen(this.controller.get("ModeTypeHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "ModeTypeHelp"));
+
 	// Auto start and close selectors
 
 	this.modelStartSelector = {'value': this.mode.start, 'disabled': false};
@@ -213,6 +210,9 @@ ModeAssistant.prototype.setup = function() {
 	
 	Mojo.Event.listen(this.controller.get("StartSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
+
+	Mojo.Event.listen(this.controller.get("ModeStartHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "ModeStartHelp"));
 		
 	this.modelCloseSelector = {'value': this.mode.close, 'disabled': false};
 
@@ -236,6 +236,9 @@ ModeAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("CloseSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
 
+	Mojo.Event.listen(this.controller.get("ModeCloseHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "ModeCloseHelp"));
+
 	// Mode startup selector
 
 	this.modelStartupSelector = {'value': this.mode.startup, 'disabled': false};
@@ -250,6 +253,9 @@ ModeAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get("StartupSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
+
+	Mojo.Event.listen(this.controller.get("ModeStartupHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "ModeStartupHelp"));
 	
 	// Apps startup selector
 	
@@ -265,6 +271,9 @@ ModeAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get("AppsSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
+
+	Mojo.Event.listen(this.controller.get("ModeAppsHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "ModeAppsHelp"));
 			
 //
 // APPLICATIONS
@@ -285,6 +294,9 @@ ModeAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("AppsStartSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
 
+	Mojo.Event.listen(this.controller.get("AppsStartHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "AppsStartHelp"));
+
 	// Application close selector
 
 	this.choicesAppsCloseSelector = [
@@ -300,6 +312,9 @@ ModeAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get("AppsCloseSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
+
+	Mojo.Event.listen(this.controller.get("AppsCloseHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "AppsCloseHelp"));
 
 	// Applications list
 
@@ -374,6 +389,9 @@ ModeAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get("NotifySelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
+
+	Mojo.Event.listen(this.controller.get("SettingsNotifyHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "SettingsNotifyHelp"));
 		
 	// Alert selector
 
@@ -399,6 +417,9 @@ ModeAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get("AlertSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
+
+	Mojo.Event.listen(this.controller.get("SettingsAlertHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "SettingsAlertHelp"));
 
 	// Settings list
 
@@ -468,6 +489,9 @@ ModeAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("RequiredSelector"), Mojo.Event.propertyChange, 
 		this.setTriggersView.bind(this));
 
+	Mojo.Event.listen(this.controller.get("TriggersRequiredHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "TriggersRequiredHelp"));
+
 	// Block selector
 
 	this.modelBlockSelector = {'value': this.mode.triggers.block, 'disabled': false};
@@ -484,6 +508,9 @@ ModeAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get("BlockSelector"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, false));
+
+	Mojo.Event.listen(this.controller.get("TriggersBlockHelp"), Mojo.Event.tap, 
+		this.helpItemTapped.bind(this, "TriggersBlockHelp"));
 
 	// Triggers list
 
@@ -548,6 +575,8 @@ ModeAssistant.prototype.setup = function() {
 
 		this.retrieveCurrentSettings(0, "everything");
 	}
+
+	this.controller.listen(this.controller.get('help-toggle'), Mojo.Event.tap, this.helpButtonTapped.bindAsEventListener(this));
 }
 
 //
@@ -840,6 +869,91 @@ ModeAssistant.prototype.setModeType = function(event) {
 	this.controller.modelChanged(this.modelSettingsList, this);
 	
 	this.setModeData(false);	
+}
+
+ModeAssistant.prototype.helpButtonTapped = function(event)
+{
+	if(this.controller.get('mode').hasClassName('help')) {
+		this.controller.get('mode').removeClassName('help');
+		event.target.removeClassName('selected');
+	}
+	else {
+		this.controller.get('mode').addClassName('help');
+		event.target.addClassName('selected');
+	}
+}
+
+ModeAssistant.prototype.helpItemTapped = function(target) {
+	if(target == "NameTextHelp") {
+		var helpTitle = "Mode Name";
+
+		var helpText = "Unique name for this mode.";
+	}
+	else if(target == "ModeTypeHelp") {
+		var helpTitle = "Mode Type";
+
+		var helpText = "Type of the mode (normal / modifier).<br><br><b>Normal Mode:</b> only one normal mode can be active at the time. Settings that are not set are taken from default mode.<br><b>Modifier Mode:</b> many modifier modes can be active at the same time and settings that are not set are left untouched.";
+	}
+	else if(target == "ModeStartHelp") {
+		var helpTitle = "Auto Start";
+
+		var helpText = "Determines how mode is started on trigger events.<br><br><b>Only Manually:</b> mode can't be started by triggers.<br><b>By Selection:</b> popup is shown with timer, when timer runs out mode is not changed.<br><b>After Timer:</b> popup is shown with timer, when timer runs out the mode is started.<br><b>Immeadiate:</b> mode is started immeadiately.";
+	}
+	else if(target == "ModeCloseHelp") {
+		var helpTitle = "Auto Close";
+
+		var helpText = "Determines how mode is closed on trigger events.<br><br><b>Only Manually:</b> mode can't be closed by triggers.<br><b>By Selection:</b> popup is shown with timer, when timer runs out mode is not changed.<br><b>After Timer:</b> popup is shown with timer, when timer runs out the mode is closed.<br><b>Immeadiate:</b> mode is closed immeadiately.";
+	}
+	else if(target == "ModeStartupHelp") {
+		var helpTitle = "On Startup";
+
+		var helpText = "Controls what mode should be started on phone startup.";
+	}
+	else if(target == "ModeAppsHelp") {
+		var helpTitle = "Applications";
+
+		var helpText = "Controls if default mode apps should be only started when mode is started on phone startup or every time.";
+	}
+	else if(target == "SettingsNotifyHelp") {
+		var helpTitle = "Notify";
+
+		var helpText = "Controls how the mode change should be notified.";
+	}
+	else if(target == "SettingsAlertHelp") {
+		var helpTitle = "Alert Mode";
+
+		var helpText = "The alert mode for mode change notification.";
+	}
+	else if(target == "AppsStartHelp") {
+		var helpTitle = "On Start";
+
+		var helpText = "Determines what to do when mode is started.";
+	}
+	else if(target == "AppsCloseHelp") {
+		var helpTitle = "On Close";
+
+		var helpText = "Determines what to do when mode is closed.";
+	}
+	else if(target == "TriggersRequiredHelp") {
+		var helpTitle = "Required";
+
+		var helpText = "Controls what triggers needs to be valid for the mode to be active.<br><br><b>All Unique:</b> one of each type of triggers needs to be valid.<br><b>One Trigger:</b> only one of the triggers needs to be valid.<br><b>Any Grouped:</b> all unique triggers from any of the groups needs to be valid.";
+	}
+	else if(target == "TriggersBlockHelp") {
+		var helpTitle = "Block Mode";
+
+		var helpText = "Can be used to block other modes triggering while this mode is active.<br><br><b>Other Modes:</b> block all other modes.<br><b>Normal Modes:</b> block all normal modes.<br><b>Modifier Modes:</b> block all modifier modes.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 ModeAssistant.prototype.setTriggersView = function(event) {

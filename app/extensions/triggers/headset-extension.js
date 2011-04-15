@@ -29,6 +29,9 @@ HeadsetConfig.prototype.setup = function() {
 	this.controller.setupWidget("HeadsetScenarioSelector", {'label': $L("Scenario"), 
 		'labelPlacement': "left", 'modelProperty': "headsetScenario",
 		'choices': this.choicesScenarioSelector});
+
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -59,5 +62,30 @@ HeadsetConfig.prototype.save = function(extensionConfig) {
 		'scenario': extensionConfig.headsetScenario };
 	
 	return extensionPreferences;
+}
+
+//
+
+HeadsetConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "HeadsetStateHelp") {
+		var helpTitle = "State";
+
+		var helpText = "Headset state when the mode should be active. Can be limited with type of the headset that determines the scenario WebOS uses for audio.";
+	}
+	else if(event.originalEvent.target.id == "HeadsetScenarioHelp") {
+		var helpTitle = "Scenario";
+
+		var helpText = "The required audio scenario for the mode to be active. The type of the headset will determine the scenario WebOS uses.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

@@ -20,6 +20,9 @@ DisplayConfig.prototype.setup = function() {
 	this.controller.setupWidget("DisplayStateSelector", {'label': $L("State"), 
 		'labelPlacement': "left", 'modelProperty': "displayLocked",
 		'choices': this.choicesStateSelector});
+
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -57,5 +60,25 @@ DisplayConfig.prototype.save = function(extensionConfig) {
 		'locked': locked };
 	
 	return extensionPreferences;
+}
+
+//
+
+DisplayConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "DisplayStateHelp") {
+		var helpTitle = "State";
+
+		var helpText = "State of the display when the mode should be active.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

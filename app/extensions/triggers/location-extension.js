@@ -41,6 +41,9 @@ LocationConfig.prototype.setup = function() {
 	this.controller.setupWidget("LocationRadiusSelector", {'label': $L("Radius"), 
 		'labelPlacement': "left", 'modelProperty': "locationRadius",
 		'choices': this.choicesRadiusSelector});
+
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 		
 	// Listen for change event for location selector
 	
@@ -113,6 +116,36 @@ LocationConfig.prototype.save = function(extensionConfig) {
 		'radius': extensionConfig.locationRadius };
 	
 	return extensionPreferences;
+}
+
+//
+
+LocationConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "LocationActiveHelp") {
+		var helpTitle = "Active";
+
+		var helpText = "Determines when mode should be active, when in or out of the location.";
+	}
+	else if(event.originalEvent.target.id == "LocationLocationHelp") {
+		var helpTitle = "Location";
+
+		var helpText = "Coordinates for the location limitation.";
+	}
+	else if(event.originalEvent.target.id == "LocationRadiusHelp") {
+		var helpTitle = "Radius";
+
+		var helpText = "Radius for the location coordinates.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

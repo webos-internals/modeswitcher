@@ -28,6 +28,9 @@ ModechangeConfig.prototype.setup = function() {
 		'labelPlacement': "left", 'modelProperty': "modechangeMode",
 		'choices': this.choicesModeNameSelector});
 
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	this.retrieveModes();
 }
 
@@ -69,6 +72,31 @@ ModechangeConfig.prototype.save = function(extensionConfig) {
 		'mode': extensionConfig.modechangeMode };
 	
 	return extensionPreferences;
+}
+
+//
+
+ModechangeConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "ModechangeStateHelp") {
+		var helpTitle = "State";
+
+		var helpText = "Required state of the mode that determines if this mode should be active or not.";
+	}
+	else if(event.originalEvent.target.id == "ModechangeModeHelp") {
+		var helpTitle = "Mode";
+
+		var helpText = "Name of the mode of the mode that determines if this mode should be active or not.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

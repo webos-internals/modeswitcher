@@ -40,6 +40,9 @@ BluetoothConfig.prototype.setup = function() {
 		'multiline': false, 'enterSubmits': false, 'focus': true, 
 		'textCase': Mojo.Widget.steModeLowerCase, 'modelProperty': "bluetoothDevice"}); 
 
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	// Listen for state selector change event
 
 	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.propertyChange, 
@@ -89,6 +92,36 @@ BluetoothConfig.prototype.save = function(extensionConfig) {
 		'device': extensionConfig.bluetoothDevice };
 	
 	return extensionPreferences;
+}
+
+//
+
+BluetoothConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "BluetoothStateHelp") {
+		var helpTitle = "State";
+
+		var helpText = "When the mode should be started / closed. Mode can be set to be active when connected / disconnected to certain profile or device.";
+	}
+	else if(event.originalEvent.target.id == "BluetoothProfileHelp") {
+		var helpTitle = "Profile";
+
+		var helpText = "Can be used to limit when the mode should be started / closed.";
+	}
+	else if(event.originalEvent.target.id == "BluetoothDeviceHelp") {
+		var helpTitle = "Device";
+
+		var helpText = "Can be used to limit when the mode should be started / closed.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

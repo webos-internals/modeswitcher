@@ -42,6 +42,9 @@ CalendarConfig.prototype.setup = function(defaultChoiseLabel) {
 		'labelPlacement': "left", 'modelProperty': "calendarRingtoneName",
 		'choices': this.choicesCalendarRingtoneSelector});
 
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	// Listen for change event for ringtone selector
 	
 	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.propertyChange, 
@@ -127,6 +130,36 @@ CalendarConfig.prototype.save = function(extensionConfig) {
 		extensionPreferences.blinkNotify = false;	
 	
 	return extensionPreferences;
+}
+
+//
+
+CalendarConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "CalendarBlinkHelp") {
+		var helpTitle = "Blink";
+
+		var helpText = "Blink notification setting for calendar reminders. When enabled, the gesture area blinks when there are calendar event reminders.";
+	}
+	else if(event.originalEvent.target.id == "CalendarAlarmHelp") {
+		var helpTitle = "Reminder";
+
+		var helpText = "Alert mode for calendar reminder notifications.";
+	}
+	else if(event.originalEvent.target.id == "CalendarRingtoneHelp") {
+		var helpTitle = "Ringtone";
+
+		var helpText = "Ringtone setting for calendar reminder notifications.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

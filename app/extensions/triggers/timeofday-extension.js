@@ -37,6 +37,9 @@ TimeofdayConfig.prototype.setup = function() {
 	this.controller.setupWidget("TimeofdayCloseTime", {'label': $L("Close"), 
 		'modelProperty': "timeofdayClose"});
 	
+	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+	
 	// Listen for change event for day selector
 	
 	this.controller.listen(this.controller.get("TriggersList"), Mojo.Event.propertyChange, 
@@ -135,6 +138,31 @@ TimeofdayConfig.prototype.save = function(extensionConfig) {
 		'closeTime': extensionConfig.timeofdayClose.getTime() };
 	
 	return extensionPreferences;
+}
+
+//
+
+TimeofdayConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "TimeofdayDaysHelp") {
+		var helpTitle = "Days";
+
+		var helpText = "Day limitation when the mode should be active.";
+	}
+	else if(event.originalEvent.target.id == "TimeofdayTimeHelp") {
+		var helpTitle = "Start and Close Time";
+
+		var helpText = "Time limitation when the mode should be active.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

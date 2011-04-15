@@ -62,6 +62,9 @@ MessagingConfig.prototype.setup = function(defaultChoiseLabel) {
 		'labelPlacement': "left", 'modelProperty': "messagingAvailability",
 		'choices': this.choicesIMStatusSelector});
 
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
+
 	// Listen for change event for ringtone selector
 	
 	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.propertyChange, 
@@ -248,6 +251,46 @@ MessagingConfig.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+MessagingConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "MessagingAccountHelp") {
+		var helpTitle = "Account Selector";
+
+		var helpText = "This only selects the account for which the settings are shown below. Note that the account settings wont get updated automatically if you add new accounts. You need to re-add the settings into your modes for the new accounts to show up.";
+	}
+	else if(event.originalEvent.target.id == "MessagingBlinkHelp") {
+		var helpTitle = "Blink";
+
+		var helpText = "Message blink notification setting. When enabled, the gesture area blinks when there is new messages.";
+	}
+	else if(event.originalEvent.target.id == "MessagingAlertHelp") {
+		var helpTitle = "Alert";
+
+		var helpText = "Message notification alert setting. The sound alert type for new messages notification.";
+	}
+	else if(event.originalEvent.target.id == "MessagingRingtoneHelp") {
+		var helpTitle = "Ringtone";
+
+		var helpText = "Message notification ringtone setting. The ringtone for new messages notification alert.";
+	}
+	else if(event.originalEvent.target.id == "MessagingIMStatusHelp") {
+		var helpTitle = "IM Status";
+
+		var helpText = "Instant messaging status setting. Status setting for instant messaging accounts.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

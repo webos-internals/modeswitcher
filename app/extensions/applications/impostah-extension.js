@@ -36,6 +36,9 @@ ImpostahConfig.prototype.setup = function() {
 	this.controller.setupWidget("ImpostahCloseSelector", {'label': $L("On Close"), 
 		'labelPlacement': "left", 'modelProperty': "impostahCloseAction",
 		'choices': this.choicesImpostahCloseSelector});
+
+	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -153,5 +156,35 @@ ImpostahConfig.prototype.save = function(extensionConfig) {
 	}
 		
 	return extensionPreferences;
+}
+
+//
+
+ImpostahConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "ImpostahLaunchHelp") {
+		var helpTitle = "Launch";
+
+		var helpText = "Determines when the application is launched.";
+	}
+	else if(event.originalEvent.target.id == "ImpostahStartHelp") {
+		var helpTitle = "On Start";
+
+		var helpText = "Determines what action is requested when mode starts.";
+	}
+	else if(event.originalEvent.target.id == "ImpostahCloseHelp") {
+		var helpTitle = "On Close";
+
+		var helpText = "Determines what action is requested when mode closes.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 

@@ -38,6 +38,9 @@ RingerConfig.prototype.setup = function(defaultChoiseLabel) {
 	this.controller.setupWidget("RingerRingtoneSelector", {'label': $L("Ringtone"), 
 		'labelPlacement': "left", 'modelProperty': "ringerRingtoneName",
 		'choices': this.choicesRingerRingtone});
+
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 		
 	// Listen for change event for ringtone selector
 	
@@ -116,6 +119,36 @@ RingerConfig.prototype.save = function(extensionConfig) {
 	}
 
 	return extensionPreferences;
+}
+
+//
+
+RingerConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "RingerOnHelp") {
+		var helpTitle = "Switch On";
+
+		var helpText = "Ringer switch setting. Global alert mode for the phone when ringer switch is in on position.";
+	}
+	else if(event.originalEvent.target.id == "RingerOffHelp") {
+		var helpTitle = "Switch Off";
+
+		var helpText = "Ringer switch setting. Global alert mode for the phone when ringer switch is in off position.";
+	}
+	else if(event.originalEvent.target.id == "RingerRingtoneHelp") {
+		var helpTitle = "Ringtone";
+
+		var helpText = "Ringer ringtone setting. Ringtone for phone calls when ringer switch is in on position.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //

@@ -42,6 +42,9 @@ NetworkConfig.prototype.setup = function(defaultChoiseLabel) {
 		'labelPlacement': "left", 'modelProperty': "networkVoice", 
 		"disabledProperty": "disabledVoice",
 		'choices': this.choicesVoiceRoamingSelector});
+
+	this.controller.listen(this.controller.get("SettingsList"), Mojo.Event.listTap, 
+		this.helpItemTapped.bind(this));
 }
 
 //
@@ -131,6 +134,36 @@ NetworkConfig.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+NetworkConfig.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "NetworkTypeHelp") {
+		var helpTitle = "Network Type";
+
+		var helpText = "Network type setting. Can be used to limit the connection type.";
+	}
+	else if(event.originalEvent.target.id == "NetworkDataHelp") {
+		var helpTitle = "Data Roaming";
+
+		var helpText = "Data roaming setting. When disabled data connection is not allowed when roaming.";
+	}
+	else if(event.originalEvent.target.id == "NetworkVoiceHelp") {
+		var helpTitle = "Voice Roaming";
+
+		var helpText = "Voice roaming setting. Can be used to force or disabled roaming for voice connection.";
+	}
+	else
+		return;
+	
+	this.controller.showAlertDialog({
+		title: helpTitle,
+		message: "<div style='text-align:justify;'>" + helpText + "</div>",
+		choices:[{"label": "Close", "command": "close"}],
+		preventCancel: false,
+		allowHTMLMessage: true
+	});
 }
 
 //
