@@ -71,7 +71,7 @@ var emailSettings = (function() {
 					if((settingsNew.syncInterval[accId] != undefined) && ((!settingsOld.syncInterval) ||
 						(settingsOld.syncInterval[accId] != settingsNew.syncInterval[accId])))
 					{
-						params.syncFrequencyMins = settingsNew.syncInterval[accId];
+						params.syncFrequencyMins = parseInt(settingsNew.syncInterval[accId]);
 					}
 				
 					if((params.notifications.blink != undefined) || (params.notifications.type != undefined) ||  

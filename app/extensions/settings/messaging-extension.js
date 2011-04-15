@@ -245,7 +245,7 @@ MessagingConfig.prototype.save = function(extensionConfig) {
 			if((extensionConfig.messagingAvailabilityCfg[accId] != undefined) && 
 				(extensionConfig.messagingAvailabilityCfg[accId] != -1))
 			{
-				extensionPreferences.availability[accId] = extensionConfig.messagingAvailabilityCfg[accId];
+				extensionPreferences.availability[accId] = parseInt(extensionConfig.messagingAvailabilityCfg[accId]);
 			}
 		}
 	}

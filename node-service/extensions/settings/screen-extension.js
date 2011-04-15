@@ -30,10 +30,10 @@ var screenSettings = (function() {
 			var params = {};
 
 			if((settingsNew.brightnessLevel != undefined) && (settingsOld.brightnessLevel != settingsNew.brightnessLevel))
-				params.maximumBrightness = settingsNew.brightnessLevel;
+				params.maximumBrightness = parseInt(settingsNew.brightnessLevel);
 
 			if((settingsNew.turnOffTimeout != undefined) && (settingsOld.turnOffTimeout != settingsNew.turnOffTimeout))
-				params.timeout = settingsNew.turnOffTimeout;
+				params.timeout = parseInt(settingsNew.turnOffTimeout);
 			
 			if((params.maximumBrightness != undefined) || (params.timeout != undefined)) {
 				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {

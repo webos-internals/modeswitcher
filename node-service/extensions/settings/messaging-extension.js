@@ -116,7 +116,7 @@ var messagingSettings = (function() {
 						if((settingsNew.availability[accId] != undefined) && ((!settingsOld.availability) ||
 							(settingsOld.availability[accId] != settingsNew.availability[accId])))
 						{
-							params.availability = settingsNew.availability[accId];
+							params.availability = parseInt(settingsNew.availability[accId]);
 						}
 				
 						if(params.availability != undefined) {

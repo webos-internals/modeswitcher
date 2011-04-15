@@ -113,7 +113,7 @@ CalendarConfig.prototype.save = function(extensionConfig) {
 	extensionPreferences.databaseId = extensionConfig.calendarDatabaseId;
 	
 	if(extensionConfig.calendarReminderAlert != -1)
-		extensionPreferences.reminderAlert = extensionConfig.calendarReminderAlert;
+		extensionPreferences.reminderAlert = parseInt(extensionConfig.calendarReminderAlert);
 	
 	if(extensionConfig.calendarReminderAlert == 2) {
 		if((extensionConfig.calendarRingtoneName) && 	

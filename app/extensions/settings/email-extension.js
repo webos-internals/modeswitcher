@@ -244,7 +244,7 @@ EmailConfig.prototype.save = function(extensionConfig) {
 				if(extensionConfig.emailSyncIntervalCfg[accId] == 1000000)
 					extensionPreferences.syncInterval[accId] = -1;
 				else
-					extensionPreferences.syncInterval[accId] = extensionConfig.emailSyncIntervalCfg[accId];
+					extensionPreferences.syncInterval[accId] = parseInt(extensionConfig.emailSyncIntervalCfg[accId]);
 			}
 		}
 	}

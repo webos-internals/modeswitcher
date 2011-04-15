@@ -138,10 +138,10 @@ ScreenConfig.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 
 	if(extensionConfig.screenBrightnessLevel != -1)
-		extensionPreferences.brightnessLevel = extensionConfig.screenBrightnessLevel;
+		extensionPreferences.brightnessLevel = parseInt(extensionConfig.screenBrightnessLevel);
 
 	if(extensionConfig.screenTurnOffTimeout != -1)
-		extensionPreferences.turnOffTimeout = extensionConfig.screenTurnOffTimeout;
+		extensionPreferences.turnOffTimeout = parseInt(extensionConfig.screenTurnOffTimeout);
 	
 	if(extensionConfig.screenBlinkNotify != -1)
 		extensionPreferences.blinkNotify = extensionConfig.screenBlinkNotify;

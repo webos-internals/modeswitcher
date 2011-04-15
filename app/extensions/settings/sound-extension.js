@@ -96,13 +96,13 @@ SoundConfig.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.soundRinger != -1)
-		extensionPreferences.ringerVolume = extensionConfig.soundRinger;
+		extensionPreferences.ringerVolume = parseInt(extensionConfig.soundRinger);
 
 	if(extensionConfig.soundSystem != -1)
-		extensionPreferences.systemVolume = extensionConfig.soundSystem;
+		extensionPreferences.systemVolume = parseInt(extensionConfig.soundSystem);
 
 	if(extensionConfig.soundMedia != -1)
-		extensionPreferences.mediaVolume = extensionConfig.soundMedia;
+		extensionPreferences.mediaVolume = parseInt(extensionConfig.soundMedia);
 	
 	return extensionPreferences;
 }

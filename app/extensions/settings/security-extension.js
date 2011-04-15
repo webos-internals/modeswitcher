@@ -144,7 +144,7 @@ SecurityConfig.prototype.save = function(extensionConfig) {
 		{
 			extensionPreferences.lockSecret = extensionConfig.securityLockSecretPIN;
 
-			extensionPreferences.lockTimeout = extensionConfig.securityLockTimeout;
+			extensionPreferences.lockTimeout = parseInt(extensionConfig.securityLockTimeout);
 		}
 		else
 			extensionPreferences.lockMode = "none";		
@@ -157,7 +157,7 @@ SecurityConfig.prototype.save = function(extensionConfig) {
 		{
 			extensionPreferences.lockSecret = extensionConfig.securityLockSecretPW;
 
-			extensionPreferences.lockTimeout = extensionConfig.securityLockTimeout;
+			extensionPreferences.lockTimeout = parseInt(extensionConfig.securityLockTimeout);
 		}
 		else
 			extensionPreferences.lockMode = "none";		

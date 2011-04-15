@@ -27,7 +27,7 @@ var soundSettings = (function() {
 			var params = {};
 
 			if((settingsNew.ringerVolume != undefined) && (settingsOld.ringerVolume != settingsNew.ringerVolume))
-				params.volume = settingsNew.ringerVolume;
+				params.volume = parseInt(settingsNew.ringerVolume);
 
 			if(params.volume != undefined) {
 				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
@@ -43,7 +43,7 @@ var soundSettings = (function() {
 			var params = {};
 
 			if((settingsNew.systemVolume != undefined) && (settingsOld.systemVolume != settingsNew.systemVolume))
-				params.volume = settingsNew.systemVolume;
+				params.volume = parseInt(settingsNew.systemVolume);
 
 			if(params.volume != undefined) {
 				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
@@ -66,7 +66,7 @@ var soundSettings = (function() {
 				var params = {'scenario': "media_headset_mic"};
 
 			if((settingsNew.mediaVolume != undefined) && (settingsOld.mediaVolume != settingsNew.mediaVolume))
-				params.volume = settingsNew.mediaVolume;
+				params.volume = parseInt(settingsNew.mediaVolume);
 
 			if(params.volume != undefined) {
 				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {

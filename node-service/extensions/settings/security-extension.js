@@ -50,7 +50,7 @@ var securitySettings = (function() {
 			var params = {};
 
 			if((settingsNew.lockTimeout != undefined) && (settingsOld.lockTimeout != settingsNew.lockTimeout))
-				params.lockTimeout = settingsNew.lockTimeout;
+				params.lockTimeout = parseInt(settingsNew.lockTimeout);
 
 			if(params.lockTimeout != undefined) {
 				future.nest(PalmCall.call("palm://com.palm.systemservice/", "setPreferences", params));

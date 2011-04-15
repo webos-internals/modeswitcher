@@ -32,8 +32,8 @@ SupportAssistant.prototype.setup = function() {
 	this.controller.listen(this.controller.get('WikiLink'), Mojo.Event.tap, 
 		this.openUrl.bind(this, "wiki"));
 
-	this.controller.listen(this.controller.get('ManualLink'), Mojo.Event.tap, 
-		this.openUrl.bind(this, "manual"));
+	this.controller.listen(this.controller.get('IRCLink'), Mojo.Event.tap, 
+		this.openUrl.bind(this, "irc"));
 
 	this.controller.listen(this.controller.get('ForumLink'), Mojo.Event.tap, 
 		this.openUrl.bind(this, "forum"));
@@ -132,10 +132,10 @@ SupportAssistant.prototype.parseMessages = function(data) {
 SupportAssistant.prototype.openUrl = function(link) {
 	if(link == "wiki")
 		window.open('http://www.webos-internals.org/wiki/Application:ModeSwitcher');
-	else if(link == "manual")
-		window.open('http://www.improvmasta.org/palm/modeswitcher-manual-current.pdf');
+	else if(link == "irc")
+		window.open('http://webchat.freenode.net?channels=webos-internals');
 	else if(link == "forum")
-		window.open('http://forums.precentral.net/homebrew-apps/224544-mode-switcher.html');
+		window.open('http://forums.precentral.net/enlightened-linux-solutions/279166-app-mode-switcher-2-x.html');
 }
 
 SupportAssistant.prototype.sendEmail = function(link) {
@@ -145,7 +145,7 @@ SupportAssistant.prototype.sendEmail = function(link) {
        text: "If you think that Mode Switcher is not working correctly then " +
        	"please use the 'Report Problem' action in the menu instead of sending " +
        	"this email. Also before contacting me you should have tried to find answer " +
-       	"to your question from other resources such as the Wiki, Manual and Forum.",
+       	"to your question from other resources such as the Wiki and Forum.",
        recipients: [{
            type:"email",
            role:1,
