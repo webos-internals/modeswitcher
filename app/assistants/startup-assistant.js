@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.0.5', log: [
+			'Several bug fixes and few logic fixes, see wiki for details.'
+		]
+	},
+	{
 		version: '2.0.4', log: [
 			'Small bug fixes, see wiki for details.'
 		]

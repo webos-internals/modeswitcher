@@ -319,7 +319,10 @@ SecurityConfig.prototype.handleGetResponse = function(requestID, extensionConfig
 		
 			extensionConfig.securityLockRow = "single";
 			extensionConfig.securityPinDisplay = "none";
+			extensionConfig.securityPinDisplay2 = "none";
 			extensionConfig.securityPwDisplay = "none";
+			extensionConfig.securityPwDisplay2 = "none";
+			extensionConfig.securityTimeoutDisplay = "none";
 
 			extensionConfig.securityLockSecretPIN = "";
 			extensionConfig.securityLockSecretPW = "";
@@ -329,12 +332,16 @@ SecurityConfig.prototype.handleGetResponse = function(requestID, extensionConfig
 			if(extensionConfig.securityLockMode == 1) {
 				extensionConfig.securityLockRow = "first";
 				extensionConfig.securityPinDisplay = "block";
+				extensionConfig.securityPinDisplay2 = "block";
+				extensionConfig.securityTimeoutDisplay = "block";
 				extensionConfig.securityLockSecretPIN = "";
 				extensionConfig.securityLockSecretPIN2 = "";
 			}
 			else if(extensionConfig.securityLockMode == 2) {
 				extensionConfig.securityLockRow = "first";
 				extensionConfig.securityPwDisplay = "block";
+				extensionConfig.securityPwDisplay2 = "block";
+				extensionConfig.securityTimeoutDisplay = "block";
 				extensionConfig.securityLockSecretPW = "";
 				extensionConfig.securityLockSecretPW2 = "";
 			}

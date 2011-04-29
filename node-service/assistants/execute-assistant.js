@@ -5,7 +5,7 @@ var ExecuteCommandAssistant = function() {
 
 ExecuteCommandAssistant.prototype.setup = function() {  
 }
-  
+
 ExecuteCommandAssistant.prototype.run = function(future) {  
 	console.error("MS - Execute - Run - " + JSON.stringify(this.controller.args));
 
@@ -432,7 +432,7 @@ ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, m
 ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, newActiveModes, roundPhase, roundCount) {  
 	console.error("Executing mode updating: " + roundPhase + " " + roundCount);
 
-	var lockCtl = 0;
+	var lockedState = config.modeLocked;
 	var changed = false;
 	var control = new Array();
 
@@ -470,9 +470,9 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 							((events[loop] == "close") || (events[loop] == "closed"))))) 
 						{
 							if(modesA[loop][i].appssrvs.list[j].action == "lock")
-								lockCtl = 1;
+								lockedState = true;
 							else if(modesA[loop][i].appssrvs.list[j].action == "unlock")
-								lockCtl = 2;
+								lockedState = false;
 							else		
 								control.push(modesA[loop][i].appssrvs.list[j]);
 						}
@@ -562,28 +562,19 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 			}
 		}
 	}
-	
-	if(roundPhase == "init") {
-		if((changed) && (roundCount < 5))
-			this.prepareModeChange(future, config, newActiveModes, "init", ++roundCount);
-		else {
+
+	if((changed) && (roundCount < 5))
+		this.prepareModeChange(future, config, newActiveModes, "init", ++roundCount);
+	else {	
+		if(roundPhase == "init")
 			this.executeModeChange(future, config, newActiveModes, "done", roundCount);
-		}
-	}
-	else if(roundPhase == "done") {
-		if((changed) && (roundCount < 5))
-			this.prepareModeChange(future, config, newActiveModes, "init", ++roundCount);
-		else {
-			this.updateHistoryList(future, config, newActiveModes[0]);
-
-			var lockedState = config.modeLocked;
-
-			if(lockCtl == 1)
-				lockedState = true;
-			else if(lockCtl == 2)
-				lockedState = false;
-
-			future.nest(prefs.save({modeLocked: lockedState, activeModes: newActiveModes}));
+		else if(roundPhase == "done") {
+			var newHistoryList = this.updateHistoryList(future, config, newActiveModes[0]);
+			
+			future.nest(prefs.save({
+				modeLocked: lockedState,
+				activeModes: newActiveModes, 
+				historyList: newHistoryList}));
 				
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
@@ -676,6 +667,9 @@ ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, confi
 					newCloseAllStartedApps = true;
 
 				for(var j = 0; j < newActiveModes[i].appssrvs.list.length; j++) {
+					if(config.extensions.appssrvs.indexOf(newActiveModes[i].appssrvs.list[j].extension) == -1)
+						continue;
+				
 					if(newActiveModes[i].appssrvs.list[j].type == "ms")
 						continue;
 				
@@ -697,6 +691,9 @@ ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, confi
 					oldCloseAllStartedApps = true;
 
 				for(var j = 0; j < oldActiveModes[i].appssrvs.list.length; j++) {
+					if(config.extensions.appssrvs.indexOf(oldActiveModes[i].appssrvs.list[j].extension) == -1)
+						continue;
+
 					if(oldActiveModes[i].appssrvs.list[j].type == "ms")
 						continue;
 
@@ -750,9 +747,9 @@ ExecuteCommandAssistant.prototype.updateHistoryList = function(future, config, n
 			(config.activeModes[0].name != newActiveMode.name))
 		{
 			if(config.historyList.length == 0)
-				config.historyList.push({'name': newActiveMode.name});
+				config.historyList.push({'name': config.activeModes[0].name});
 			else {
-				config.historyList.unshift(newActiveMode.name);
+				config.historyList.unshift({'name': config.activeModes[0].name});
 
 				if(config.historyList.length > 10)
 					config.historyList.splice(10, 1);
@@ -764,5 +761,7 @@ ExecuteCommandAssistant.prototype.updateHistoryList = function(future, config, n
 				config.historyList.shift();
 		}
 	}
+	
+	return config.historyList;
 }
 

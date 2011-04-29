@@ -25,6 +25,40 @@ var bluetoothTriggers = (function() {
 
 //
 
+	var initExtension = function(config) {
+		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+			'id': "com.palm.app.bluetooth", 'service': "com.palm.btmonitor/monitor", 
+			'method': "getradiostate", 'params': {}}); 
+	
+		future.then(this, function(future) {
+			if(future.result.radio == "on") {
+				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+					'id': "com.palm.app.bluetooth", 'service': "com.palm.bluetooth/prof", 
+					'method': "profgetstate", 'params': {'profile': "all"}})); 
+
+				future.then(this, function(future) {
+					var profiles = future.result.profiles;
+					
+					for(var i = 0; i < profiles.length; i++) {
+						var devices = future.result[profiles[i]];
+						
+						for(var j = 0; j < devices.length; j++) {
+							if((devices[j].name != undefined) && (devices[j].state == "connected")) {
+								config.connected.push({'device': devices[j].name.toLowerCase(), 'profile': profiles[i]});
+							}
+						}
+					}
+				
+					future.result = { returnValue: true };
+				});
+			}
+			else
+				future.result = { returnValue: true };
+		});
+	
+		return future;
+	}
+
 	var addActivity = function(config) {
 		var newActivity = {
 			"start" : true,
@@ -177,10 +211,14 @@ var bluetoothTriggers = (function() {
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
-			future.nest(addActivity(config));
-			
+			future.nest(initExtension(config));
+
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.nest(addActivity(config));
+			
+				future.then(this, function(future) {
+					future.result = { returnValue: true };
+				});
 			});
 		}
 

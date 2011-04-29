@@ -203,7 +203,7 @@ var prefs = (function() {
 
 // FIXME: temp override
 
-			result.extensions.appssrvs = ["browser", "default", "govnah", "impostah", "modesw", "phone"];
+			result.extensions.appssrvs = ["browser", "default", "govnah", "modesw", "phone", "systools"];
 			result.extensions.settings = ["airplane", "calendar", "connection", "email", "messaging", "network", "ringer", "screen", "security", "sound"];
 			result.extensions.triggers = ["application", "battery", "bluetooth", "calevent", "charger", "display", "headset", "interval", "location", "modechange", "silentsw", "timeofday", "wireless"];
 		

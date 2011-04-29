@@ -36,9 +36,9 @@
 	{ "source": "app/extensions/applications/default-extension.js" },
 	{ "source": "app/extensions/applications/browser-extension.js" },
 	{ "source": "app/extensions/applications/govnah-extension.js" },
-	{ "source": "app/extensions/applications/impostah-extension.js" },
 	{ "source": "app/extensions/applications/modesw-extension.js" },
 	{ "source": "app/extensions/applications/phone-extension.js" },
+	{ "source": "app/extensions/applications/systools-extension.js" },
  
 	{ "source": "app/extensions/settings/airplane-extension.js" },
 	{ "source": "app/extensions/settings/calendar-extension.js" },

@@ -11,28 +11,45 @@ var apps = (function() {
 		for(var i = 0; i < closeApps.length; i++) {
 			if(closeApps[i].type == "srv") {
 				var closeSrv = closeApps.splice(i--, 1)[0];
+
+				if(closeSrv.method.close != undefined)
+					var method = closeSrv.method.close;
+				else
+					var method = closeSrv.method;
+
+				if(closeSrv.params.close != undefined)
+					var params = closeSrv.params.close;
+				else
+					var params = closeSrv.params;
+
+				try {eval("var parameters = " + params);} catch(error) {var parameters = {};}
 				
-				console.error("Executing service closing: " + closeSrv.name + " " + closeSrv.params.close);
+				console.error("Executing service closing: " + closeSrv.name + " " + method + " " + JSON.stringify(parameters));
 
-				var params = closeSrv.params.close;
 
-				try {eval("var parameters = " + params);} catch(error) {var parameters = "";}
-
-				PalmCall.call(closeSrv.url, closeSrv.method, parameters);
+				PalmCall.call(closeSrv.url, method, parameters);
 			}
 		}
 		
 		for(var i = 0; i < startApps.length; i++) {
 			if(startApps[i].type == "srv") {
 				var startSrv = startApps.splice(i--, 1)[0];
+
+				if(startSrv.method.start != undefined)
+					var method = startSrv.method.start;
+				else
+					var method = startSrv.method;
+
+				if(startSrv.params.start != undefined)
+					var params = startSrv.params.start;
+				else
+					var params = startSrv.params;
+
+				try {eval("var parameters = " + params);} catch(error) {var parameters = {};}
 				
-				console.error("Executing service starting: " + startSrv.name + " " + startSrv.params.start);
+				console.error("Executing service starting: " + startSrv.name + " " + method + " " + JSON.stringify(parameters));
 
-				var params = startSrv.params.start;
-
-				try {eval("var parameters = " + params);} catch(error) {var parameters = "";}
-
-				PalmCall.call(startSrv.url, startSrv.method, parameters);
+				PalmCall.call(startSrv.url, method, parameters);
 			}
 		}
 
@@ -72,7 +89,7 @@ var apps = (function() {
 			for(var i = 0; i < closeApps.length; i++) {
 				var appid = null;
 				var processid = 0;
-	
+
 				if(closeApps[i].processid == undefined) {
 					/*for(var j = 0; j < config.startedApps.length; j++) {
 						if((config.startedApps[j].appid == closeApps[i].appid) &&
@@ -101,18 +118,18 @@ var apps = (function() {
 						{
 							appid = runningApps[k].id;
 							processid = runningApps[k].processid;
-				
-							break;
+
+							if((appid) && (processid))
+								executeClose(appid, processid);
 						}
 					}				
 				}
 				else {
-					appid = closeApps[i].appid;
+					appid = closeApps[i].id;
 					processid = closeApps[i].processid;
-				}
-		
-				if((appid) && (processid)) {
-					executeClose(appid, processid);
+
+					if((appid) && (processid))
+						executeClose(appid, processid);
 				}
 			}
 
