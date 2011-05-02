@@ -161,6 +161,10 @@ var apps = (function() {
 			PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
 				'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
 				'method': "close", 'params': {'processId': processId}});
+
+			PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
+				'method': "close", 'params': {'processId': processId}});
 		}
 	};
 
