@@ -15,6 +15,16 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.0.7', log: [
+			'Fixed modifier modes getting closed when closing mode bug.'
+		]
+	},
+	{
+		version: '2.0.6', log: [
+			'Couple small bug fixes, see wiki for details.'
+		]
+	},
+	{
 		version: '2.0.5', log: [
 			'Several bug fixes and few logic fixes, see wiki for details.'
 		]

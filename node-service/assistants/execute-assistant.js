@@ -161,10 +161,10 @@ ExecuteCommandAssistant.prototype.executeCloseMode = function(future, config, ar
 
 			if(args.name != "Current Mode") {
 				for(var i = 1; i < config.activeModes.length; i++) {
-					var index = utils.findArray(config.customModes, "name", config.activeModes[i]);
+					var index = utils.findArray(config.customModes, "name", config.activeModes[i].name);
 		
 					if((index != -1) && (config.customModes[index].type == "modifier")) {
-						if(config.activeModes[i] != args.name)
+						if(config.activeModes[i].name != args.name)
 							newActiveModes.push(config.customModes[index]);
 					}
 				}
