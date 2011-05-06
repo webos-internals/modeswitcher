@@ -26,25 +26,27 @@ AppAssistant.prototype.handleLaunch = function(params) {
 
 		var appController = Mojo.Controller.getAppController();
 
-		if((params.event == "error") && (params.error == "loop"))
+		if(params.event == "error")
 			appController.showBanner($L("Error: Mode change was aborted"), {action: 'none'});
-		else if(params.event == "start")
-			appController.showBanner($L("Starting mode") + ": " + params.name, {action: 'none'});
-		else if(params.event == "close")
-			appController.showBanner($L("Closing mode") + ": " + params.name, {action: 'none'});
-		else if(params.event == "switch")
-			appController.showBanner($L("Switching mode to") + ": " + params.name, {action: 'none'});
-		else if(params.event == "reload")	
-			appController.showBanner($L("Reloading current system settings"), {action: 'none'});
-		else if(params.event == "update")	
-			appController.showBanner($L("Updating current system settings"), {action: 'none'});
 		else if(params.event == "unknown")	
 			appController.showBanner($L("Unknown mode name") + ": " + params.name, {action: 'none'});	
-
-		if(params.alert == 2) {
+		else if((params.notify == 2) || (params.notify == 5) || (params.notify == 6)) {
+			if(params.event == "start")
+				appController.showBanner($L("Starting mode") + ": " + params.name, {action: 'none'});
+			else if(params.event == "close")
+				appController.showBanner($L("Closing mode") + ": " + params.name, {action: 'none'});
+			else if(params.event == "switch")
+				appController.showBanner($L("Switching mode to") + ": " + params.name, {action: 'none'});
+			else if(params.event == "reload")	
+				appController.showBanner($L("Reloading current system settings"), {action: 'none'});
+			else if(params.event == "update")	
+				appController.showBanner($L("Updating current system settings"), {action: 'none'});
+		}
+		
+		if((params.notify == 3) || (params.notify == 5)) {
 			appController.playSoundNotification("notifications");
 		}
-		else if(params.alert == 3) {
+		else if((params.notify == 4) || (params.notify == 6)) {
 			appController.playSoundNotification("vibrate");			
 		}
 	}
@@ -94,11 +96,11 @@ AppAssistant.prototype.executeLaunch = function(params) {
 				
 			var stageArgs = {name: "popup", lightweight: true, height: 177};
 
-			if(params.alert == 1)
+			if((params.alert == 1) || (params.alert == 2))
 				stageArgs.soundclass = "none"
-			else if(params.alert == 2)
+			else if((params.notify == 3) || (params.notify == 5))
 				stageArgs.soundclass = "notifications";
-			else if(params.alert == 3)
+			else if((params.notify == 4) || (params.notify == 6))
 				stageArgs.soundclass = "vibrate";
 			
 			this.controller.createStageWithCallback(stageArgs, 

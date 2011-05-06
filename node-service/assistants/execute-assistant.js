@@ -92,24 +92,17 @@ ExecuteCommandAssistant.prototype.executeStartMode = function(future, config, ar
 
 			// Notify about the mode starting.
 		
-			var alert = 1, notify = 1;
-		
-			if(requestedMode.settings.alert != 0)
-				alert = requestedMode.settings.alert;
-			else
-				alert = config.customModes[0].settings.alert;
-		
 			if(requestedMode.settings.notify != 0)
-				notify = requestedMode.settings.notify;
+				var notify = requestedMode.settings.notify;
 			else
-				notify = config.customModes[0].settings.notify;
+				var notify = config.customModes[0].settings.notify;
 		
 			if((requestedMode.type == "default") || (config.activeModes.length == 0))
-				utils.notify(alert, notify, requestedMode.name, "start");
+				utils.notify(notify, requestedMode.name, "start");
 			else if(requestedMode.type == "normal")
-				utils.notify(alert, notify, newActiveModes[0].name, "switch");
+				utils.notify(notify, newActiveModes[0].name, "switch");
 			else if(requestedMode.type == "modifier")
-				utils.notify(alert, notify, requestedMode.name, "start");
+				utils.notify(notify, requestedMode.name, "start");
 			
 			// Initiate the actual updating of the mode.
 
@@ -172,24 +165,17 @@ ExecuteCommandAssistant.prototype.executeCloseMode = function(future, config, ar
 			
 			// Notify about the mode closing.
 
-			var alert = 1, notify = 1;
-		
-			if(requestedMode.settings.alert != 0)
-				alert = requestedMode.settings.alert;
-			else
-				alert = config.customModes[0].settings.alert;
-		
 			if(requestedMode.settings.notify != 0)
-				notify = requestedMode.settings.notify;
+				var notify = requestedMode.settings.notify;
 			else
-				notify = config.customModes[0].settings.notify;
+				var notify = config.customModes[0].settings.notify;
 
 			if(requestedMode.type == "default")
-				utils.notify(alert, notify, requestedMode.name, "close");
+				utils.notify(notify, requestedMode.name, "close");
 			else if(requestedMode.type == "normal")
-				utils.notify(alert, notify, newActiveModes[0].name, "switch");
+				utils.notify(notify, newActiveModes[0].name, "switch");
 			else if(requestedMode.type == "modifier")
-				utils.notify(alert, notify, requestedMode.name, "close");
+				utils.notify(notify, requestedMode.name, "close");
 
 			// Initiate the actual updating of the mode.
 
@@ -217,7 +203,7 @@ ExecuteCommandAssistant.prototype.executeToggleMode = function(future, config, a
 		else if(utils.findArray(config.customModes, "name", args.name) != -1)
 			this.executeStartMode(future, config, args);
 		else {
-			utils.notify(0, 2, null, "unknown");
+			utils.notify(5, args.name, "unknown");
 
 			future.result = { returnValue: false, errorText: "Mode not found" };
 		}
@@ -241,7 +227,7 @@ ExecuteCommandAssistant.prototype.executeReloadMode = function(future, config, a
 
 			// On reload inform the user even if notifications are disabled.
 
-			utils.notify(0, 2, null, "reload");
+			utils.notify(2, "Current Mode", "reload");
 
 			if((config.activeModes.length > 0) && (config.customModes.length > 0)) {
 				var curActiveModes = [config.customModes[0]];
@@ -299,20 +285,19 @@ ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, a
 				newActiveModes.push(config.customModes[index]);
 		}
 
-		if(newActiveModes[0].settings.alert != 0)
-			var alert = newActiveModes[0].settings.alert;
-		else
-			var alert = config.customModes[0].settings.alert;
-
 		if(newActiveModes[0].settings.notify != 0)
 			var notify = newActiveModes[0].settings.notify;
 		else
 			var notify = config.customModes[0].settings.notify;
 
-		if(args.popup)
-			utils.notify(0, notify, null, "update");
-		else
-			utils.notify(alert, notify, null, "update");			
+		if(args.popup) {
+			if((notify == 3) || (notify == 4))
+				notify = 1;
+			else if((notify == 5) || (notify == 6))
+				notify = 2;
+		}
+
+		utils.notify(notify, "Current Mode", "update");			
 
 		this.prepareModeChange(future, config, newActiveModes, "init", 0);
 	}
@@ -584,8 +569,8 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 	else {
 		if(roundCount == 5) {
 			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-				'id': "org.webosinternals.modeswitcher", 'params': {
-					'action': "notify", 'alert': 2, 'event': "error", 'error': "loop"}});
+				'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+					'notify': 5, 'name': "Current Mode", 'event': "error"}});
 		}
 		
 		if(roundPhase == "init")

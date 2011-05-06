@@ -5,22 +5,10 @@ var utils = (function() {
 
 	var PalmCall = Foundations.Comms.PalmCall;
 
-	that.notify = function(alert, notify, mode, event) {
-		if((mode) && (notify == 2)) {
-			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-				'id': "org.webosinternals.modeswitcher", 'params': {
-					'action': "notify", 'alert': alert, 'event': event, 'name': mode}});
-		}
-		else if((event == "reload") || (event == "update")) {
-			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-				'id': "org.webosinternals.modeswitcher", 'params': {
-					'action': "notify", 'alert': alert, 'event': event, 'name': "none"}});
-		}
-		else if((mode) && (notify == 1)) {
-			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-				'id': "org.webosinternals.modeswitcher", 'params': {
-					'action': "notify", 'alert': alert, 'event': "none", 'name': mode}});
-		}
+	that.notify = function(notify, mode, event) {
+		PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+			'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+				'notify': notify, 'name': mode, 'event': event}});
 	};
 
 	that.extend = function(targetObject, sourceObject) {

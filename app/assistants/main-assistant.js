@@ -370,8 +370,8 @@ MainAssistant.prototype.handleDefModeButtonPress = function() {
 		this.customModes[0] = {'_id': id, 
 			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1,
 			'appssrvs': {'start': 0, 'close': 0, 'list': []},
-			'settings': {'notify': 2, 'alert': 1, 'list': []},
-			'triggers': {'require': 0, 'block': 0, 'list': []}
+			'settings': {'notify': 2, 'list': []},
+			'triggers': {'require': 0, 'list': []}
 		};
 			
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
@@ -454,9 +454,8 @@ MainAssistant.prototype.importAllModes = function(modes) {
 				if((mode.appssrvs != undefined) && (mode.appssrvs.start != undefined) && 
 					(mode.appssrvs.close != undefined) && (mode.appssrvs.list != undefined) &&
 					(mode.settings != undefined) && (mode.settings.notify != undefined) && 
-					(mode.settings.alert != undefined) && (mode.settings.list != undefined) &&
 					(mode.triggers != undefined) && (mode.triggers.require != undefined) &&
-					(mode.triggers.block != undefined) && (mode.triggers.list != undefined))
+					(mode.settings.list != undefined) && (mode.triggers.list != undefined))
 				{
 					if((mode.name == undefined) || (mode.name.length == 0) || 
 						(mode.name == "Current Mode") || (mode.name == "Previous Mode") ||

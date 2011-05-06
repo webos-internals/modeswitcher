@@ -374,13 +374,21 @@ ModeAssistant.prototype.setup = function() {
 	if(this.mode.type == "default") {
 		this.choicesNotifySelector = [
 			{'label': $L("Disabled"), 'value': 1},
-			{'label': $L("Use Banner"), 'value': 2}];  
+			{'label': $L("Only Banner"), 'value': 2},
+			{'label': $L("Only Sound"), 'value': 3},
+			{'label': $L("Only Vibrate"), 'value': 4},
+			{'label': $L("Banner + Sound"), 'value': 5},
+			{'label': $L("Banner + Vibrate"), 'value': 6}];  
 	}
 	else {
 		this.choicesNotifySelector = [
 			{'label': $L("Default"), 'value': 0},
 			{'label': $L("Disabled"), 'value': 1},
-			{'label': $L("Use Banner"), 'value': 2}];  
+			{'label': $L("Only Banner"), 'value': 2},
+			{'label': $L("Only Sound"), 'value': 3},
+			{'label': $L("Only Vibrate"), 'value': 4},
+			{'label': $L("Banner + Sound"), 'value': 5},
+			{'label': $L("Banner + Vibrate"), 'value': 6}];  
 	}
 		
 	this.controller.setupWidget("NotifySelector", {'label': $L("Notify"), 
@@ -393,34 +401,6 @@ ModeAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("SettingsNotifyHelp"), Mojo.Event.tap, 
 		this.helpItemTapped.bind(this, "SettingsNotifyHelp"));
 		
-	// Alert selector
-
-	this.modelAlertSelector = {'value': this.mode.settings.alert, 'disabled': false};
-
-	if(this.mode.type == "default") {
-		this.choicesAlertSelector = [
-			{'label': $L("No Alert"), 'value': 1},
-			{'label': $L("Sound"), 'value': 2},
-			{'label': $L("Vibrate"), 'value': 3}];  
-	}
-	else {
-		this.choicesAlertSelector = [
-			{'label': $L("Default"), 'value': 0},
-			{'label': $L("No Alert"), 'value': 1},
-			{'label': $L("Sound"), 'value': 2},
-			{'label': $L("Vibrate"), 'value': 3}];  
-	}
-		
-	this.controller.setupWidget("AlertSelector",	{'label': $L("Alert Mode"), 
-		'labelPlacement': "left", 'choices': this.choicesAlertSelector}, 
-		this.modelAlertSelector);
-
-	Mojo.Event.listen(this.controller.get("AlertSelector"), Mojo.Event.propertyChange, 
-		this.setModeData.bind(this, false));
-
-	Mojo.Event.listen(this.controller.get("SettingsAlertHelp"), Mojo.Event.tap, 
-		this.helpItemTapped.bind(this, "SettingsAlertHelp"));
-
 	// Settings list
 
 	this.modelSettingsList = {'items': this.mode.settings.list};
@@ -491,26 +471,6 @@ ModeAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get("TriggersRequiredHelp"), Mojo.Event.tap, 
 		this.helpItemTapped.bind(this, "TriggersRequiredHelp"));
-
-	// Block selector
-
-	this.modelBlockSelector = {'value': this.mode.triggers.block, 'disabled': false};
-
-	this.choicesBlockSelector = [
-		{'label': $L("No Blocking"), 'value': 0},
-		{'label': $L("Other Modes"), 'value': 1},
-		{'label': $L("Normal Modes"), 'value': 2},
-		{'label': $L("Modifier Modes"), 'value': 3}];  
-
-	this.controller.setupWidget("BlockSelector",	{ 'label': $L("Block Mode"), 
-		'labelPlacement': 'left', 'choices': this.choicesBlockSelector},
-		this.modelBlockSelector);	
-
-	Mojo.Event.listen(this.controller.get("BlockSelector"), Mojo.Event.propertyChange, 
-		this.setModeData.bind(this, false));
-
-	Mojo.Event.listen(this.controller.get("TriggersBlockHelp"), Mojo.Event.tap, 
-		this.helpItemTapped.bind(this, "TriggersBlockHelp"));
 
 	// Triggers list
 
@@ -586,16 +546,16 @@ ModeAssistant.prototype.getModeData = function(config) {
 		var mode = {
 			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1,
 			'appssrvs': {'start': 0, 'close': 0, 'list': []},
-			'settings': {'notify': 2, 'alert': 1, 'list': []},
-			'triggers': {'require': 0, 'block': 0, 'list': []}
+			'settings': {'notify': 2, 'list': []}, 
+			'triggers': {'require': 0, 'list': []}
 		};
 	}
 	else {
 		var mode = {
 			'name': "", 'type': "normal", 'start': 1, 'close': 1,
 			'appssrvs': {'start': 0, 'close': 1, 'list': []},
-			'settings': {'notify': 0, 'alert': 0, 'list': []},
-			'triggers': {'require': 0, 'block': 0, 'list': []}
+			'settings': {'notify': 0, 'list': []},
+			'triggers': {'require': 0, 'list': []}
 		};		
 	}
 	
@@ -639,7 +599,6 @@ ModeAssistant.prototype.getModeData = function(config) {
 			this.unloaded.appssrvs.push(config.appssrvs.list[i]);
 	}
 
-	mode.settings.alert = config.settings.alert;
 	mode.settings.notify = config.settings.notify;
 
 	for(var i = 0; i < config.settings.list.length; i++) {
@@ -657,7 +616,6 @@ ModeAssistant.prototype.getModeData = function(config) {
 	}
 
 	mode.triggers.require = config.triggers.require;
-	mode.triggers.block = config.triggers.block;
 
 	for(var i = 0; i < config.triggers.list.length; i++) {
 		var ext = config.triggers.list[i].extension;
@@ -701,16 +659,16 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 		var mode = {
 			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1,
 			'appssrvs': {'start': 0, 'close': 0, 'list': []},
-			'settings': {'notify': 2, 'alert': 1, 'list': []},
-			'triggers': {'require': 0, 'block': 0, 'list': []}
+			'settings': {'notify': 2, 'list': []},
+			'triggers': {'require': 0, 'list': []}
 		};
 	}
 	else {
 		var mode = {
 			'name': "", 'type': "normal", 'start': 1, 'close': 1,
 			'appssrvs': {'start': 0, 'close': 1, 'list': []},
-			'settings': {'notify': 0, 'alert': 0, 'list': []},
-			'triggers': {'require': 0, 'block': 0, 'list': []}
+			'settings': {'notify': 0, 'list': []},
+			'triggers': {'require': 0, 'list': []}
 		};
 	}
 
@@ -756,7 +714,6 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 		mode.appssrvs.list.push(this.unloaded.appssrvs[i]);
 
 	mode.settings.notify = 	this.modelNotifySelector.value;
-	mode.settings.alert = this.modelAlertSelector.value;
 		
 	for(var i = 0; i < this.loaded.settings.length; i++) {
 		var ext = this.loaded.settings[i].extension;
@@ -774,7 +731,6 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 		mode.settings.list.push(this.unloaded.settings[i]);
 
 	mode.triggers.require = this.modelRequiredSelector.value;
-	mode.triggers.block = this.modelBlockSelector.value;
 
 	for(var i = 0; i < this.loaded.triggers.length; i++) {
 		if((this.loaded.triggers[i].group == undefined) || 
@@ -832,7 +788,6 @@ ModeAssistant.prototype.setModeType = function(event) {
 			{'label': $L("Immediate"), 'value': 3} ];  
 
 		this.choicesNotifySelector[0].label = $L("Default");
-		this.choicesAlertSelector[0].label = $L("Default");
 
 		this.controller.defaultChoiseLabel = $L("Default");
 
@@ -852,7 +807,6 @@ ModeAssistant.prototype.setModeType = function(event) {
 			{'label': $L("Immediate"), 'value': 3} ];  
 
 		this.choicesNotifySelector[0].label = $L("Do Not Set");
-		this.choicesAlertSelector[0].label = $L("Do Not Set");
 
 		this.controller.defaultChoiseLabel = $L("Do Not Set");
 
@@ -864,7 +818,6 @@ ModeAssistant.prototype.setModeType = function(event) {
 	this.controller.modelChanged(this.modelCloseSelector, this);
 
 	this.controller.modelChanged(this.modelNotifySelector, this);
-	this.controller.modelChanged(this.modelAlertSelector, this);
 	
 	this.controller.modelChanged(this.modelSettingsList, this);
 	
@@ -919,11 +872,6 @@ ModeAssistant.prototype.helpItemTapped = function(target) {
 
 		var helpText = "Controls how the mode change should be notified.";
 	}
-	else if(target == "SettingsAlertHelp") {
-		var helpTitle = "Alert Mode";
-
-		var helpText = "The alert mode for mode change notification.";
-	}
 	else if(target == "AppsStartHelp") {
 		var helpTitle = "On Start";
 
@@ -938,11 +886,6 @@ ModeAssistant.prototype.helpItemTapped = function(target) {
 		var helpTitle = "Required";
 
 		var helpText = "Controls what triggers needs to be valid for the mode to be active.<br><br><b>All Unique:</b> one of each type of triggers needs to be valid.<br><b>One Trigger:</b> only one of the triggers needs to be valid.<br><b>Any Grouped:</b> all triggers in any group needs to be valid.";
-	}
-	else if(target == "TriggersBlockHelp") {
-		var helpTitle = "Block Mode";
-
-		var helpText = "Can be used to block other modes triggering while this mode is active.<br><br><b>Other Modes:</b> block all other modes.<br><b>Normal Modes:</b> block all normal modes.<br><b>Modifier Modes:</b> block all modifier modes.";
 	}
 	else
 		return;
@@ -1649,7 +1592,9 @@ ModeAssistant.prototype.checkModeName = function() {
 		(this.modelNameText.value == "Previous Mode") ||
 		(this.modelNameText.value == "All Modes") ||
 		(this.modelNameText.value == "All Normal Modes") ||
-		(this.modelNameText.value == "All Modifier Modes"))
+		(this.modelNameText.value == "All Modifier Modes") ||
+		(this.modelNameText.value == "Any Normal Mode") ||
+		(this.modelNameText.value == "Any Modifier Mode"))
 	{
 		this.modelNameText.value = $L("Reserved Mode Name");
 	}
@@ -1735,14 +1680,14 @@ ModeAssistant.prototype.importModeConfig = function(mode) {
 				if((mode.appssrvs != undefined) && (mode.appssrvs.start != undefined) && 
 					(mode.appssrvs.close != undefined) && (mode.appssrvs.list != undefined) &&
 					(mode.settings != undefined) && (mode.settings.notify != undefined) && 
-					(mode.settings.alert != undefined) && (mode.settings.list != undefined) &&
 					(mode.triggers != undefined) && (mode.triggers.require != undefined) &&
-					(mode.triggers.block != undefined) && (mode.triggers.list != undefined))
+					(mode.settings.list != undefined) && (mode.triggers.list != undefined))
 				{
 					if((mode.name == undefined) || (mode.name.length == 0) || 
 						(mode.name == "Current Mode") || (mode.name == "Previous Mode") ||
 						(mode.name == "All Modes") || (mode.name == "All Normal Modes") ||
-						(mode.name == "All Modifier Modes"))
+						(mode.name == "All Modifier Modes") || (mode.name == "Any Normal Mode") ||
+						(mode.name == "Any Modifier Mode"))
 					{
 						Mojo.Log.error("Invalid mode name in import");
 					}

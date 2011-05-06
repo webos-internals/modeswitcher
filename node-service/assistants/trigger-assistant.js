@@ -85,29 +85,11 @@ TriggerCommandAssistant.prototype.checkTriggerEvent = function(future, config, a
 }
 
 TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config, triggeredModes) {  
-	var blockMode = 0;
-	
 	var startNModes = [];
 	var startMModes = [];
 	var closeNModes = [];
 	var closeMModes = [];
 	
-	// Determine the trigger blocking setting from active modes.
-	
-	for(var i = 0; i < config.activeModes.length; i++) {
-		if(config.activeModes[i].type != "default") {
-			if((config.activeModes[i].triggers.block == 1) ||
-				((blockMode == 2) && (config.activeModes[i].triggers.block == 3)) ||
-				((blockMode == 3) && (config.activeModes[i].triggers.block == 2)))
-			{
-				blockMode = 1;
-				break;
-			}
-			else if(config.activeModes[i].triggers.block != 0)
-				blockMode = config.activeModes[i].triggers.block;		
-		}
-	}
-
 	// Determine the modes which should be started and / or closed.
 	
 	for(var i = 0; i < triggeredModes.length; i++) {
@@ -117,14 +99,11 @@ TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config,
 			start: triggeredModes[i].start,
 			close: triggeredModes[i].close,
 			
-			alert: triggeredModes[i].settings.alert
+			notify: triggeredModes[i].settings.notify
 		}
 	
 		if(utils.findArray(config.activeModes, "name", triggeredModes[i].name) == -1) {
-			if((triggeredModes[i].start != 0) && ((blockMode == 0) || 
-				((blockMode == 2) && (triggeredModes[i].type != "normal")) || 
-				((blockMode == 3) && (triggeredModes[i].type != "modifier"))))
-			{
+			if(triggeredModes[i].start != 0) {
 				if(this.checkModeTriggers(future, config, triggeredModes[i])) {
 					if(triggeredModes[i].type == "normal")
 						startNModes.push(modeInfo);
@@ -179,20 +158,20 @@ TriggerCommandAssistant.prototype.executeModeLaunching = function(future, config
 		for(var i = 0; i < startMModes.length; i++)
 			modifiers.push(startMModes[i].name);
 		
-		var alert = config.customModes[0].settings.alert;
+		var notify = config.customModes[0].settings.notify;
 
 		for(var i = 0; i < closeModes.length; i++) {
-			if(closeModes[i].alert > alert)
-				alert = closeModes[i].alert;
+			if(closeModes[i].notify > notify)
+				notify = closeModes[i].notify;
 		}
 
 		for(var i = 0; i < startModes.length; i++) {
-			if(startModes[i].alert > alert)
-				alert = startModes[i].alert;
+			if(startModes[i].notify > notify)
+				notify = startModes[i].notify;
 		}
 
 		future.nest(this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-			'id': "org.webosinternals.modeswitcher", 'params': { 'action': "popup", 'alert': alert, 
+			'id': "org.webosinternals.modeswitcher", 'params': { 'action': "popup", 'notify': notify, 
 				'modes': {'start': startModes, 'close': closeModes, 'modifiers': modifiers},
 				'timers': {'start': config.startTimer, 'close': config.closeTimer}}}));
 	}

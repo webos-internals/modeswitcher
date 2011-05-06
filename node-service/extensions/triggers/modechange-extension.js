@@ -85,11 +85,27 @@ var modechangeTriggers = (function() {
 //
 
 	var checkState = function(config, trigger) {
-		if((trigger.state == "on") && (config.modes.indexOf(trigger.mode) != -1))
-			return true
+		if(trigger.mode == "Any Normal Mode") {
+			if((trigger.state == "on") && (config.modes.indexOf("Default Mode") == -1))
+				return true;
 
-		if((trigger.state == "off") && (config.modes.indexOf(trigger.mode) == -1))
-			return true
+			if((trigger.state == "off") && (config.modes.indexOf("Default Mode") != -1))
+				return true;
+		}
+		else if(trigger.mode == "Any Modifier Mode") {
+			if((trigger.state == "on") && (config.modes.length > 1))
+				return true;
+
+			if((trigger.state == "off") && (config.modes.length == 1))
+				return true;
+		}
+		else {
+			if((trigger.state == "on") && (config.modes.indexOf(trigger.mode) != -1))
+				return true
+
+			if((trigger.state == "off") && (config.modes.indexOf(trigger.mode) == -1))
+				return true
+		}
 
 		return false;
 	};
@@ -98,15 +114,21 @@ var modechangeTriggers = (function() {
 		if((args.$activity) && (args.$activity.trigger) && 
 			(args.$activity.trigger.activeModes))
 		{
-			if(config.modes.indexOf(trigger.mode) == -1) {
-				for(var i = 0; i < args.$activity.trigger.activeModes.length; i++) {
-					if(args.$activity.trigger.activeModes[i].name == trigger.mode)
-						return true;
-				}
-			}
-				
-			if(config.modes.indexOf(trigger.mode) != -1)
+			if(trigger.mode == "Any Normal Mode")
 				return true;
+			else if(trigger.mode == "Any Modifier Mode")
+				return true;
+			else {
+				if(config.modes.indexOf(trigger.mode) == -1) {
+					for(var i = 0; i < args.$activity.trigger.activeModes.length; i++) {
+						if(args.$activity.trigger.activeModes[i].name == trigger.mode)
+							return true;
+					}
+				}
+				
+				if(config.modes.indexOf(trigger.mode) != -1)
+					return true;
+			}
 		}
 					
 		return false;

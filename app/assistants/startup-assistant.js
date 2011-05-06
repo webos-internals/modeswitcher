@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.0.9', log: [
+			'Small UI change and removed the unneeded trigger blocking setting.'
+		]
+	},
+	{
 		version: '2.0.8', log: [
 			'Cleanups for the app and few functional changes, see wiki for details.'
 		]
