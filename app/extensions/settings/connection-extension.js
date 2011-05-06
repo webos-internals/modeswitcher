@@ -214,7 +214,7 @@ ConnectionConfig.prototype.getSystemSettings = function(requestID, extensionConf
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 				'method': "powerQuery", 'params': {}}, 
@@ -225,14 +225,14 @@ ConnectionConfig.prototype.getSystemSettings = function(requestID, extensionConf
 			'parameters': {}, 'onComplete': requestCallback});
 	}
 	else if(requestID == 2) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.wifi", 'service': "com.palm.wifi", 
 				'method': "getstatus", 'params': {}},
 			'onComplete': requestCallback});
 	}
 	else if(requestID == 3) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.bluetooth", 'service': "com.palm.btmonitor/monitor", 
 				'method': "getradiostate", 'params': {}},

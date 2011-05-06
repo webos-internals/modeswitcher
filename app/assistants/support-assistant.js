@@ -71,16 +71,17 @@ SupportAssistant.prototype.handleCommand = function(event) {
 							
 							var position = this.messagesLogAll.lastIndexOf("\n");
 				
-							if (position)
-							{
+							if (position) {
 								this.parseMessages(this.messagesLogAll.substr(0, position));
 								this.messagesLogAll = this.messagesLogAll.substr(position);
 							}
 						}
 					}
 					else if(response.stage == "end") {
-						if(this.contents != '')
+						if(response.contents != '') {
+							this.messagesLogAll += response.contents;
 							this.parseMessages(this.messagesLogAll);
+						}
 					
 						this.controller.serviceRequest("palm://com.palm.applicationManager", {
 							method: 'open', parameters: {id: "com.palm.app.email", params: {

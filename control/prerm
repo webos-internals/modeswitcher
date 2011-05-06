@@ -3,7 +3,7 @@
 AID="org.webosinternals.modeswitcher"
 SID="org.webosinternals.modeswitcher.srv"
 
-PID="org.webosinternals.govnah"
+PID="org.webosinternals.modeswitcher.sys"
 
 # Handle execution as pmPreRemove.script
 if [ -z "$IPKG_OFFLINE_ROOT" ]; then
@@ -19,7 +19,7 @@ APPS=/media/cryptofs/apps
 rm -f /var/cache/configurator/_media_cryptofs_apps_usr_palm_services_${SID}_configuration_db_permissions_${SID}
 
 # Remove the upstart file
-rm -f /var/palm/event.d/${PID}
+rm -f /var/palm/event.d/${SID}
 
 # Remove the govnah executable
 rm -f /var/usr/sbin/${PID}

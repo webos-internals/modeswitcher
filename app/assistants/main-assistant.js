@@ -38,10 +38,9 @@ MainAssistant.prototype.setup = function() {
 	// Application menu
 	
 	this.modelAppMenu = {visible: true, items: [ 
-		{label: $L("Preferences"), command: 'prefs'},
 		{label: $L("Export Modes"), command: 'export'},
 		{label: $L("Import Modes"), command: 'import'},
-		{label: $L("Lock Mode"), command: 'lock'},
+		{label: $L("Extensions"), command: 'prefs'},
 		{label: $L("Status"), command: 'status'},
 		{label: $L("Help"), command: 'help'}]}
 	
@@ -58,6 +57,9 @@ MainAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen(this.controller.get('ActivatedButton'), 
 		Mojo.Event.propertyChange, this.toggleModeSwitcher.bind(this));
+
+	Mojo.Event.listen(this.controller.get('StatusText'), 
+		Mojo.Event.tap, this.toggleModeSwitcher.bind(this));
 
 	// Auto start & close timer selectors
 	
@@ -147,6 +149,9 @@ MainAssistant.prototype.setup = function() {
 MainAssistant.prototype.updatePreferences = function(response) {
 	this.modeLocked = response.modeLocked;
 
+	if(this.modeLocked)
+		this.controller.get("StatusText").innerHTML = "Activated & Locked";
+
 	this.modelActivatedButton.value = response.activated;
 
 	this.controller.modelChanged(this.modelActivatedButton, this);
@@ -234,37 +239,66 @@ MainAssistant.prototype.updatePreferences = function(response) {
 //
 
 MainAssistant.prototype.toggleModeSwitcher = function(event) {
-	if(this.toggling) {
-		if(this.modelActivatedButton.value)
-			this.modelActivatedButton.value = false;
-		else
-			this.modelActivatedButton.value = true;
-	
-		this.controller.modelChanged(this.modelActivatedButton, this);
-	
-		return;
-	}
+	if((event.up) && (event.up.altKey)) {
+		if((this.toggling) || (!this.modelActivatedButton.value))
+			return;
 
-	this.toggling = true;
+		this.toggling = true;
 
-	if(this.modelActivatedButton.value) {
-		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-			method: 'control', parameters: {action: "enable"},
-			onComplete: function() {
-				this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-					method: 'execute', parameters: {action: "start", name: "Default Mode"},
-					onComplete: function() {
-						this.toggling = false;
-					}.bind(this)});
-			}.bind(this)});
+		if(this.modeLocked) {
+			this.modeLocked = false;
+		
+			this.controller.get("StatusText").innerHTML = "Activated";
+		
+		 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+				method: 'control', parameters: {action: "unlock"},
+				onComplete: function() { this.toggling = false; }.bind(this)});
+		}
+		else {
+			this.modeLocked = true;
+
+			this.controller.get("StatusText").innerHTML = "Activated & Locked";
+
+		 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+				method: 'control', parameters: {action: "lock"},
+				onComplete: function() { this.toggling = false; }.bind(this)});
+		}
 	}
 	else {
-		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-			method: 'control', parameters: {action: "disable"},
-			onComplete: function() {
-				this.toggling = false;
-			}.bind(this)});					
-	}		
+		if(this.toggling) {
+			if(this.modelActivatedButton.value)
+				this.modelActivatedButton.value = false;
+			else
+				this.modelActivatedButton.value = true;
+	
+			this.controller.modelChanged(this.modelActivatedButton, this);
+	
+			return;
+		}
+
+		this.toggling = true;
+
+		this.controller.get("StatusText").innerHTML = "Activated";
+
+		if(this.modelActivatedButton.value) {
+			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+				method: 'control', parameters: {action: "enable"},
+				onComplete: function() {
+					this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+						method: 'execute', parameters: {action: "start", name: "Default Mode"},
+						onComplete: function() {
+							this.toggling = false;
+						}.bind(this)});
+				}.bind(this)});
+		}
+		else {
+			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+				method: 'control', parameters: {action: "disable"},
+				onComplete: function() {
+					this.toggling = false;
+				}.bind(this)});					
+		}		
+	}
 }
 
 //
@@ -361,43 +395,28 @@ MainAssistant.prototype.handleCommand = function(event) {
 		else if(event.command == "import") {
 			this.controller.stageController.pushScene("gdm", "importGDoc", "Modes", "[MSALL]", null, this.importAllModes.bind(this));
 		}
-		else if(event.command == "lock") {
-			if(this.modeLocked) {
-				this.modeLocked = false;
-			
-				this.modelAppMenu.items[3].label = "Lock Mode";
-				
-			 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-					method: 'control', parameters: {action: "unlock"}});
-			}
-			else {
-				this.modeLocked = true;
-
-				this.modelAppMenu.items[3].label = "Unlock Mode";
-
-			 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-					method: 'control', parameters: {action: "lock"}});
-			}
-		}
 		else if(event.command == "status") {
 			var text = "";
 			
-			if(this.modelActivatedButton.value)
-				text += "<div style='float:left;'>Activated:</div><div style='float:right;'>YES</div><br><br>";
-			else
-				text += "<div style='float:left;'>Activated:</div><div style='float:right;'>NO</div><br><br>";
+			if(this.activeModes.length == 0)
+				text += "Mode Switcher is not activated.";
+			else {
+				text += "<div style='float:left;'><b>Current Mode:</b></div><div style='float:right;'>" + this.activeModes[0].name + "</div><br><br>";
 
-			if(this.modeLocked)
-				text += "<div style='float:left;'>Mode Locked:</div><div style='float:right;'>YES</div><br><br>";
-			else
-				text += "<div style='float:left;'>Mode Locked:</div><div style='float:right;'>NO</div><br><br>";
-
-			if(this.activeModes.length > 0)
-				text += "<div style='float:left;'>Active Modes:</div><div style='float:right;'>" + this.activeModes[0].name + "</div><br>";
-
-			for(var i = 1; i < this.activeModes.length; i++)
-				text += "<div style='float:left;'></div><div style='float:right;'>" + this.activeModes[i].name + "</div><br>";
-		
+				text += "<div style='float:left;'><b>Modifier Modes:</b></div><div style='float:right;'>" + this.activeModes.length - 1 + " Active</div><br>";
+				
+				if(this.activeModes.length > 0) {
+					text += "<br>";
+					
+					for(var i = 1; i < this.activeModes.length; i++) {
+						text += this.activeModes[i].name;
+						
+						if(i < (this.activeModes.length - 1))
+							text += ", ";
+					}
+				}
+			}
+			
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'prefs', parameters: {extensions: this.extensions},
 				onComplete: function() {
@@ -463,18 +482,24 @@ MainAssistant.prototype.importAllModes = function(modes) {
 						(mode.start != undefined) && (mode.close != undefined))
 					{
 						if((value == "all") || (value == "custom")) {
-							mode.name = mode.name + " (I)";
-				
 							var index = this.customModes.search("name", mode.name);
 				
 							if(index != -1) {
-								if(this.customModes[index]._id != undefined)
-									var id = this.customModes[index]._id;
+								mode.name = mode.name + " (I)";
+
+								var index = this.customModes.search("name", mode.name);
+								
+								if(index != -1) {
+									if(this.customModes[index]._id != undefined)
+										var id = this.customModes[index]._id;
 						
-								this.customModes.splice(index, 1, mode);
+									this.customModes.splice(index, 1, mode);
 							
-								if(id != undefined)
-									this.customModes[index]._id = id;
+									if(id != undefined)
+										this.customModes[index]._id = id;
+								}
+								else
+									this.customModes.push(mode);								
 							}
 							else
 								this.customModes.push(mode);

@@ -34,7 +34,7 @@ var ringerSettings = (function() {
 				params.VibrateWhenRingerOff = settingsNew.switchOff;
 			
 			if((params.VibrateWhenRingerOn != undefined) || (params.VibrateWhenRingerOff != undefined)) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/vibrate", 
 					'method': "set", 'params': params}));
 			

@@ -359,14 +359,14 @@ EmailConfig.prototype.getSystemSettings = function(requestID, extensionConfig, d
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.email", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.account:1"}}}, 
 			'onComplete': requestCallback});	
 	}
 	else if(requestID == 1) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.email", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.mail.account:1"}}}, 

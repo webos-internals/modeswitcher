@@ -22,11 +22,11 @@ impersonate: impersonate.o luna_service.o luna_methods.o
 HOST = cdma-pre
 
 install: impersonate
-#	- ssh root@${HOST} killall org.webosinternals.impersonate
-#	scp impersonate root@${HOST}:/var/usr/sbin/org.webosinternals.impersonate.new
-#	ssh root@${HOST} mv /var/usr/sbin/org.webosinternals.impersonate.new /var/usr/sbin/org.webosinternals.impersonate
-	- novacom run file://usr/bin/killall -- org.webosinternals.impersonate
-	novacom put file://var/usr/sbin/org.webosinternals.impersonate < impersonate
+#	- ssh root@${HOST} killall org.webosinternals.modeswitcher.sys
+#	scp impersonate root@${HOST}:/var/usr/sbin/org.webosinternals.modeswitcher.sys.new
+#	ssh root@${HOST} mv /var/usr/sbin/org.webosinternals.modeswitcher.sys.new /var/usr/sbin/org.webosinternals.modeswitcher.sys
+	- novacom run file://usr/bin/killall -- org.webosinternals.modeswitcher.sys
+	novacom put file://var/usr/sbin/org.webosinternals.modeswitcher.sys < impersonate
 
 clobber:
 	rm -rf *.o impersonate

@@ -37,7 +37,7 @@ var securitySettings = (function() {
 			}
 			
 			if(params.lockMode != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.screenandlock", 'service': "com.palm.systemmanager", 
 					'method': "setDevicePasscode", 'params': params}));
 			

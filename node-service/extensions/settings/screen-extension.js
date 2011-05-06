@@ -36,7 +36,7 @@ var screenSettings = (function() {
 				params.timeout = parseInt(settingsNew.turnOffTimeout);
 			
 			if((params.maximumBrightness != undefined) || (params.timeout != undefined)) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.screenandlock", 'service': "com.palm.display/control", 
 					'method': "setProperty", 'params': params}));
 			

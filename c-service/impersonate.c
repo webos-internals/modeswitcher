@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   if (getopts(argc, argv) == 1)
     return 1;
 
-  if (luna_service_initialize("org.webosinternals.impersonate"))
+  if (luna_service_initialize("org.webosinternals.modeswitcher.sys"))
     luna_service_start();
 
   return 0;

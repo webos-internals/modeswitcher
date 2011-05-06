@@ -276,7 +276,7 @@ PopupAssistant.prototype.cleanup = function(event) {
 
 		if(this.event != "cancel") {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", { 
-				'method': "execute", 'parameters': {'action': "update", 'names': newModes}});
+				'method': "execute", 'parameters': {'action': "update", 'names': newModes, 'popup': true}});
 		}
 	}
 }

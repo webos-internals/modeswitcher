@@ -13,47 +13,47 @@ PrefsAssistant.prototype.setup = function() {
       this.modelSettingsButton);
 
 	Mojo.Event.listen(this.controller.get('AdvancedSettingsButton'), 
-		Mojo.Event.propertyChange, this.savePreferences.bind(this));
+		Mojo.Event.propertyChange, this.advancedInfo.bind(this));
 
-	this.modelViewButton = { value: true, disabled: false };
+	this.modelSettingsButton = {buttonClass: '', disabled: true};
 
-	this.controller.setupWidget("AdvancedViewButton", 
-		{falseValue: false, falseLabel: $L("Off"), trueValue: true, trueLabel: $L("On")},
-      this.modelViewButton);
+	this.controller.setupWidget('SettingsPrefsButton', 
+		{label: $L("Setting Extensions")}, this.modelSettingsButton);
 
-	Mojo.Event.listen(this.controller.get('AdvancedViewButton'), 
-		Mojo.Event.propertyChange, this.informUser.bind(this));
+	this.modelActionsButton = {buttonClass: '', disabled: true};
 
-	this.modelBannerButton = { value: this.prefs.notifications, disabled: false };
+	this.controller.setupWidget('ActionsPrefsButton', 
+		{label: $L("Action Extensions")}, this.modelActionsButton);
 
-	this.controller.setupWidget("InfoBannerButton", 
-		{falseValue: false, falseLabel: $L("Off"), trueValue: true, trueLabel: $L("On")},
-      this.modelBannerButton);
+	this.modelTriggersButton = {buttonClass: '', disabled: true};
 
-	Mojo.Event.listen(this.controller.get('InfoBannerButton'), 
-		Mojo.Event.propertyChange, this.savePreferences.bind(this));
-
-	this.modelDelaysButton = {buttonClass: '', disabled: false};
-
-	this.controller.setupWidget('TriggerDelaysButton', 
-		{label: $L("Trigger Delay Preferences")}, this.modelDelaysButton);
-
-	Mojo.Event.listen(this.controller.get('TriggerDelaysButton'), 
-		Mojo.Event.tap, this.informUser.bind(this));
+	this.controller.setupWidget('TriggersPrefsButton', 
+		{label: $L("Trigger Extensions")}, this.modelTriggersButton);
 }
 
-PrefsAssistant.prototype.informUser = function() {
-	this.modelViewButton.value = true;
-	
-	this.controller.modelChanged(this.modelViewButton, this);
-	
-	this.controller.showAlertDialog({
-		title: $L("Not Yet Implemented"),
-			message: "<div align='justify'>" + 
-				$L("This option will be enabled in future versions.") + "</div>",
-			choices:[{label:$L("Continue"), value:"ok", type:'default'}],
-			preventCancel: true,
-			allowHTMLMessage: true}); 
+PrefsAssistant.prototype.advancedInfo = function() {
+	if(this.modelSettingsButton.value) {
+		this.controller.showAlertDialog({
+			title: $L("Advanced Features"),
+				message: "<div align='justify'>" + 
+					$L("Make sure that you have installed all <b>Advanced System Prefs</b> patches before enabling this option! See the wiki for details about the required patches!") + "<br><br>" +
+					$L("You can install <b>Uber Calendar</b> patch instead of <b>Advanced System Prefs - Calendar Prefs</b> patch if you want.") + "</div>",
+				choices:[{label:$L("Continue"), value:"ok", type:'default'}, {label:$L("Cancel"), value:"cancel", type:'default'}],
+				preventCancel: true,
+				allowHTMLMessage: true,
+				onChoose: function(value) {
+					if(value == "cancel")
+						this.modelSettingsButton.value = false;
+					else 
+						this.modelSettingsButton.value = true;
+					
+					this.controller.modelChanged(this.modelSettingsButton, this);
+					
+					this.savePreferences();
+				}.bind(this)}); 
+	}
+	else
+		this.savePreferences();
 }
 
 PrefsAssistant.prototype.loadPreferences = function() {
@@ -62,17 +62,12 @@ PrefsAssistant.prototype.loadPreferences = function() {
 	this.prefs = this.cookie.get();
 	
 	if(!this.prefs) {
-		this.prefs = {
-			'advancedPrefs': false, 
-			
-			'advancedView': true,
-			'notifications': true };
+		this.prefs = { 'advancedPrefs': false };
 	}
 }
 
 PrefsAssistant.prototype.savePreferences = function() {
 	this.prefs.advancedPrefs = this.modelSettingsButton.value;
-	this.prefs.notifications = this.modelBannerButton.value;
 	
 	this.cookie.put(this.prefs);
 }

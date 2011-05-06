@@ -32,7 +32,7 @@ var connectionSettings = (function() {
 				params.state = settingsNew.phoneState;
 
 			if(params.state != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "powerSet", 'params': params}));
 			
@@ -48,7 +48,7 @@ var connectionSettings = (function() {
 				params.disablewan = settingsNew.dataState;
 
 			if(params.disablewan != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
 					'method': "set", 'params': params}));
 
@@ -64,7 +64,7 @@ var connectionSettings = (function() {
 				params.state = settingsNew.wifiState;
 
 			if(params.state != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.wifi", 'service': "com.palm.wifi", 
 					'method': "setstate", 'params': params}));
 
@@ -87,7 +87,7 @@ var connectionSettings = (function() {
 			}
 
 			if(params.connectable != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.wifi", 'service': "com.palm.btmonitor/monitor", 
 					'method': method, 'params': params}));
 			

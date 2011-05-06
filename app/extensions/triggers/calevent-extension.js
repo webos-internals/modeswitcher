@@ -104,7 +104,7 @@ CaleventConfig.prototype.helpItemTapped = function(event) {
 //
 
 CaleventConfig.prototype.retrieveCalendarAccounts = function() {
-	this.controller.serviceRequest('palm://org.webosinternals.impersonate/', {'method': "systemCall",
+	this.controller.serviceRequest('palm://org.webosinternals.modeswitcher.sys/', {'method': "systemCall",
 		'parameters': {'id': "com.palm.app.calendar", 'service': "com.palm.db", 'method': "find", 
 			'params': {'query': {'from':"com.palm.calendar:1"}}},
 		'onSuccess': this.handleCalendarAccounts.bind(this) });

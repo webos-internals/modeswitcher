@@ -143,14 +143,14 @@ SoundConfig.prototype.getSystemSettings = function(requestID, extensionConfig, d
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/ringtone", 
 				'method': "status", 'params': {}}, 
 			'onComplete': requestCallback});		
 	}
 	else if(requestID == 1) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/system", 
 				'method': "status", 'params': {}}, 

@@ -96,7 +96,7 @@ ApplicationConfig.prototype.helpItemTapped = function(event) {
 //
 
 ApplicationConfig.prototype.listApplications = function() {
-	this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 		'parameters': {
 		'id': "com.palm.launcher", 'service': "com.palm.applicationManager", 
 		'method': "listLaunchPoints", 'params': {}}, 

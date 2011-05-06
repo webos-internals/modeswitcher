@@ -113,8 +113,11 @@ TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config,
 	for(var i = 0; i < triggeredModes.length; i++) {
 		var modeInfo = {
 			name: triggeredModes[i].name,
+
 			start: triggeredModes[i].start,
-			close: triggeredModes[i].close
+			close: triggeredModes[i].close,
+			
+			alert: triggeredModes[i].settings.alert
 		}
 	
 		if(utils.findArray(config.activeModes, "name", triggeredModes[i].name) == -1) {
@@ -168,16 +171,28 @@ TriggerCommandAssistant.prototype.executeModeLaunching = function(future, config
 		if(closeNModes.length > 0)
 			var closeModes = closeNModes;
 
-		for(var i = 1; i < config.activeModes.length; i++) {
+		for(var i = 0; i < config.activeModes.length; i++) {
 			if(utils.findArray(closeMModes, "name", config.activeModes[i].name) == -1)
 				modifiers.push(config.activeModes[i].name);
 		}
 		
-		for(var i = 1; i < startMModes.length; i++)
+		for(var i = 0; i < startMModes.length; i++)
 			modifiers.push(startMModes[i].name);
-				
+		
+		var alert = config.customModes[0].settings.alert;
+
+		for(var i = 0; i < closeModes.length; i++) {
+			if(closeModes[i].alert > alert)
+				alert = closeModes[i].alert;
+		}
+
+		for(var i = 0; i < startModes.length; i++) {
+			if(startModes[i].alert > alert)
+				alert = startModes[i].alert;
+		}
+
 		future.nest(this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-			'id': "org.webosinternals.modeswitcher", 'params': { 'action': "popup", 
+			'id': "org.webosinternals.modeswitcher", 'params': { 'action': "popup", 'alert': alert, 
 				'modes': {'start': startModes, 'close': closeModes, 'modifiers': modifiers},
 				'timers': {'start': config.startTimer, 'close': config.closeTimer}}}));
 	}
@@ -247,7 +262,10 @@ TriggerCommandAssistant.prototype.checkModeTriggers = function(future, config, m
 						
 							eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
 
-							if(triggerState == true)
+							if((triggerState == true) && (mode.triggers.require != 2))
+								break;
+							
+							if((triggerState == false) && (mode.triggers.require == 2))
 								break;
 						}
 					}

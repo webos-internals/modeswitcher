@@ -32,7 +32,7 @@ var networkSettings = (function() {
 				params.mode = settingsNew.networkType;
 
 			if(params.mode != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "ratSet", 'params': params}));
 			
@@ -48,7 +48,7 @@ var networkSettings = (function() {
 				params.roamguard = settingsNew.dataRoaming;
 
 			if(params.roamguard != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
 					'method': "set", 'params': params}));
 			
@@ -64,7 +64,7 @@ var networkSettings = (function() {
 				params.mode = settingsNew.voiceRoaming;
 
 			if(params.mode != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "roamModeSet", 'params': params}));
 			

@@ -55,7 +55,7 @@ var apps = (function() {
 
 		// Then handle the closing and starting normal applications.
 		
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
 				'method': "running", 'params': {}});
 
@@ -158,11 +158,11 @@ var apps = (function() {
 		{
 			console.error("Closing application: " + appId + " " + processId);
 
-			PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+			PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
 				'method': "close", 'params': {'processId': processId}});
 
-			PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+			PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.applicationManager", 'service': "com.palm.applicationManager", 
 				'method': "close", 'params': {'processId': processId}});
 		}

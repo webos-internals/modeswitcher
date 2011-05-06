@@ -46,7 +46,7 @@ var calendarSettings = (function() {
 			if((params.blinkNotification != undefined) || (params.alarmSoundOn != undefined) || 
 				(params.ringtonePath != undefined))
 			{
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.calendar", 'service': "com.palm.db", 
 					'method': "merge", 'params': {'objects': [params]}}));
 

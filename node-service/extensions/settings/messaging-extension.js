@@ -132,7 +132,7 @@ var messagingSettings = (function() {
 				}
 		
 				if(objects.length > 0) {
-					future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 						'id': "com.palm.app.messaging", 'service': "com.palm.db", 
 						'method': "merge", 'params': {'objects': objects}}));
 

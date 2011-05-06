@@ -30,7 +30,7 @@ var soundSettings = (function() {
 				params.volume = parseInt(settingsNew.ringerVolume);
 
 			if(params.volume != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/ringtone", 
 					'method': "setVolume", 'params': params}));
 			
@@ -46,7 +46,7 @@ var soundSettings = (function() {
 				params.volume = parseInt(settingsNew.systemVolume);
 
 			if(params.volume != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/system", 
 					'method': "setVolume", 'params': params}));
 			
@@ -69,7 +69,7 @@ var soundSettings = (function() {
 				params.volume = parseInt(settingsNew.mediaVolume);
 
 			if(params.volume != undefined) {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/media", 
 					'method': "setVolume", 'params': params}));
 			

@@ -26,13 +26,13 @@ var bluetoothTriggers = (function() {
 //
 
 	var initExtension = function(config) {
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.app.bluetooth", 'service': "com.palm.btmonitor/monitor", 
 			'method': "getradiostate", 'params': {}}); 
 	
 		future.then(this, function(future) {
 			if(future.result.radio == "on") {
-				future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 					'id': "com.palm.app.bluetooth", 'service': "com.palm.bluetooth/prof", 
 					'method': "profgetstate", 'params': {'profile': "all"}})); 
 
@@ -78,7 +78,7 @@ var bluetoothTriggers = (function() {
 			}
 		};
 
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
 			'method': "create", 'params': newActivity}); 
 	
@@ -96,7 +96,7 @@ var bluetoothTriggers = (function() {
 			"activityId": config.activity
 		};
 	
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
 			'method': "cancel", 'params': oldActivity}); 
 

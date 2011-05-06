@@ -21,7 +21,7 @@ var displayTriggers = (function() {
 //
 
 	var initExtension = function(config) {
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.systemmanager", 'service': "com.palm.systemmanager", 
 				'method': "getLockStatus", 'params': {}});
 
@@ -55,7 +55,7 @@ var displayTriggers = (function() {
 			}
 		};
 
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
 				'method': "create", 'params': newActivity});
 	
@@ -73,7 +73,7 @@ var displayTriggers = (function() {
 			"activityId": config.activity
 		};
 	
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
 			'method': "cancel", 'params': oldActivity}); 
 

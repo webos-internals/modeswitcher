@@ -382,21 +382,21 @@ MessagingConfig.prototype.getSystemSettings = function(requestID, extensionConfi
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 
 	if(requestID == 0) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.messaging", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.account:1"}}}, 
 			'onComplete': requestCallback});	
 	}
 	else if(requestID == 1) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.messaging", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.app.messagingprefs:1"}}}, 
 			'onComplete': requestCallback});		
 	}
 	else if(requestID == 2) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.messaging", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.imloginstate:1"}}}, 

@@ -172,21 +172,21 @@ NetworkConfig.prototype.getSystemSettings = function(requestID, extensionConfig,
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 
 	if(requestID == 0) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.phoneprefs", 'service': "com.palm.telephony", 
 				'method': "ratQuery", 'params': {}}, 
 			'onFailure': requestCallback, 'onSuccess': requestCallback});		
 	}
 	else if(requestID == 1) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.phone", 'service': "com.palm.preferences/appProperties", 
 				'method': "Get", 'params': {'appId': "com.palm.wan", 'key': "roamguard"}}, 
 			'onComplete': requestCallback});
 	}
 	else if(requestID == 2) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.phoneprefs", 'service': "com.palm.telephony", 
 				'method': "roamModeQuery", 'params': {}}, 
@@ -226,7 +226,7 @@ NetworkConfig.prototype.handleGetResponse = function(requestID, extensionConfig,
 		}		
 	}
 
-// FIXME: onFailure on voice roaming call gets called twice, bug in impersonate?
+// FIXME: onFailure on voice roaming call gets called twice, webos bug?
 
 	if(this.lastRequestID != requestID) {
 		this.lastRequestID = requestID;

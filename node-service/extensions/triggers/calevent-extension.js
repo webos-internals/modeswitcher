@@ -35,12 +35,12 @@ var caleventTriggers = (function() {
 
 	var initExtension = function(config, triggers, validEvents, parentIds, page) {
 		if(!page) {
-			var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+			var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.calendarevent:1"}}}); 
 		}
 		else {
-			var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+			var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.calendarevent:1", 'page': page}}}); 
 		}
@@ -152,7 +152,7 @@ var caleventTriggers = (function() {
 			}
 		};
 
-		var future = PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.app.calendar", 'service': "com.palm.activitymanager", 
 			'method': "create", 'params': newUpdateActivity}); 
 	
@@ -229,7 +229,7 @@ var caleventTriggers = (function() {
 		};
 
 		if((isFirstItem) && (!skip)) {
-			future.nest(PalmCall.call("palm://org.webosinternals.impersonate/", "systemCall", {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.activitymanager", 
 				'method': "cancel", 'params': oldActivity})); 
 		}

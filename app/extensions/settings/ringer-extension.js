@@ -186,7 +186,7 @@ RingerConfig.prototype.getSystemSettings = function(requestID, extensionConfig, 
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
-		this.controller.serviceRequest("palm://org.webosinternals.impersonate/", {'method': "systemCall",
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.soundandalerts", 'service': "com.palm.audio/state", 
 				'method': "getPreference", 'params': {'names': ["VibrateWhenRingerOn", "VibrateWhenRingerOff"]}}, 

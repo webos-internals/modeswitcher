@@ -121,7 +121,7 @@ ModeAssistant.prototype.setup = function() {
 			{'width': 35},
 			{'label': $L("Settings"), 'command': "settings", 'width': 110},
 			{'width': 30},
-			{'label': $L("Apps"), 'command': "applications", 'width': 110},
+			{'label': $L("Actions"), 'command': "applications", 'width': 110},
 			{'width': 35} ];
 	}
 	else {
@@ -130,7 +130,7 @@ ModeAssistant.prototype.setup = function() {
 		this.itemsCommandMenu = [
 			{'width': 5},
 			{'label': $L("Settings"), 'command': "settings", 'width': 100},
-			{'label': $L("Apps"), 'command': "applications", 'width': 80},
+			{'label': $L("Actions"), 'command': "applications", 'width': 90},
 			{'label': $L("Triggers"), 'command': "triggers", 'width': 100},
 			{'width': 5} ];
 	}
@@ -937,7 +937,7 @@ ModeAssistant.prototype.helpItemTapped = function(target) {
 	else if(target == "TriggersRequiredHelp") {
 		var helpTitle = "Required";
 
-		var helpText = "Controls what triggers needs to be valid for the mode to be active.<br><br><b>All Unique:</b> one of each type of triggers needs to be valid.<br><b>One Trigger:</b> only one of the triggers needs to be valid.<br><b>Any Grouped:</b> all unique triggers from any of the groups needs to be valid.";
+		var helpText = "Controls what triggers needs to be valid for the mode to be active.<br><br><b>All Unique:</b> one of each type of triggers needs to be valid.<br><b>One Trigger:</b> only one of the triggers needs to be valid.<br><b>Any Grouped:</b> all triggers in any group needs to be valid.";
 	}
 	else if(target == "TriggersBlockHelp") {
 		var helpTitle = "Block Mode";
@@ -1103,13 +1103,13 @@ ModeAssistant.prototype.handleCommand = function(event) {
 				this.modelCommandMenu.items.push({'width': 35});
 				this.modelCommandMenu.items.push({'label': $L("Settings"), 'command': "settings", 'width': 110});
 				this.modelCommandMenu.items.push({'width': 30});
-				this.modelCommandMenu.items.push({'label': $L("Apps"), 'command': "applications", 'width': 110});
+				this.modelCommandMenu.items.push({'label': $L("Actions"), 'command': "applications", 'width': 110});
 				this.modelCommandMenu.items.push({'width': 35});
 			}
 			else {
 				this.modelCommandMenu.items.push({'width': 5});
 				this.modelCommandMenu.items.push({'label': $L("Settings"), 'command': "settings", 'width': 100});
-				this.modelCommandMenu.items.push({'label': $L("Apps"), 'command': "applications", 'width': 80});
+				this.modelCommandMenu.items.push({'label': $L("Actions"), 'command': "applications", 'width': 90});
 				this.modelCommandMenu.items.push({'label': $L("Triggers"), 'command': "triggers", 'width': 100});
 				this.modelCommandMenu.items.push({'width': 5});				
 			}
@@ -1262,7 +1262,7 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.setModeData(true);
 		}
 		else if(event.command == "applications-app") {
-			this.controller.serviceRequest('palm://org.webosinternals.impersonate/', {
+			this.controller.serviceRequest('palm://org.webosinternals.modeswitcher.sys/', {
 				'method': 'systemCall', 'parameters': {'id': "com.palm.applicationManager",
 				'service': "com.palm.applicationManager", 'method': "listLaunchPoints", 'params': {}},
 				'onSuccess': function(payload) {
@@ -1313,7 +1313,7 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			}
 		}
 		else if(event.command == "applications-srv") {
-			this.controller.serviceRequest('palm://org.webosinternals.impersonate/', {
+			this.controller.serviceRequest('palm://org.webosinternals.modeswitcher.sys/', {
 				'method': 'systemCall', 'parameters': {'id': "com.palm.applicationManager",
 				'service': "com.palm.applicationManager", 'method': "listLaunchPoints", 'params': {}},
 				'onSuccess': function(payload) {
@@ -1445,7 +1445,7 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.controller.stageController.pushScene("gdm", "importGDoc", "Config", "[MSMODE]", null, this.importModeConfig.bind(this));
 		}
 		else if(event.command == "status") {
-			var text = "Status info per mode not supported yet! In future this will show the status of triggers etc.";
+			var text = "Status info per mode not supported yet! In version 2.2 this will show the status of triggers etc.";
 			
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'prefs', parameters: {extensions: this.extensions},
@@ -1658,6 +1658,20 @@ ModeAssistant.prototype.checkModeName = function() {
 	}
 
 	this.controller.modelChanged(this.modelNameText, this);
+
+	// Rename the mode also in MS app configurations if any exists
+
+	if((this.modelNameText.value != this.mode.name) && (this.mode.name != "")) {
+		for(var i = 0; i < this.customModes.length; i++) {
+			for(var j = 0; j < this.customModes[i].appssrvs.list.length; j++) {
+				if((this.customModes[i].appssrvs.list[j].type == "ms") &&
+					(this.customModes[i].appssrvs.list[j].mode == this.mode.name))
+				{
+					this.customModes[i].appssrvs.list[j].mode = this.modelNameText.value;
+				}
+			}
+		}
+	}
 }
 
 //

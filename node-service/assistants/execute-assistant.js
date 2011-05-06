@@ -299,7 +299,20 @@ ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, a
 				newActiveModes.push(config.customModes[index]);
 		}
 
-		utils.notify(0, 2, null, "update");
+		if(newActiveModes[0].settings.alert != 0)
+			var alert = newActiveModes[0].settings.alert;
+		else
+			var alert = config.customModes[0].settings.alert;
+
+		if(newActiveModes[0].settings.notify != 0)
+			var notify = newActiveModes[0].settings.notify;
+		else
+			var notify = config.customModes[0].settings.notify;
+
+		if(args.popup)
+			utils.notify(0, notify, null, "update");
+		else
+			utils.notify(alert, notify, null, "update");			
 
 		this.prepareModeChange(future, config, newActiveModes, "init", 0);
 	}
@@ -384,7 +397,10 @@ ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, m
 						
 							eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
 
-							if(triggerState == true)
+							if((triggerState == true) && (mode.triggers.require != 2))
+								break;
+							
+							if((triggerState == false) && (mode.triggers.require == 2))
 								break;
 						}
 					}
@@ -565,7 +581,13 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 
 	if((changed) && (roundCount < 5))
 		this.prepareModeChange(future, config, newActiveModes, "init", ++roundCount);
-	else {	
+	else {
+		if(roundCount == 5) {
+			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				'id': "org.webosinternals.modeswitcher", 'params': {
+					'action': "notify", 'alert': 2, 'event': "error", 'error': "loop"}});
+		}
+		
 		if(roundPhase == "init")
 			this.executeModeChange(future, config, newActiveModes, "done", roundCount);
 		else if(roundPhase == "done") {
@@ -667,10 +689,13 @@ ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, confi
 					newCloseAllStartedApps = true;
 
 				for(var j = 0; j < newActiveModes[i].appssrvs.list.length; j++) {
+					if(newActiveModes[i].appssrvs.list[j].type == "ms")
+						continue;
+
 					if(config.extensions.appssrvs.indexOf(newActiveModes[i].appssrvs.list[j].extension) == -1)
 						continue;
-				
-					if(newActiveModes[i].appssrvs.list[j].type == "ms")
+
+					if((this.controller.args.startup) && (newActiveModes[i].appssrvs.list[j].extension == "systools"))
 						continue;
 				
 					if((newActiveModes[i].appssrvs.list[j].event == "start") ||
@@ -691,10 +716,13 @@ ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, confi
 					oldCloseAllStartedApps = true;
 
 				for(var j = 0; j < oldActiveModes[i].appssrvs.list.length; j++) {
+					if(oldActiveModes[i].appssrvs.list[j].type == "ms")
+						continue;
+
 					if(config.extensions.appssrvs.indexOf(oldActiveModes[i].appssrvs.list[j].extension) == -1)
 						continue;
 
-					if(oldActiveModes[i].appssrvs.list[j].type == "ms")
+					if((this.controller.args.startup) && (newActiveModes[i].appssrvs.list[j].extension == "systools"))
 						continue;
 
 					if((oldActiveModes[i].appssrvs.list[j].event == "start") ||
