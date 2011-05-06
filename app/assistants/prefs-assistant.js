@@ -6,11 +6,11 @@ function PrefsAssistant() {
 PrefsAssistant.prototype.setup = function() {
 	this.loadPreferences();
 
-	this.modelSettingsButton = { value: this.prefs.advancedPrefs, disabled: false };
+	this.modelAdvancedButton = { value: this.prefs.advancedPrefs, disabled: false };
 
 	this.controller.setupWidget("AdvancedSettingsButton", 
 		{falseValue: false, falseLabel: $L("Off"), trueValue: true, trueLabel: $L("On")},
-      this.modelSettingsButton);
+      this.modelAdvancedButton);
 
 	Mojo.Event.listen(this.controller.get('AdvancedSettingsButton'), 
 		Mojo.Event.propertyChange, this.advancedInfo.bind(this));
@@ -31,8 +31,8 @@ PrefsAssistant.prototype.setup = function() {
 		{label: $L("Trigger Extensions")}, this.modelTriggersButton);
 }
 
-PrefsAssistant.prototype.advancedInfo = function() {
-	if(this.modelSettingsButton.value) {
+PrefsAssistant.prototype.advancedInfo = function(event) {
+	if(this.modelAdvancedButton.value) {
 		this.controller.showAlertDialog({
 			title: $L("Advanced Features"),
 				message: "<div align='justify'>" + 
@@ -43,11 +43,11 @@ PrefsAssistant.prototype.advancedInfo = function() {
 				allowHTMLMessage: true,
 				onChoose: function(value) {
 					if(value == "cancel")
-						this.modelSettingsButton.value = false;
+						this.modelAdvancedButton.value = false;
 					else 
-						this.modelSettingsButton.value = true;
+						this.modelAdvancedButton.value = true;
 					
-					this.controller.modelChanged(this.modelSettingsButton, this);
+					this.controller.modelChanged(this.modelAdvancedButton, this);
 					
 					this.savePreferences();
 				}.bind(this)}); 
@@ -67,7 +67,7 @@ PrefsAssistant.prototype.loadPreferences = function() {
 }
 
 PrefsAssistant.prototype.savePreferences = function() {
-	this.prefs.advancedPrefs = this.modelSettingsButton.value;
+	this.prefs.advancedPrefs = this.modelAdvancedButton.value;
 	
 	this.cookie.put(this.prefs);
 }

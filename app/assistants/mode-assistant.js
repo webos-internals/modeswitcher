@@ -808,7 +808,7 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 		method: 'prefs', parameters: {customModes: this.customModes}});
-	
+
 	return mode;
 }
 
@@ -1195,21 +1195,43 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.currentView = "Triggers";
 
 			this.modelCommandMenu.items.clear();
-			if(this.groupidx == 0)
-				this.modelCommandMenu.items.push({'label': "< " + $L("Group"), 'command': "triggers-prev", 'disabled': true});
+
+			this.groupidx = 0;
+
+			if(this.modelRequiredSelector.value == 2)
+				this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers") + " (" + this.groupidx + ")";
 			else
-				this.modelCommandMenu.items.push({'label': "< " + $L("Group"), 'command': "triggers-prev", 'disabled': false});
+				this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers");
+			
+			this.modelCommandMenu.items.push({'label': "< " + $L("Group"), 'command': "triggers-prev", 'disabled': true});
 
 			this.modelCommandMenu.items.push({'label': $L("Add Trigger"), 'command': "triggers-add", 'disabled': false});
 
-			if(this.groupidx == 9)
-				this.modelCommandMenu.items.push({'label': $L("Group") + " >", 'command': "triggers-next", 'disabled': true});
-			else if(this.mode.triggers.require == 2)
+			if(this.modelRequiredSelector.value == 2)
 				this.modelCommandMenu.items.push({'label': $L("Group") + " >", 'command': "triggers-next", 'disabled': false});
 			else
 				this.modelCommandMenu.items.push({'label': $L("Group") + " >", 'command': "triggers-next", 'disabled': true});
 
 			this.controller.modelChanged(this.modelCommandMenu, this);
+
+			this.mode.triggers.list.clear();
+		
+			for(var i = 0; i < this.loaded.triggers.length; i++) {
+				if(this.loaded.triggers[i].group == this.groupidx) {
+					var id = this.loaded.triggers[i].extension;
+					var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+
+					var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+
+					trigger[id] = [this.loaded.triggers[i]];
+					
+					trigger['extension'] = this.loaded.triggers[i].extension;
+					
+					this.mode.triggers.list.push(trigger);
+				}
+			}		
+
+			this.controller.modelChanged(this.modelTriggersList, this);
 
 			this.configurationView.style.display = "none";
 			this.triggersView.style.display = "block";
