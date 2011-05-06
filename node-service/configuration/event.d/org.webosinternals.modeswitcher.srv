@@ -1,7 +1,11 @@
 start on started LunaSysMgr
 
 script
-	/bin/sleep 60
+	# Wait until LunaSysMgr is done loading
+
+	while [ ! -e /tmp/suspend_active ]; do
+		sleep 1
+	done
 
 	luna-send -n 1 palm://org.webosinternals.modeswitcher.srv/control '{"action":"startup"}'
 end script
