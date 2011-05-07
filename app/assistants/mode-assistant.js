@@ -332,7 +332,7 @@ ModeAssistant.prototype.setup = function() {
 		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 		
 		this.controller.setupWidget(element, {
-			'itemTemplate': '../extensions/applications/' + id + '-listitem',
+			'itemTemplate': '../extensions/actions/' + id + '-listitem',
 			'swipeToDelete': false, 'reorderable': false, 'itemsProperty': id});
 	}
 
@@ -1270,7 +1270,7 @@ ModeAssistant.prototype.handleCommand = function(event) {
 				this.mode.appssrvs.list.splice(0, 0, appsrv);
 
 				this.controller.setupWidget(element, {
-					'itemTemplate': '../extensions/applications/' + id + '-listitem',
+					'itemTemplate': '../extensions/actions/' + id + '-listitem',
 					'swipeToDelete': false, 'autoconfirmDelete': false,
 					'reorderable': false, 'itemsProperty': id});
 
@@ -1476,7 +1476,7 @@ ModeAssistant.prototype.handleAppSrvChoose = function(type, index) {
 		this.mode.appssrvs.list.push(appsrv);
 
 		this.controller.setupWidget(element, {
-			'itemTemplate': '../extensions/applications/' + id + '-listitem',
+			'itemTemplate': '../extensions/actions/' + id + '-listitem',
 			'swipeToDelete': false, 'autoconfirmDelete': false,
 			'reorderable': false, 'itemsProperty': id});
 

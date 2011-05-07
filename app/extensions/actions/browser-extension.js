@@ -76,7 +76,7 @@ BrowserConfig.prototype.save = function(extensionConfig) {
 		'type': "app",
 		'name': extensionConfig.name,
 		'event': extensionConfig.launchMode,
-		'appid': this.appid(), 
+		'appid': this.appid("app"), 
 		'params': params };
 	
 	return extensionPreferences;
