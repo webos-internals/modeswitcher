@@ -110,9 +110,6 @@ ModechangeConfig.prototype.retrieveModes = function() {
 ModechangeConfig.prototype.handleModeData = function(response) {
 	this.choicesModeNameSelector.clear();
 
-	this.choicesModeNameSelector.push({'label': "Any Normal Mode", 'value': "Any Normal Mode"});
-	this.choicesModeNameSelector.push({'label': "Any Modifier Mode", 'value': "Any Modifier Mode"});
-
 	for(var i = 0; i < response.customModes.length; i++) {
 		if(this.controller.get("NameText").mojo.getValue() != response.customModes[i].name)
 			this.choicesModeNameSelector.push({'label': response.customModes[i].name, 'value': response.customModes[i].name});

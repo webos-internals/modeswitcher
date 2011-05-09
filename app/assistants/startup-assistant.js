@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.1.1', log: [
+			'Removed buggy and unneeded options from mode trigger.'
+		]
+	},
+	{
 		version: '2.1.0', log: [
 			'First public release of Mode Switcher 2.x, see wiki for more information.'
 		]
