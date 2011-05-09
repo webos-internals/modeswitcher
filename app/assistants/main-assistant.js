@@ -187,18 +187,34 @@ MainAssistant.prototype.updatePreferences = function(response) {
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 			method: 'prefs', parameters: {extensions: this.extensions},
 			onComplete: function() {
+
 				this.controller.showAlertDialog({
-					title: $L("Initial setup of Mode Switcher!"),
+					title: $L("Enable Advanced Features?"),
 					message: "<div align='justify'>" + 
-						$L("<i>Mode Switcher</i> needs to retrieve your current system settings for <i>Default Mode</i>. " +
-						"This operation should only take few seconds to finish. You can modify the <i>Default Mode</i> " +
-						"afterwards by clicking the <i>Edit Default Mode</i> button.") + "</div>",
-					choices:[{label:$L("Continue"), value:"ok", type:'default'}],
+						$L("You need to have <b>Advanced System Prefs</b> patches installed before enabling advanced features! " +
+						"You can change this setting later by selecting <b>Extensions</b> from the app menu. " +
+						"Advanced features enables calendar / messaging / email settings and charger / battery triggers.") + "</div>",
+					choices:[{label:$L("Yes"), value:true, type:'affirmative'},{label:$L("No"), value:false, type:'negative'}],
 					preventCancel: true,
 					allowHTMLMessage: true,
-					onChoose: function(appControl, value) {
-						this.controller.stageController.pushScene("mode", this.extensions, this.customModes, 0);
-					}.bind(this, this.appControl)}); 
+					onChoose: function(value) {
+						var cookie = new Mojo.Model.Cookie('preferences');
+
+						cookie.put({ 'advancedPrefs': value });
+						
+						this.controller.showAlertDialog({
+							title: $L("Initial setup of Mode Switcher!"),
+							message: "<div align='justify'>" + 
+								$L("<i>Mode Switcher</i> needs to retrieve your current system settings for <i>Default Mode</i>. " +
+								"This operation should only take few seconds to finish. You can modify the <i>Default Mode</i> " +
+								"afterwards by clicking the <i>Edit Default Mode</i> button.") + "</div>",
+							choices:[{label:$L("Continue"), value:"ok", type:'default'}],
+							preventCancel: true,
+							allowHTMLMessage: true,
+							onChoose: function(value) {
+								this.controller.stageController.pushScene("mode", this.extensions, this.customModes, 0);
+							}.bind(this)}); 
+					}.bind(this)}); 
 			}.bind(this)});					
 	}
 	else {

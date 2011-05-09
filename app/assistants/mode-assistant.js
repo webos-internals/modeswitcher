@@ -1086,7 +1086,14 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			
 			this.modelCommandMenu.items.clear();
 
-			if(this.loaded.settings.length == this.extensions.settings.length)
+			var totalCount = 0;
+
+			for(var i = 0; i < this.extensions.settings.length; i++) {
+				if(this.settingsConfig[this.extensions.settings[i]].label() != undefined)
+					totalCount++;
+			}
+
+			if(this.loaded.settings.length == totalCount)
 				this.modelCommandMenu.items.push({'label': "+ " + $L("All"), 'command': "settings-all", 'disabled': true});
 			else
 				this.modelCommandMenu.items.push({'label': "+ " + $L("All"), 'command': "settings-all", 'disabled': false});
