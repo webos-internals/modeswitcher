@@ -486,11 +486,9 @@ GdmAssistant.prototype.updateMapLocation = function(event) {
 	this.geocoder.geocode({'address': this.modelMapViewAddress.value}, function(results, status) {
 		if(status == google.maps.GeocoderStatus.OK) {
 			if(results.length > 0) {
-				var latlng = new google.maps.LatLng(results[0].geometry.location.za, results[0].geometry.location.Ba);
-
-				this.map.setCenter(latlng);
+				this.map.setCenter(results[0].geometry.location);
 				this.map.setZoom(12);
-				this.marker.setPosition(latlng);
+				this.marker.setPosition(results[0].geometry.location);
 			}
 		}
 	}.bind(this));
@@ -532,7 +530,7 @@ GdmAssistant.prototype.handleCommand = function(event) {
 		if(this.callback) {
 			var latlng = this.marker.getPosition();
 
-			this.callback(latlng.za, latlng.Ba, true);
+			this.callback(latlng.lat(), latlng.lng(), true);
 			
 			this.controller.stageController.popScene();			
 		}

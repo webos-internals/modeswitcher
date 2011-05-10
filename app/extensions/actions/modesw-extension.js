@@ -5,7 +5,9 @@ function ModeswConfig(controller, prefs) {
 	
 	this.modesList = [];
 
-	this.choicesModeswModeSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
+	this.choicesModeswStartSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
+	this.choicesModeswCloseSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
+	this.choicesModeswTriggerSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
 }
 
 //
@@ -41,9 +43,17 @@ ModeswConfig.prototype.setup = function() {
 		'labelPlacement': "left", 'modelProperty': "modeAction",
 		'choices': this.choicesModeswActionSelector});
 
-	this.controller.setupWidget("ModeswModeSelector", {'label': $L("Mode"), 
+	this.controller.setupWidget("ModeswStartSelector", {'label': $L("Mode"), 
 		'labelPlacement': "left", 'modelProperty': "modeName",
-		'choices': this.choicesModeswModeSelector});
+		'choices': this.choicesModeswStartSelector});
+
+	this.controller.setupWidget("ModeswCloseSelector", {'label': $L("Mode"), 
+		'labelPlacement': "left", 'modelProperty': "modeName",
+		'choices': this.choicesModeswCloseSelector});
+
+	this.controller.setupWidget("ModeswTriggerSelector", {'label': $L("Mode"), 
+		'labelPlacement': "left", 'modelProperty': "modeName",
+		'choices': this.choicesModeswTriggerSelector});
 
 	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.listTap, 
 		this.helpItemTapped.bind(this));
@@ -52,22 +62,22 @@ ModeswConfig.prototype.setup = function() {
 	
 	this.controller.listen(this.controller.get("AppsList"), Mojo.Event.propertyChange, 
 		this.handleListChange.bind(this));
-
-	this.retrieveModes();
+		
+	this.retrieveModesList();
 }
 
 //
 
 ModeswConfig.prototype.config = function(launchPoint) {
-	this.updateModesList("start");	
-
 	var extensionConfig = {
 		'name': launchPoint.title,
 		'modeProcess': "start", 
 		'modeAction': "start", 
 		'modeName': "Previous Mode",
 		'modeActionRow': "",
-		'modeModeDisplay': "block" };
+		'modeStartDisplay': "block",
+		'modeCloseDisplay': "none",
+		'modeTriggerDisplay': "none" };
 	
 	return extensionConfig;
 }
@@ -76,15 +86,18 @@ ModeswConfig.prototype.config = function(launchPoint) {
 
 ModeswConfig.prototype.load = function(extensionPreferences) {
 	var row = "";
-	var display = "block";
+	var startDisplay = "none";
+	var closeDisplay = "none";
+	var triggerDisplay = "none";
 
-	if((extensionPreferences.action == "unlock") || (extensionPreferences.action == "lock")) {
+	if((extensionPreferences.action == "unlock") || (extensionPreferences.action == "lock"))
 		row = "last";
-		display = "none";
-	}
-	else {
-		this.updateModesList(extensionPreferences.action);	
-	}
+	else if(extensionPreferences.action == "start")
+		startDisplay = "block";
+	else if(extensionPreferences.action == "close")
+		closeDisplay = "block";
+	else if(extensionPreferences.action == "trigger")
+		triggerDisplay = "block";
 	
 	var extensionConfig = {
 		'name': extensionPreferences.name,	
@@ -92,7 +105,9 @@ ModeswConfig.prototype.load = function(extensionPreferences) {
 		'modeAction': extensionPreferences.action, 
 		'modeName': extensionPreferences.mode,
 		'modeActionRow': row,
-		'modeModeDisplay': display };
+		'modeStartDisplay': startDisplay,
+		'modeCloseDisplay': closeDisplay,
+		'modeTriggerDisplay': triggerDisplay };
 	
 	return extensionConfig;
 }
@@ -146,7 +161,7 @@ ModeswConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ModeswConfig.prototype.retrieveModes = function() {
+ModeswConfig.prototype.retrieveModesList = function() {
 	this.controller.serviceRequest('palm://org.webosinternals.modeswitcher.srv', {
 		'method': 'prefs', 'parameters': {'keys': ["customModes"]},
 		'onSuccess': this.handleModeData.bind(this)} );
@@ -166,30 +181,60 @@ ModeswConfig.prototype.handleModeData = function(serviceResponse) {
 			'value': serviceResponse.customModes[i].name, 
 			'type': serviceResponse.customModes[i].type});  
 	}
+
+	this.choicesModeswStartSelector.clear();
+	this.choicesModeswCloseSelector.clear();
+	this.choicesModeswTriggerSelector.clear();
+
+	for(var i = 0; i < this.modesList.length; i++) {
+		if((this.modesList[i].type != "current") && (this.modesList[i].type != "default") &&
+			(this.modesList[i].type != "alln")) 
+		{
+			if(this.controller.get("NameText").mojo.getValue() != this.modesList[i].value)
+				this.choicesModeswStartSelector.push(this.modesList[i]);
+		}
+
+		if((this.modesList[i].type == "current") || (this.modesList[i].type == "modifier") ||
+			(this.modesList[i].type == "allm"))
+		{
+			this.choicesModeswCloseSelector.push(this.modesList[i]);
+		}
+
+		if((this.modesList[i].type != "current") && (this.modesList[i].type != "default")) {
+			if(this.controller.get("NameText").mojo.getValue() != this.modesList[i].value)
+				this.choicesModeswTriggerSelector.push(this.modesList[i]);
+		}
+	}		
 }
 
 //
 
 ModeswConfig.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "modeAction") {
-		this.choicesModeswModeSelector.clear();
-
 		if((changeEvent.value == "unlock") || (changeEvent.value == "lock")) {
 			changeEvent.model.modeActionRow = "last";
-			changeEvent.model.modeModeDisplay = "none";
+			changeEvent.model.modeStartDisplay = "none";
+			changeEvent.model.modeCloseDisplay = "none";
+			changeEvent.model.modeTriggerDisplay = "none";
 		}
 		else {
 			changeEvent.model.modeActionRow = "";
-			changeEvent.model.modeModeDisplay = "block";
+			changeEvent.model.modeStartDisplay = "none";
+			changeEvent.model.modeCloseDisplay = "none";
+			changeEvent.model.modeTriggerDisplay = "none";
 
-			this.updateModesList(changeEvent.value);	
-			
-			if(changeEvent.value == "start")
+			if(changeEvent.value == "start") {
+				changeEvent.model.modeStartDisplay = "block";
 				changeEvent.model.modeName = "Previous Mode";
-			else if(changeEvent.value == "close")
+			}
+			else if(changeEvent.value == "close") {
+				changeEvent.model.modeCloseDisplay = "block";
 				changeEvent.model.modeName = "Current Mode";
-			else if(changeEvent.value == "trigger")
+			}
+			else if(changeEvent.value == "trigger") {
+				changeEvent.model.modeTriggerDisplay = "block";
 				changeEvent.model.modeName = "Previous Mode";
+			}
 		}
 		
 		var state = this.controller.get('mojo-scene-mode-scene-scroller').mojo.getState();
@@ -198,33 +243,5 @@ ModeswConfig.prototype.handleListChange = function(changeEvent) {
 		
 		this.controller.get('mojo-scene-mode-scene-scroller').mojo.setState(state);
 	}
-}
-
-ModeswConfig.prototype.updateModesList = function(listType) {
-	this.choicesModeswModeSelector.clear();
-
-	for(var i = 0; i < this.modesList.length; i++) {
-		if(listType == "start") {
-			if((this.modesList[i].type != "current") && (this.modesList[i].type != "default") &&
-				(this.modesList[i].type != "alln")) 
-			{
-				if(this.controller.get("NameText").mojo.getValue() != this.modesList[i].value)
-					this.choicesModeswModeSelector.push(this.modesList[i]);
-			}
-		}
-		else if(listType == "close") {
-			if((this.modesList[i].type == "current") || (this.modesList[i].type == "modifier") ||
-				(this.modesList[i].type == "allm"))
-			{
-				this.choicesModeswModeSelector.push(this.modesList[i]);
-			}
-		}
-		else if(listType == "trigger") {
-			if((this.modesList[i].type != "current") && (this.modesList[i].type != "default")) {
-				if(this.controller.get("NameText").mojo.getValue() != this.modesList[i].value)
-					this.choicesModeswModeSelector.push(this.modesList[i]);
-			}
-		}
-	}		
 }
 

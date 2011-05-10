@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.1.2', log: [
+			'Bug fixes for the application side, see wiki for details.'
+		]
+	},
+	{
 		version: '2.1.1', log: [
 			'Removed buggy and unneeded options from mode trigger.'
 		]
