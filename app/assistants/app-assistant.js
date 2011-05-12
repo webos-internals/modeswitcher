@@ -96,7 +96,7 @@ AppAssistant.prototype.executeLaunch = function(params) {
 				
 			var stageArgs = {name: "popup", lightweight: true, height: 177};
 
-			if((params.alert == 1) || (params.alert == 2))
+			if((params.notify == 1) || (params.notify == 2))
 				stageArgs.soundclass = "none"
 			else if((params.notify == 3) || (params.notify == 5))
 				stageArgs.soundclass = "notifications";
