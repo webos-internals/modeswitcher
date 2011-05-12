@@ -1,4 +1,4 @@
-function ModechangeConfig(controller, prefs) {
+function ModechangeTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function ModechangeConfig(controller, prefs) {
 
 //
 
-ModechangeConfig.prototype.label = function() {
+ModechangeTriggers.prototype.label = function() {
 	return $L("Mode Change Trigger");
 }
 
 //
 
-ModechangeConfig.prototype.setup = function() {
+ModechangeTriggers.prototype.setup = function() {
 	this.choicesModeStateSelector = [
 		{'label': $L("Mode Active"), 'value': 0},
 		{'label': $L("Mode Not Active"), 'value': 1} ];  
@@ -36,7 +36,7 @@ ModechangeConfig.prototype.setup = function() {
 
 //
 
-ModechangeConfig.prototype.config = function() {
+ModechangeTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'modechangeTitle': $L("Mode Change"),
 		'modechangeState': 0,
@@ -47,7 +47,7 @@ ModechangeConfig.prototype.config = function() {
 
 //
 
-ModechangeConfig.prototype.load = function(extensionPreferences) {
+ModechangeTriggers.prototype.load = function(extensionPreferences) {
 	var state = 0;
 	
 	if(extensionPreferences.state != "on")
@@ -61,7 +61,7 @@ ModechangeConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-ModechangeConfig.prototype.save = function(extensionConfig) {
+ModechangeTriggers.prototype.save = function(extensionConfig) {
 	var state = "on";
 	
 	if(extensionConfig.modechangeState == 1)
@@ -76,7 +76,7 @@ ModechangeConfig.prototype.save = function(extensionConfig) {
 
 //
 
-ModechangeConfig.prototype.helpItemTapped = function(event) {
+ModechangeTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "ModechangeStateHelp") {
 		var helpTitle = "State";
 
@@ -101,13 +101,13 @@ ModechangeConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ModechangeConfig.prototype.retrieveModes = function() {
+ModechangeTriggers.prototype.retrieveModes = function() {
 	this.controller.serviceRequest('palm://org.webosinternals.modeswitcher.srv', {
 		'method': 'prefs', 'parameters': {'keys': ["customModes"]},
 		'onSuccess': this.handleModeData.bind(this)} );
 }
 
-ModechangeConfig.prototype.handleModeData = function(response) {
+ModechangeTriggers.prototype.handleModeData = function(response) {
 	this.choicesModeNameSelector.clear();
 
 	for(var i = 0; i < response.customModes.length; i++) {

@@ -1,4 +1,4 @@
-function TimeofdayConfig(controller, prefs) {
+function TimeofdayTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function TimeofdayConfig(controller, prefs) {
 
 //
 
-TimeofdayConfig.prototype.label = function() {
+TimeofdayTriggers.prototype.label = function() {
 	return $L("Time of Day Trigger");
 }
 
 //
 
-TimeofdayConfig.prototype.setup = function() {
+TimeofdayTriggers.prototype.setup = function() {
 	this.choicesTimeSelector = [
 		{'label': $L("Every Day"), 'value': 0},
 		{'label': $L("Weekdays"), 'value': 1},
@@ -48,7 +48,7 @@ TimeofdayConfig.prototype.setup = function() {
 
 //
 
-TimeofdayConfig.prototype.config = function() {
+TimeofdayTriggers.prototype.config = function() {
 	var startTime = new Date();
 	var closeTime = new Date();
 
@@ -88,7 +88,7 @@ TimeofdayConfig.prototype.config = function() {
 
 //
 
-TimeofdayConfig.prototype.load = function(extensionPreferences) {
+TimeofdayTriggers.prototype.load = function(extensionPreferences) {
 	var startDate = new Date(extensionPreferences.startTime);
 	var closeDate = new Date(extensionPreferences.closeTime);
 
@@ -121,7 +121,7 @@ TimeofdayConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-TimeofdayConfig.prototype.save = function(extensionConfig) {
+TimeofdayTriggers.prototype.save = function(extensionConfig) {
 	var days = new Array();
 
 	for(var j = 0; j < 7; j++) {
@@ -142,7 +142,7 @@ TimeofdayConfig.prototype.save = function(extensionConfig) {
 
 //
 
-TimeofdayConfig.prototype.helpItemTapped = function(event) {
+TimeofdayTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "TimeofdayDaysHelp") {
 		var helpTitle = "Days";
 
@@ -167,7 +167,7 @@ TimeofdayConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-TimeofdayConfig.prototype.handleListChange = function(changeEvent) {
+TimeofdayTriggers.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "timeofdayDays") {
 		if(changeEvent.model.timeofdayDays == 3)
 			changeEvent.model.timeofdayCustom = "block";

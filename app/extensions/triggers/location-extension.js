@@ -1,4 +1,4 @@
-function LocationConfig(controller, prefs) {
+function LocationTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function LocationConfig(controller, prefs) {
 
 //
 
-LocationConfig.prototype.label = function() {
+LocationTriggers.prototype.label = function() {
 	return $L("GPS Location Trigger");
 }
 
 //
 
-LocationConfig.prototype.setup = function() {
+LocationTriggers.prototype.setup = function() {
 	this.choicesActiveSelector = [
 		{'label': $L("When In Location"), 'value': 0},
 		{'label': $L("When Not In Location"), 'value': 1}];  
@@ -53,7 +53,7 @@ LocationConfig.prototype.setup = function() {
 
 //
 
-LocationConfig.prototype.config = function() {
+LocationTriggers.prototype.config = function() {
 	var config = {
 		'locationTitle': $L("GPS Location"),
 		'locationDisabled': false,
@@ -68,7 +68,7 @@ LocationConfig.prototype.config = function() {
 
 //
 
-LocationConfig.prototype.load = function(extensionPreferences) {
+LocationTriggers.prototype.load = function(extensionPreferences) {
 	var latitude = -1;
 	var longitude = -1;
 
@@ -97,7 +97,7 @@ LocationConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-LocationConfig.prototype.save = function(extensionConfig) {
+LocationTriggers.prototype.save = function(extensionConfig) {
 	var latitude = -1;
 	var longitude = -1;
 
@@ -120,7 +120,7 @@ LocationConfig.prototype.save = function(extensionConfig) {
 
 //
 
-LocationConfig.prototype.helpItemTapped = function(event) {
+LocationTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "LocationActiveHelp") {
 		var helpTitle = "Active";
 
@@ -150,7 +150,7 @@ LocationConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-LocationConfig.prototype.handleListChange = function(event) {
+LocationTriggers.prototype.handleListChange = function(event) {
 	if(event.property == "locationLocation") {
 		if(event.value == "select") {
 			var coords = null;
@@ -181,7 +181,7 @@ LocationConfig.prototype.handleListChange = function(event) {
 	}
 }
 
-LocationConfig.prototype.handleLocationSelect = function(model, latitude, longitude, returnValue) {
+LocationTriggers.prototype.handleLocationSelect = function(model, latitude, longitude, returnValue) {
 	if(returnValue) {
 		model.locationLocation = (Math.round(latitude*1000)/1000).toFixed(3) + 
 			" ; " + (Math.round(longitude*1000)/1000).toFixed(3);
@@ -195,7 +195,7 @@ LocationConfig.prototype.handleLocationSelect = function(model, latitude, longit
 
 //
 
-LocationConfig.prototype.fetchCurrentLocation = function(model, retry) {
+LocationTriggers.prototype.fetchCurrentLocation = function(model, retry) {
 	Mojo.Log.error("Fetching current location: " + retry);
 
 	if(retry < 20) {
@@ -216,7 +216,7 @@ LocationConfig.prototype.fetchCurrentLocation = function(model, retry) {
 	}
 }
 
-LocationConfig.prototype.handleCurrentLocation = function(model, retry, response) {
+LocationTriggers.prototype.handleCurrentLocation = function(model, retry, response) {
 	if((response.horizAccuracy == -1) || (response.horizAccuracy > 100)) {	
 		Mojo.Log.error("Insufficient location accuracy: " + response.horizAccuracy);
 

@@ -1,4 +1,4 @@
-function SecurityConfig(controller, prefs) {
+function SecuritySettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function SecurityConfig(controller, prefs) {
 
 //
 
-SecurityConfig.prototype.label = function() {
+SecuritySettings.prototype.label = function() {
 	return $L("Security Settings");
 }
 
 //
 
-SecurityConfig.prototype.setup = function(defaultChoiseLabel) {
+SecuritySettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesSecurityLockSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Unsecure"), 'value': 0},
@@ -67,7 +67,7 @@ SecurityConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-SecurityConfig.prototype.config = function() {
+SecuritySettings.prototype.config = function() {
 	var extensionConfig = {
 		'securityTitle': $L("Security"),
 		'securityPinDisplay': "none",
@@ -88,7 +88,7 @@ SecurityConfig.prototype.config = function() {
 
 //
 
-SecurityConfig.prototype.fetch = function(doneCallback) {
+SecuritySettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -96,7 +96,7 @@ SecurityConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-SecurityConfig.prototype.load = function(extensionPreferences) {
+SecuritySettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 
 	if(extensionPreferences.lockMode == "none")
@@ -129,7 +129,7 @@ SecurityConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-SecurityConfig.prototype.save = function(extensionConfig) {
+SecuritySettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 
 	if(extensionConfig.securityLockMode == 0) {
@@ -168,7 +168,7 @@ SecurityConfig.prototype.save = function(extensionConfig) {
 
 //
 
-SecurityConfig.prototype.helpItemTapped = function(event) {
+SecuritySettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "SecurityLockHelp") {
 		var helpTitle = "Unlock Mode";
 
@@ -207,7 +207,7 @@ SecurityConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-SecurityConfig.prototype.checkPINCharacter = function(keyEvent) {
+SecuritySettings.prototype.checkPINCharacter = function(keyEvent) {
 	if((keyEvent >= 48) && (keyEvent <= 57))
 		return true;
 	else
@@ -216,7 +216,7 @@ SecurityConfig.prototype.checkPINCharacter = function(keyEvent) {
 
 //
 
-SecurityConfig.prototype.handleListChange = function(changeEvent) {
+SecuritySettings.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "securityLockMode") {
 		changeEvent.model.securityLockRow = "single";
 
@@ -290,7 +290,7 @@ SecurityConfig.prototype.handleListChange = function(changeEvent) {
 
 //
 
-SecurityConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+SecuritySettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
@@ -307,7 +307,7 @@ SecurityConfig.prototype.getSystemSettings = function(requestID, extensionConfig
 		doneCallback(extensionConfig);
 }
 
-SecurityConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+SecuritySettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			extensionConfig.securityLockMode = 0;

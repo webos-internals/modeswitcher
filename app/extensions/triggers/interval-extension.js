@@ -1,4 +1,4 @@
-function IntervalConfig(controller, prefs) {
+function IntervalTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function IntervalConfig(controller, prefs) {
 
 //
 
-IntervalConfig.prototype.label = function() {
+IntervalTriggers.prototype.label = function() {
 	return $L("Time Interval Trigger");
 }
 
 //
 
-IntervalConfig.prototype.setup = function() {
+IntervalTriggers.prototype.setup = function() {
 	this.controller.setupWidget("IntervalIntervalHours",
 	 	{label: ' ', modelProperty: 'intervalIntervalHours', min: 0, max: 24 }); 
 
@@ -31,7 +31,7 @@ IntervalConfig.prototype.setup = function() {
 
 //
 
-IntervalConfig.prototype.config = function() {
+IntervalTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'intervalTitle': $L("Time Interval"),
 		'intervalIntervalHours': 0,
@@ -44,7 +44,7 @@ IntervalConfig.prototype.config = function() {
 
 //
 
-IntervalConfig.prototype.load = function(extensionPreferences) {
+IntervalTriggers.prototype.load = function(extensionPreferences) {
 	var extensionConfig = {
 		'intervalTitle': $L("Time Interval"),
 		'intervalIntervalHours': extensionPreferences.intervalHours,
@@ -55,7 +55,7 @@ IntervalConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-IntervalConfig.prototype.save = function(extensionConfig) {
+IntervalTriggers.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {
 		'intervalHours': extensionConfig.intervalIntervalHours,
 		'intervalMinutes': extensionConfig.intervalIntervalMinutes,
@@ -67,7 +67,7 @@ IntervalConfig.prototype.save = function(extensionConfig) {
 
 //
 
-IntervalConfig.prototype.helpItemTapped = function(event) {
+IntervalTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "IntervalIntervalHelp") {
 		var helpTitle = "Interval";
 

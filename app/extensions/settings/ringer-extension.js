@@ -1,4 +1,4 @@
-function RingerConfig(controller, prefs) {
+function RingerSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function RingerConfig(controller, prefs) {
 
 //
 
-RingerConfig.prototype.label = function() {
+RingerSettings.prototype.label = function() {
 	return $L("Ringer Settings");
 }
 
 //
 
-RingerConfig.prototype.setup = function(defaultChoiseLabel) {
+RingerSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesRingerOnSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},		
 		{'label': $L("Sound & Vibrate"), 'value': 1},
@@ -50,7 +50,7 @@ RingerConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-RingerConfig.prototype.config = function() {
+RingerSettings.prototype.config = function() {
 	var extensionConfig = {
 		'ringerTitle': $L("Ringer"),
 		'ringerSwitchOn': -1, 
@@ -63,7 +63,7 @@ RingerConfig.prototype.config = function() {
 
 //
 
-RingerConfig.prototype.fetch = function(doneCallback) {
+RingerSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -71,7 +71,7 @@ RingerConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-RingerConfig.prototype.load = function(extensionPreferences) {
+RingerSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	if(extensionPreferences.switchOn != undefined) {
@@ -96,7 +96,7 @@ RingerConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-RingerConfig.prototype.save = function(extensionConfig) {
+RingerSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.ringerSwitchOn != -1) {
@@ -123,7 +123,7 @@ RingerConfig.prototype.save = function(extensionConfig) {
 
 //
 
-RingerConfig.prototype.helpItemTapped = function(event) {
+RingerSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "RingerOnHelp") {
 		var helpTitle = "Switch On";
 
@@ -153,7 +153,7 @@ RingerConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-RingerConfig.prototype.handleListChange = function(changeEvent) {
+RingerSettings.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "ringerRingtoneName") {
 		changeEvent.model.ringerRingtoneName = "";		
 		changeEvent.model.ringerRingtonePath = "";		
@@ -168,7 +168,7 @@ RingerConfig.prototype.handleListChange = function(changeEvent) {
 
 //
 
-RingerConfig.prototype.executeRingerSelect = function(eventModel) {
+RingerSettings.prototype.executeRingerSelect = function(eventModel) {
 	Mojo.FilePicker.pickFile({'defaultKind': "ringtone", 'kinds': ["ringtone"], 
 		'actionType': "attach", 'actionName': $L("Done"), 'onSelect': 
 			function(eventModel, serviceResponse) {
@@ -182,7 +182,7 @@ RingerConfig.prototype.executeRingerSelect = function(eventModel) {
 
 //
 
-RingerConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+RingerSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
@@ -201,7 +201,7 @@ RingerConfig.prototype.getSystemSettings = function(requestID, extensionConfig, 
 		doneCallback(extensionConfig);
 }
 
-RingerConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+RingerSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {

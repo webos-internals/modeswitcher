@@ -1,4 +1,4 @@
-function WirelessConfig(controller, prefs) {
+function WirelessTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function WirelessConfig(controller, prefs) {
 
 //
 
-WirelessConfig.prototype.label = function() {
+WirelessTriggers.prototype.label = function() {
 	return $L("Wi-Fi Network Trigger");
 }
 
 //
 
-WirelessConfig.prototype.setup = function() {
+WirelessTriggers.prototype.setup = function() {
 	this.choicesWiFiStateSelector = [
 		{'label': $L("Connected"), 'value': 0},
 		{'label': $L("Disconnected"), 'value': 1},
@@ -38,7 +38,7 @@ WirelessConfig.prototype.setup = function() {
 
 //
 
-WirelessConfig.prototype.config = function() {
+WirelessTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'wirelessTitle': $L("Wi-Fi Network"),
 		'wirelessStateRow': "single",
@@ -51,7 +51,7 @@ WirelessConfig.prototype.config = function() {
 
 //
 
-WirelessConfig.prototype.load = function(extensionPreferences) {
+WirelessTriggers.prototype.load = function(extensionPreferences) {
 	var row = "single";	
 	var display = "none";
 
@@ -70,7 +70,7 @@ WirelessConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-WirelessConfig.prototype.save = function(extensionConfig) {
+WirelessTriggers.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {
 		'state': extensionConfig.wirelessState,
 		'ssid': extensionConfig.wirelessSSID };
@@ -80,7 +80,7 @@ WirelessConfig.prototype.save = function(extensionConfig) {
 
 //
 
-WirelessConfig.prototype.helpItemTapped = function(event) {
+WirelessTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "WirelessStateHelp") {
 		var helpTitle = "State";
 
@@ -105,7 +105,7 @@ WirelessConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-WirelessConfig.prototype.handleListChange = function(changeEvent) {
+WirelessTriggers.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "wirelessState") {
 		changeEvent.model.wirelessStateRow = "single";
 		changeEvent.model.wirelessSSIDDisplay = "none";

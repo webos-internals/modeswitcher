@@ -1,4 +1,4 @@
-function HeadsetConfig(controller, prefs) {
+function HeadsetTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function HeadsetConfig(controller, prefs) {
 
 //
 
-HeadsetConfig.prototype.label = function() {
+HeadsetTriggers.prototype.label = function() {
 	return $L("Headset State Trigger");
 }
 
 //
 
-HeadsetConfig.prototype.setup = function() {
+HeadsetTriggers.prototype.setup = function() {
 	this.choicesStateSelector = [
 		{'label': $L("Connected"), 'value': 0}, 
 		{'label': $L("Not Connected"), 'value': 1} ];  
@@ -36,7 +36,7 @@ HeadsetConfig.prototype.setup = function() {
 
 //
 
-HeadsetConfig.prototype.config = function() {
+HeadsetTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'headsetTitle': $L("Headset State"),
 		'headsetState': 0,
@@ -47,7 +47,7 @@ HeadsetConfig.prototype.config = function() {
 
 //
 
-HeadsetConfig.prototype.load = function(extensionPreferences) {
+HeadsetTriggers.prototype.load = function(extensionPreferences) {
 	var extensionConfig = {
 		'headsetTitle': $L("Headset State"),
 		'headsetState': extensionPreferences.state,
@@ -56,7 +56,7 @@ HeadsetConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-HeadsetConfig.prototype.save = function(extensionConfig) {
+HeadsetTriggers.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {
 		'state': extensionConfig.headsetState,
 		'scenario': extensionConfig.headsetScenario };
@@ -66,7 +66,7 @@ HeadsetConfig.prototype.save = function(extensionConfig) {
 
 //
 
-HeadsetConfig.prototype.helpItemTapped = function(event) {
+HeadsetTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "HeadsetStateHelp") {
 		var helpTitle = "State";
 

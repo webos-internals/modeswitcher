@@ -1,4 +1,4 @@
-function ApplicationConfig(controller, prefs) {
+function ApplicationTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -8,13 +8,13 @@ function ApplicationConfig(controller, prefs) {
 
 //
 
-ApplicationConfig.prototype.label = function() {
+ApplicationTriggers.prototype.label = function() {
 	return $L("Application Trigger");
 }
 
 //
 
-ApplicationConfig.prototype.setup = function() {
+ApplicationTriggers.prototype.setup = function() {
 	this.choicesStateSelector = [
 		{'label': $L("On Foreground"), 'value': 0},
 		{'label': $L("On Background"), 'value': 1} ];  
@@ -35,7 +35,7 @@ ApplicationConfig.prototype.setup = function() {
 
 //
 
-ApplicationConfig.prototype.config = function() {
+ApplicationTriggers.prototype.config = function() {
 	var id = "";
 	
 	if(this.choicesApplicationSelector[0] != undefined)
@@ -51,7 +51,7 @@ ApplicationConfig.prototype.config = function() {
 
 //
 
-ApplicationConfig.prototype.load = function(triggerPreferences) {
+ApplicationTriggers.prototype.load = function(triggerPreferences) {
 	var triggerConfig = {
 		'applicationTitle': $L("Application"),
 		'applicationState': triggerPreferences.appState,
@@ -60,7 +60,7 @@ ApplicationConfig.prototype.load = function(triggerPreferences) {
 	return triggerConfig;
 }
 
-ApplicationConfig.prototype.save = function(triggerConfig) {
+ApplicationTriggers.prototype.save = function(triggerConfig) {
 	var triggerPreferences = {
 		'appState': triggerConfig.applicationState,
 		'appId': triggerConfig.applicationId };
@@ -70,7 +70,7 @@ ApplicationConfig.prototype.save = function(triggerConfig) {
 
 //
 
-ApplicationConfig.prototype.helpItemTapped = function(event) {
+ApplicationTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "ApplicationStateHelp") {
 		var helpTitle = "State";
 
@@ -95,7 +95,7 @@ ApplicationConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ApplicationConfig.prototype.listApplications = function() {
+ApplicationTriggers.prototype.listApplications = function() {
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 		'parameters': {
 		'id': "com.palm.launcher", 'service': "com.palm.applicationManager", 
@@ -119,7 +119,7 @@ ApplicationConfig.prototype.listApplications = function() {
 		}.bind(this)});
 }
 
-ApplicationConfig.prototype.sortAlphabeticallyFunction = function(compareA, compareB){
+ApplicationTriggers.prototype.sortAlphabeticallyFunction = function(compareA, compareB){
 	if(compareA.type != undefined) {
 		var a = compareA.type.toLowerCase();
 		var b = compareB.type.toLowerCase();

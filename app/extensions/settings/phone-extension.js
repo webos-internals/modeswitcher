@@ -1,4 +1,4 @@
-function PhoneConfig(controller, prefs) {
+function PhoneSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,14 +6,14 @@ function PhoneConfig(controller, prefs) {
 
 //
 
-PhoneConfig.prototype.label = function() {
+PhoneSettings.prototype.label = function() {
 	if(this.prefs.advancedPrefs)
 		return $L("Phone Settings");
 }
 
 //
 
-PhoneConfig.prototype.setup = function(defaultChoiseLabel) {
+PhoneSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesPhoneReplySelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Do Nothing"), 'value': 0},
@@ -47,7 +47,7 @@ PhoneConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-PhoneConfig.prototype.config = function() {
+PhoneSettings.prototype.config = function() {
 	var extensionConfig = {
 		'phoneTitle': $L("Phone"),
 		'phoneTextDisplay': "none",
@@ -60,7 +60,7 @@ PhoneConfig.prototype.config = function() {
 
 //
 
-PhoneConfig.prototype.fetch = function(doneCallback) {
+PhoneSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -68,7 +68,7 @@ PhoneConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-PhoneConfig.prototype.load = function(extensionPreferences) {
+PhoneSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	if(extensionPreferences.rejectAction != undefined) {
@@ -95,7 +95,7 @@ PhoneConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-PhoneConfig.prototype.save = function(extensionConfig) {
+PhoneSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.phoneAutoReply != -1) {
@@ -118,7 +118,7 @@ PhoneConfig.prototype.save = function(extensionConfig) {
 
 //
 
-PhoneConfig.prototype.helpItemTapped = function(event) {
+PhoneSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "PhoneReplyHelp") {
 		var helpTitle = "On Call Reject";
 
@@ -148,7 +148,7 @@ PhoneConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-PhoneConfig.prototype.handleListChange = function(changeEvent) {
+PhoneSettings.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "phoneAutoReply") {
 		changeEvent.model.phoneTextDisplay = "none";
 		
@@ -165,7 +165,7 @@ PhoneConfig.prototype.handleListChange = function(changeEvent) {
 
 //
 
-PhoneConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+PhoneSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 
 	if(requestID == 0) {
@@ -179,7 +179,7 @@ PhoneConfig.prototype.getSystemSettings = function(requestID, extensionConfig, d
 		doneCallback(extensionConfig);
 }
 
-PhoneConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+PhoneSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			extensionConfig.phoneTextDisplay = "none";

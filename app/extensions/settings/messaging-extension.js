@@ -1,4 +1,4 @@
-function MessagingConfig(controller, prefs) {
+function MessagingSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -9,14 +9,14 @@ function MessagingConfig(controller, prefs) {
 
 //
 
-MessagingConfig.prototype.label = function() {
+MessagingSettings.prototype.label = function() {
 	if(this.prefs.advancedPrefs)
 		return $L("Messaging Settings");
 }
 
 //
 
-MessagingConfig.prototype.setup = function(defaultChoiseLabel) {
+MessagingSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesMsgAccountSelector = this.accountSelectorChoices;
 
 	this.controller.setupWidget("MessagingAccountSelector", { 
@@ -73,7 +73,7 @@ MessagingConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-MessagingConfig.prototype.config = function() {
+MessagingSettings.prototype.config = function() {
 	var extensionConfig = {
 		'messagingTitle': $L("Messaging"),
 		'messagingAccountRow': "single",
@@ -104,7 +104,7 @@ MessagingConfig.prototype.config = function() {
 
 //
 
-MessagingConfig.prototype.fetch = function(doneCallback) {
+MessagingSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -112,7 +112,7 @@ MessagingConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-MessagingConfig.prototype.load = function(extensionPreferences) {
+MessagingSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 
 	if(extensionPreferences.accounts != undefined) {
@@ -195,7 +195,7 @@ MessagingConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-MessagingConfig.prototype.save = function(extensionConfig) {
+MessagingSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 
 	if(extensionConfig.messagingAccountsCfg.length > 0) {
@@ -255,7 +255,7 @@ MessagingConfig.prototype.save = function(extensionConfig) {
 
 //
 
-MessagingConfig.prototype.helpItemTapped = function(event) {
+MessagingSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "MessagingAccountHelp") {
 		var helpTitle = "Account Selector";
 
@@ -295,7 +295,7 @@ MessagingConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-MessagingConfig.prototype.handleListChange = function(changeEvent) {
+MessagingSettings.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "messagingAccountId") {
 		changeEvent.model.messagingBlinkNotify = changeEvent.model.messagingBlinkNotifyCfg[changeEvent.value];
 		changeEvent.model.messagingNotifyAlert = changeEvent.model.messagingNotifyAlertCfg[changeEvent.value];
@@ -364,7 +364,7 @@ MessagingConfig.prototype.handleListChange = function(changeEvent) {
 
 //
 
-MessagingConfig.prototype.executeRingtoneSelect = function(eventModel) {
+MessagingSettings.prototype.executeRingtoneSelect = function(eventModel) {
 	Mojo.FilePicker.pickFile({'defaultKind': "ringtone", 'kinds': ["ringtone"], 
 		'actionType': "attach", 'actionName': "Done", 'onSelect': 
 			function(eventModel, serviceResponse) {
@@ -378,7 +378,7 @@ MessagingConfig.prototype.executeRingtoneSelect = function(eventModel) {
 
 //
 
-MessagingConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+MessagingSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 
 	if(requestID == 0) {
@@ -406,7 +406,7 @@ MessagingConfig.prototype.getSystemSettings = function(requestID, extensionConfi
 		doneCallback(extensionConfig);
 }
 
-MessagingConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+MessagingSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			for(var i = 0; i < serviceResponse.results.length; i++) {

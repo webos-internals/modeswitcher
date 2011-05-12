@@ -1,4 +1,4 @@
-function ScreenConfig(controller, prefs) {
+function ScreenSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function ScreenConfig(controller, prefs) {
 
 //
 
-ScreenConfig.prototype.label = function() {
+ScreenSettings.prototype.label = function() {
 	return $L("Screen Settings");
 }
 
 //
 
-ScreenConfig.prototype.setup = function(defaultChoiseLabel) {
+ScreenSettings.prototype.setup = function(defaultChoiseLabel) {
 	// Screen brightness slider, timeout and wallpaper selector
 
 	this.choicesScreenSelector = [
@@ -88,7 +88,7 @@ ScreenConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-ScreenConfig.prototype.config = function() {
+ScreenSettings.prototype.config = function() {
 	var extensionConfig = {
 		'screenTitle': $L("Screen"),
 		'screenBrightnessLevel': -1, 
@@ -103,7 +103,7 @@ ScreenConfig.prototype.config = function() {
 
 //
 
-ScreenConfig.prototype.fetch = function(doneCallback) {
+ScreenSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -111,7 +111,7 @@ ScreenConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-ScreenConfig.prototype.load = function(extensionPreferences) {
+ScreenSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	if(extensionPreferences.brightnessLevel != undefined)
@@ -134,7 +134,7 @@ ScreenConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-ScreenConfig.prototype.save = function(extensionConfig) {
+ScreenSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 
 	if(extensionConfig.screenBrightnessLevel != -1)
@@ -159,7 +159,7 @@ ScreenConfig.prototype.save = function(extensionConfig) {
 
 //
 
-ScreenConfig.prototype.helpItemTapped = function(event) {
+ScreenSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "ScreenBrightnessHelp") {
 		var helpTitle = "Brightness";
 
@@ -199,7 +199,7 @@ ScreenConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ScreenConfig.prototype.handleListChange = function(changeEvent) {
+ScreenSettings.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "screenWallpaperName") {
 		changeEvent.model.screenWallpaperName = "";
 		changeEvent.model.screenWallpaperPath = "";		
@@ -214,7 +214,7 @@ ScreenConfig.prototype.handleListChange = function(changeEvent) {
 
 //
 
-ScreenConfig.prototype.executeWallpaperSelect = function(eventModel) {
+ScreenSettings.prototype.executeWallpaperSelect = function(eventModel) {
 	Mojo.FilePicker.pickFile({'defaultKind': "image", 'kinds': ["image"], 'actionType': "open", 
 		'actionName': $L("Select Wallpaper"), 'crop': {'width': 318, 'height': 479}, 'onSelect': 
 			function(eventModel, serviceResponse) {
@@ -267,7 +267,7 @@ ScreenConfig.prototype.executeWallpaperSelect = function(eventModel) {
 
 //
 
-ScreenConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+ScreenSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
@@ -286,7 +286,7 @@ ScreenConfig.prototype.getSystemSettings = function(requestID, extensionConfig, 
 		doneCallback(extensionConfig);
 }
 
-ScreenConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+ScreenSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			extensionConfig.screenBrightnessLevel = serviceResponse.maximumBrightness;

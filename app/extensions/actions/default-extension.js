@@ -1,4 +1,4 @@
-function DefaultConfig(controller, prefs) {
+function DefaultActions(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,14 +6,14 @@ function DefaultConfig(controller, prefs) {
 
 //
 
-DefaultConfig.prototype.appid = function(type) {
+DefaultActions.prototype.appid = function(type) {
 	if(type == "app")
 		return "any";
 }
 
 //
 
-DefaultConfig.prototype.setup = function() {
+DefaultActions.prototype.setup = function() {
 	this.choicesDefaultLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  
@@ -28,7 +28,7 @@ DefaultConfig.prototype.setup = function() {
 
 //
 
-DefaultConfig.prototype.config = function(launchPoint) {
+DefaultActions.prototype.config = function(launchPoint) {
 	var extensionConfig = {
 		'name': launchPoint.title, 
 		'appid': launchPoint.id,
@@ -39,7 +39,7 @@ DefaultConfig.prototype.config = function(launchPoint) {
 
 //
 
-DefaultConfig.prototype.load = function(extensionPreferences) {
+DefaultActions.prototype.load = function(extensionPreferences) {
 	var extensionConfig = {
 		'name': extensionPreferences.name,
 		'appid': extensionPreferences.appid,
@@ -48,7 +48,7 @@ DefaultConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-DefaultConfig.prototype.save = function(extensionConfig) {
+DefaultActions.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {
 		'type': "app",
 		'name': extensionConfig.name,
@@ -61,7 +61,7 @@ DefaultConfig.prototype.save = function(extensionConfig) {
 
 //
 
-DefaultConfig.prototype.helpItemTapped = function(event) {
+DefaultActions.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "DefaultLaunchHelp") {
 		var helpTitle = "Launch";
 

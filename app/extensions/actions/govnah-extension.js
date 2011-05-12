@@ -1,4 +1,4 @@
-function GovnahConfig(controller, prefs) {
+function GovnahActions(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function GovnahConfig(controller, prefs) {
 
 //
 
-GovnahConfig.prototype.appid = function(type) {
+GovnahActions.prototype.appid = function(type) {
 	return "org.webosinternals.govnah";
 }
 
 //
 
-GovnahConfig.prototype.data = function(profiles) {
+GovnahActions.prototype.data = function(profiles) {
 	if(profiles.length > 0) {
 		this.choicesGovnahStartSelector.clear();
 		this.choicesGovnahCloseSelector.clear();
@@ -47,7 +47,7 @@ GovnahConfig.prototype.data = function(profiles) {
 
 //
 
-GovnahConfig.prototype.setup = function() {
+GovnahActions.prototype.setup = function() {
 	this.choicesGovnahLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  
@@ -82,7 +82,7 @@ GovnahConfig.prototype.setup = function() {
 
 //
 
-GovnahConfig.prototype.config = function(launchPoint) {
+GovnahActions.prototype.config = function(launchPoint) {
 	if(launchPoint.type == "app") {
 		var appDisplay = "block";
 		var srvDisplay = "none";
@@ -106,7 +106,7 @@ GovnahConfig.prototype.config = function(launchPoint) {
 
 //
 
-GovnahConfig.prototype.load = function(appPreferences) {
+GovnahActions.prototype.load = function(appPreferences) {
 	var startProfile = 0;
 	var closeProfile = 0;
 
@@ -145,7 +145,7 @@ GovnahConfig.prototype.load = function(appPreferences) {
 	return appConfig;
 }
 
-GovnahConfig.prototype.save = function(appConfig) {
+GovnahActions.prototype.save = function(appConfig) {
 	if(appConfig.appType == "app") {
 		var appPreferences = {
 			'type': "app",
@@ -185,7 +185,7 @@ GovnahConfig.prototype.save = function(appConfig) {
 
 //
 
-GovnahConfig.prototype.helpItemTapped = function(event) {
+GovnahActions.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "GovnahLaunchHelp") {
 		var helpTitle = "Launch";
 
@@ -215,7 +215,7 @@ GovnahConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-GovnahConfig.prototype.handleListChange = function(changeEvent) {
+GovnahActions.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "appType") {
 		if(changeEvent.value == "app") {
 			changeEvent.model.launchMode = "start";

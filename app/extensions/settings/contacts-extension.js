@@ -1,4 +1,4 @@
-function ContactsConfig(controller, prefs) {
+function ContactsSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,14 +6,14 @@ function ContactsConfig(controller, prefs) {
 
 //
 
-ContactsConfig.prototype.label = function() {
+ContactsSettings.prototype.label = function() {
 	if(this.prefs.advancedPrefs)
 		return $L("Contacts Settings");
 }
 
 //
 
-ContactsConfig.prototype.setup = function(defaultChoiseLabel) {
+ContactsSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesContactsBlockedSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -38,7 +38,7 @@ ContactsConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-ContactsConfig.prototype.config = function() {
+ContactsSettings.prototype.config = function() {
 	var extensionConfig = {
 		'contactsTitle': $L("Contacts"),
 		'contactsDatabaseId': -1,
@@ -50,7 +50,7 @@ ContactsConfig.prototype.config = function() {
 
 //
 
-ContactsConfig.prototype.fetch = function(doneCallback) {
+ContactsSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -58,7 +58,7 @@ ContactsConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-ContactsConfig.prototype.load = function(extensionPreferences) {
+ContactsSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	if(extensionPreferences.databaseId != undefined)
@@ -81,7 +81,7 @@ ContactsConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-ContactsConfig.prototype.save = function(extensionConfig) {
+ContactsSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.contactsDatabaseId != -1)
@@ -106,7 +106,7 @@ ContactsConfig.prototype.save = function(extensionConfig) {
 
 //
 
-ContactsConfig.prototype.helpItemTapped = function(event) {
+ContactsSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "ContactsBlockedHelp") {
 		var helpTitle = "Blocked";
 
@@ -131,7 +131,7 @@ ContactsConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ContactsConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+ContactsSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 
 	if(requestID == 0) {
@@ -145,7 +145,7 @@ ContactsConfig.prototype.getSystemSettings = function(requestID, extensionConfig
 		doneCallback(extensionConfig);
 }
 
-ContactsConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+ContactsSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			if(serviceResponse.results.length > 0) {

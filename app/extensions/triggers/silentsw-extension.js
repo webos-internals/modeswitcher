@@ -1,4 +1,4 @@
-function SilentswConfig(controller, prefs) {
+function SilentswTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function SilentswConfig(controller, prefs) {
 
 //
 
-SilentswConfig.prototype.label = function() {
+SilentswTriggers.prototype.label = function() {
 	return $L("Silent Switch Trigger");
 }
 
 //
 
-SilentswConfig.prototype.setup = function() {
+SilentswTriggers.prototype.setup = function() {
 	this.choicesSwitchStateSelector = [
 		{'label': $L("Switch On"), 'value': 1},
 		{'label': $L("Switch Off"), 'value': 0} ];  
@@ -27,7 +27,7 @@ SilentswConfig.prototype.setup = function() {
 
 //
 
-SilentswConfig.prototype.config = function() {
+SilentswTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'silentswTitle': $L("Silent Switch"),
 		'silentswState': 1 };
@@ -37,7 +37,7 @@ SilentswConfig.prototype.config = function() {
 
 //
 
-SilentswConfig.prototype.load = function(extensionPreferences) {
+SilentswTriggers.prototype.load = function(extensionPreferences) {
 	var state = 1;
 	
 	if(extensionPreferences.state == "up")
@@ -50,7 +50,7 @@ SilentswConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-SilentswConfig.prototype.save = function(extensionConfig) {
+SilentswTriggers.prototype.save = function(extensionConfig) {
 	var state = "down";
 	
 	if(extensionConfig.silentswState == 0)
@@ -64,7 +64,7 @@ SilentswConfig.prototype.save = function(extensionConfig) {
 
 //
 
-SilentswConfig.prototype.helpItemTapped = function(event) {
+SilentswTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "SilentswStateHelp") {
 		var helpTitle = "State";
 

@@ -1,4 +1,4 @@
-function ModeswConfig(controller, prefs) {
+function ModeswActions(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -12,14 +12,14 @@ function ModeswConfig(controller, prefs) {
 
 //
 
-ModeswConfig.prototype.appid = function(type) {
+ModeswActions.prototype.appid = function(type) {
 	if(type == "ms")
 		return "org.webosinternals.modeswitcher";
 }
 
 //
 
-ModeswConfig.prototype.setup = function() {
+ModeswActions.prototype.setup = function() {
 	this.choicesModeswProcessSelector = [
 		{'label': $L("Before Mode Start"), value: "start"},
 		{'label': $L("Before Mode Close"), value: "close"},
@@ -68,7 +68,7 @@ ModeswConfig.prototype.setup = function() {
 
 //
 
-ModeswConfig.prototype.config = function(launchPoint) {
+ModeswActions.prototype.config = function(launchPoint) {
 	var extensionConfig = {
 		'name': launchPoint.title,
 		'modeProcess': "start", 
@@ -84,7 +84,7 @@ ModeswConfig.prototype.config = function(launchPoint) {
 
 //
 
-ModeswConfig.prototype.load = function(extensionPreferences) {
+ModeswActions.prototype.load = function(extensionPreferences) {
 	var row = "";
 	var startDisplay = "none";
 	var closeDisplay = "none";
@@ -112,7 +112,7 @@ ModeswConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-ModeswConfig.prototype.save = function(extensionConfig) {
+ModeswActions.prototype.save = function(extensionConfig) {
 	var force = "no";
 
 	if((extensionConfig.modeProcess == "switch") || (extensionConfig.modeProcess == "switched"))
@@ -131,7 +131,7 @@ ModeswConfig.prototype.save = function(extensionConfig) {
 
 //
 
-ModeswConfig.prototype.helpItemTapped = function(event) {
+ModeswActions.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "ModeswProcessHelp") {
 		var helpTitle = "Execute";
 
@@ -161,13 +161,13 @@ ModeswConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ModeswConfig.prototype.retrieveModesList = function() {
+ModeswActions.prototype.retrieveModesList = function() {
 	this.controller.serviceRequest('palm://org.webosinternals.modeswitcher.srv', {
 		'method': 'prefs', 'parameters': {'keys': ["customModes"]},
 		'onSuccess': this.handleModeData.bind(this)} );
 }
 
-ModeswConfig.prototype.handleModeData = function(serviceResponse) {
+ModeswActions.prototype.handleModeData = function(serviceResponse) {
 	this.modesList.clear();
 	
 	this.modesList.push({'label': $L("All Normal Modes"), 'value': "All Normal Modes", 'type': "alln"});  	
@@ -209,7 +209,7 @@ ModeswConfig.prototype.handleModeData = function(serviceResponse) {
 
 //
 
-ModeswConfig.prototype.handleListChange = function(changeEvent) {
+ModeswActions.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "modeAction") {
 		if((changeEvent.value == "unlock") || (changeEvent.value == "lock")) {
 			changeEvent.model.modeActionRow = "last";

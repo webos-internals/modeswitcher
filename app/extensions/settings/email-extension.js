@@ -1,4 +1,4 @@
-function EmailConfig(controller, prefs) {
+function EmailSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -9,14 +9,14 @@ function EmailConfig(controller, prefs) {
 
 //
 
-EmailConfig.prototype.label = function() {
+EmailSettings.prototype.label = function() {
 	if(this.prefs.advancedPrefs)
 		return $L("Email Settings");
 }
 
 //
 
-EmailConfig.prototype.setup = function(defaultChoiseLabel) {
+EmailSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesEmailAccountSelector = this.accountSelectorChoices;
 
 	this.controller.setupWidget("EmailAccountSelector", { 
@@ -79,7 +79,7 @@ EmailConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-EmailConfig.prototype.config = function() {
+EmailSettings.prototype.config = function() {
 	var extensionConfig = {
 		'emailTitle': $L("Email"),
 		'emailAccountRow': "single",
@@ -107,7 +107,7 @@ EmailConfig.prototype.config = function() {
 
 //
 
-EmailConfig.prototype.fetch = function(doneCallback) {
+EmailSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -115,7 +115,7 @@ EmailConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-EmailConfig.prototype.load = function(extensionPreferences) {
+EmailSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 
 	if(extensionPreferences.accounts != undefined) {
@@ -195,7 +195,7 @@ EmailConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-EmailConfig.prototype.save = function(extensionConfig) {
+EmailSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.emailAccountsCfg.length > 0) {
@@ -254,7 +254,7 @@ EmailConfig.prototype.save = function(extensionConfig) {
 
 //
 
-EmailConfig.prototype.helpItemTapped = function(event) {
+EmailSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "EmailAccountHelp") {
 		var helpTitle = "Account Selector";
 
@@ -294,7 +294,7 @@ EmailConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-EmailConfig.prototype.handleListChange = function(changeEvent) {
+EmailSettings.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "emailAccountId") {
 		changeEvent.model.emailBlinkNotify = changeEvent.model.emailBlinkNotifyCfg[changeEvent.value];
 		changeEvent.model.emailNotifyAlert = changeEvent.model.emailNotifyAlertCfg[changeEvent.value];
@@ -341,7 +341,7 @@ EmailConfig.prototype.handleListChange = function(changeEvent) {
 
 //
 
-EmailConfig.prototype.executeRingtoneSelect = function(eventModel) {
+EmailSettings.prototype.executeRingtoneSelect = function(eventModel) {
 	Mojo.FilePicker.pickFile({'defaultKind': "ringtone", 'kinds': ["ringtone"], 
 		'actionType': "attach", 'actionName': $L("Done"), 'onSelect': 
 			function(eventModel, serviceResponse) {
@@ -355,7 +355,7 @@ EmailConfig.prototype.executeRingtoneSelect = function(eventModel) {
 
 //
 
-EmailConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+EmailSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
@@ -376,7 +376,7 @@ EmailConfig.prototype.getSystemSettings = function(requestID, extensionConfig, d
 		doneCallback(extensionConfig);
 }
 
-EmailConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+EmailSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			for(var i = 0; i < serviceResponse.results.length; i++) {

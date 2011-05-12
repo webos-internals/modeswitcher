@@ -1,4 +1,4 @@
-function ConnectionConfig(controller, prefs) {
+function ConnectionSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function ConnectionConfig(controller, prefs) {
 
 //
 
-ConnectionConfig.prototype.label = function() {
+ConnectionSettings.prototype.label = function() {
 	return $L("Connection Settings");
 }
 
 //
 
-ConnectionConfig.prototype.setup = function(defaultChoiseLabel) {
+ConnectionSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesPhoneSelector = [
 		{'label': defaultChoiseLabel, value: -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -64,7 +64,7 @@ ConnectionConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-ConnectionConfig.prototype.config = function() {
+ConnectionSettings.prototype.config = function() {
 	var extensionConfig = {
 		'connectionTitle': $L("Connections"),
 		'connectionPhoneState': -1, 
@@ -78,7 +78,7 @@ ConnectionConfig.prototype.config = function() {
 
 //
 
-ConnectionConfig.prototype.fetch = function(doneCallback) {
+ConnectionSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -86,7 +86,7 @@ ConnectionConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-ConnectionConfig.prototype.load = function(extensionPreferences) {
+ConnectionSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	if(extensionPreferences.phoneState != undefined) {
@@ -127,7 +127,7 @@ ConnectionConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-ConnectionConfig.prototype.save = function(extensionConfig) {
+ConnectionSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.connectionPhoneState != -1) {
@@ -170,7 +170,7 @@ ConnectionConfig.prototype.save = function(extensionConfig) {
 
 //
 
-ConnectionConfig.prototype.helpItemTapped = function(event) {
+ConnectionSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "ConnectionPhoneHelp") {
 		var helpTitle = "Phone";
 
@@ -210,7 +210,7 @@ ConnectionConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ConnectionConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+ConnectionSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
@@ -246,7 +246,7 @@ ConnectionConfig.prototype.getSystemSettings = function(requestID, extensionConf
 		doneCallback(extensionConfig);
 }
 
-ConnectionConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+ConnectionSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if((serviceResponse.returnValue) || (serviceResponse.returnValue == undefined)) {
 		if(requestID == 0) {
 			if(serviceResponse.extended) {

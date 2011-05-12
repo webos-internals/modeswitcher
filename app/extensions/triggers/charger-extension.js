@@ -1,4 +1,4 @@
-function ChargerConfig(controller, prefs) {
+function ChargerTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,14 +6,14 @@ function ChargerConfig(controller, prefs) {
 
 //
 
-ChargerConfig.prototype.label = function() {
+ChargerTriggers.prototype.label = function() {
 	if(this.prefs.advancedPrefs)
 		return $L("Charger Event Trigger");
 }
 
 //
 
-ChargerConfig.prototype.setup = function() {
+ChargerTriggers.prototype.setup = function() {
 	this.choicesChargerSelector = [
 		{'label': $L("No Charger"), 'value': "none"},
 		{'label': $L("Touchstone"), 'value': "ts"},
@@ -46,7 +46,7 @@ ChargerConfig.prototype.setup = function() {
 
 //
 
-ChargerConfig.prototype.config = function() {
+ChargerTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'chargerTitle': $L("Charger Event"),
 		'chargerSourceRow': "first",
@@ -59,7 +59,7 @@ ChargerConfig.prototype.config = function() {
 
 //
 
-ChargerConfig.prototype.load = function(extensionPreferences) {
+ChargerTriggers.prototype.load = function(extensionPreferences) {
 	if(extensionPreferences.charger == "ts") {
 		var row = "first";
 		var display = "block";
@@ -79,7 +79,7 @@ ChargerConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-ChargerConfig.prototype.save = function(extensionConfig) {
+ChargerTriggers.prototype.save = function(extensionConfig) {
 	if(extensionConfig.chargerCharger != "ts")
 		var orientation = "any";
 	else
@@ -94,7 +94,7 @@ ChargerConfig.prototype.save = function(extensionConfig) {
 
 //
 
-ChargerConfig.prototype.helpItemTapped = function(event) {
+ChargerTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "ChargerSourceHelp") {
 		var helpTitle = "Charger";
 
@@ -119,7 +119,7 @@ ChargerConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-ChargerConfig.prototype.handleListChange = function(changeEvent) {
+ChargerTriggers.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "chargerCharger") {
 		if(changeEvent.model.chargerCharger == "ts") {
 			changeEvent.model.chargerSourceRow = "first";

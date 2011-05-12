@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.2.1', log: [
+			'Fixed extensions name collision bug.'
+		]
+	},
+	{
 		version: '2.2.0', log: [
 			'New extensions and features, see wiki for details.'
 		]

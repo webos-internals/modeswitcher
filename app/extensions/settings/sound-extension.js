@@ -1,4 +1,4 @@
-function SoundConfig(controller, prefs) {
+function SoundSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function SoundConfig(controller, prefs) {
 
 //
 
-SoundConfig.prototype.label = function() {
+SoundSettings.prototype.label = function() {
 	return $L("Sound Settings");
 }
 
 //
 
-SoundConfig.prototype.setup = function(defaultChoiseLabel) {
+SoundSettings.prototype.setup = function(defaultChoiseLabel) {
 	// Ringer, System and Media volume selectors
 	
 	this.choicesRingerVolumeSelector = [
@@ -57,7 +57,7 @@ SoundConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-SoundConfig.prototype.config = function() {
+SoundSettings.prototype.config = function() {
 	var extensionConfig = {
 		'soundTitle': $L("Sounds"),
 		'soundRinger': -1, 
@@ -69,7 +69,7 @@ SoundConfig.prototype.config = function() {
 
 //
 
-SoundConfig.prototype.fetch = function(doneCallback) {
+SoundSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -77,7 +77,7 @@ SoundConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-SoundConfig.prototype.load = function(extensionPreferences) {
+SoundSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	if(extensionPreferences.ringerVolume != undefined)
@@ -92,7 +92,7 @@ SoundConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-SoundConfig.prototype.save = function(extensionConfig) {
+SoundSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.soundRinger != -1)
@@ -109,7 +109,7 @@ SoundConfig.prototype.save = function(extensionConfig) {
 
 //
 
-SoundConfig.prototype.helpItemTapped = function(event) {
+SoundSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "SoundRingerHelp") {
 		var helpTitle = "Ringer";
 
@@ -139,7 +139,7 @@ SoundConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-SoundConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+SoundSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
@@ -164,7 +164,7 @@ SoundConfig.prototype.getSystemSettings = function(requestID, extensionConfig, d
 		doneCallback(extensionConfig);
 }
 
-SoundConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+SoundSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			extensionConfig.soundRinger = serviceResponse.volume;

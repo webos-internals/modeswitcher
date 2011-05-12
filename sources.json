@@ -37,7 +37,7 @@
 	{ "source": "app/extensions/actions/browser-extension.js" },
 	{ "source": "app/extensions/actions/govnah-extension.js" },
 	{ "source": "app/extensions/actions/modesw-extension.js" },
-	{ "source": "app/extensions/actions/phone-extension.js" },
+	{ "source": "app/extensions/actions/phoneapp-extension.js" },
 	{ "source": "app/extensions/actions/systools-extension.js" },
  
 	{ "source": "app/extensions/settings/airplane-extension.js" },

@@ -1,4 +1,4 @@
-function DisplayConfig(controller, prefs) {
+function DisplayTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function DisplayConfig(controller, prefs) {
 
 //
 
-DisplayConfig.prototype.label = function() {
+DisplayTriggers.prototype.label = function() {
 	return $L("Display State Trigger");
 }
 
 //
 
-DisplayConfig.prototype.setup = function() {
+DisplayTriggers.prototype.setup = function() {
 	this.choicesStateSelector = [
 		{'label': $L("Locked"), 'value': 1},
 		{'label': $L("Unlocked"), 'value': 0} ];  
@@ -27,7 +27,7 @@ DisplayConfig.prototype.setup = function() {
 
 //
 
-DisplayConfig.prototype.config = function() {
+DisplayTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'displayTitle': $L("Display State"),
 		'displayLocked': 1 };
@@ -37,7 +37,7 @@ DisplayConfig.prototype.config = function() {
 
 //
 
-DisplayConfig.prototype.load = function(extensionPreferences) {
+DisplayTriggers.prototype.load = function(extensionPreferences) {
 	var locked = 1;
 	
 	if(!extensionPreferences.locked)
@@ -50,7 +50,7 @@ DisplayConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-DisplayConfig.prototype.save = function(extensionConfig) {
+DisplayTriggers.prototype.save = function(extensionConfig) {
 	var locked = true;
 
 	if(extensionConfig.displayLocked == 0)
@@ -64,7 +64,7 @@ DisplayConfig.prototype.save = function(extensionConfig) {
 
 //
 
-DisplayConfig.prototype.helpItemTapped = function(event) {
+DisplayTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "DisplayStateHelp") {
 		var helpTitle = "State";
 

@@ -1,4 +1,4 @@
-function PhoneConfig(controller, prefs) {
+function PhoneappActions(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,23 +6,23 @@ function PhoneConfig(controller, prefs) {
 
 //
 
-PhoneConfig.prototype.appid = function(type) {
+PhoneappActions.prototype.appid = function(type) {
 	if(type == "app")
 		return "com.palm.app.phone";
 }
 
 //
 
-PhoneConfig.prototype.setup = function() {
-	this.choicesPhoneLaunchSelector = [
+PhoneappActions.prototype.setup = function() {
+	this.choicesPhoneappLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  
 
-	this.controller.setupWidget("PhoneLaunchSelector", {'label': $L("Launch"), 
+	this.controller.setupWidget("PhoneappLaunchSelector", {'label': $L("Launch"), 
 		'labelPlacement': "left", 'modelProperty': "launchMode",
-		'choices': this.choicesPhoneLaunchSelector} );
+		'choices': this.choicesPhoneappLaunchSelector} );
 			
-	this.controller.setupWidget("PhoneNumberText", { 'hintText': $L("Enter phone number..."), 
+	this.controller.setupWidget("PhoneappNumberText", { 'hintText': $L("Enter phone number..."), 
 		'multiline': false, 'enterSubmits': false, 'focus': false, 
 		'textCase': Mojo.Widget.steModeLowerCase, 'modelProperty': "launchNumber"} );
 
@@ -32,7 +32,7 @@ PhoneConfig.prototype.setup = function() {
 
 //
 
-PhoneConfig.prototype.config = function(launchPoint) {
+PhoneappActions.prototype.config = function(launchPoint) {
 	var extensionConfig = {
 		'name': launchPoint.title,
 		'launchMode': "start",
@@ -43,7 +43,7 @@ PhoneConfig.prototype.config = function(launchPoint) {
 
 //
 
-PhoneConfig.prototype.load = function(extensionPreferences) {
+PhoneappActions.prototype.load = function(extensionPreferences) {
 	var launchNumber = "";
 	
 	try {eval("var params = " + extensionPreferences.params);} catch(error) {var params = "";}
@@ -59,7 +59,7 @@ PhoneConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-PhoneConfig.prototype.save = function(extensionConfig) {
+PhoneappActions.prototype.save = function(extensionConfig) {
 	var params = "";
 
 	if(extensionConfig.launchNumber.length != 0)
@@ -77,13 +77,13 @@ PhoneConfig.prototype.save = function(extensionConfig) {
 
 //
 
-PhoneConfig.prototype.helpItemTapped = function(event) {
-	if(event.originalEvent.target.id == "PhoneLaunchHelp") {
+PhoneappActions.prototype.helpItemTapped = function(event) {
+	if(event.originalEvent.target.id == "PhoneappLaunchHelp") {
 		var helpTitle = "Launch";
 
 		var helpText = "Determines when the application is started.";
 	}
-	else if(event.originalEvent.target.id == "PhoneNumberHelp") {
+	else if(event.originalEvent.target.id == "PhoneappNumberHelp") {
 		var helpTitle = "Number";
 
 		var helpText = "Number string to prefill for the dialing. Can be used to set call redirection etc.";

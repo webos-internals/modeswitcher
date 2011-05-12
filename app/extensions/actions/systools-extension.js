@@ -1,4 +1,4 @@
-function SystoolsConfig(controller, prefs) {
+function SystoolsActions(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function SystoolsConfig(controller, prefs) {
 
 //
 
-SystoolsConfig.prototype.appid = function(type) {
+SystoolsActions.prototype.appid = function(type) {
 	return "ca.canucksoftware.systoolsmgr";
 }
 
 //
 
-SystoolsConfig.prototype.setup = function() {
+SystoolsActions.prototype.setup = function() {
 	this.choicesSystoolsLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  
@@ -45,7 +45,7 @@ SystoolsConfig.prototype.setup = function() {
 
 //
 
-SystoolsConfig.prototype.config = function(launchPoint) {
+SystoolsActions.prototype.config = function(launchPoint) {
 	if(launchPoint.type == "app") {
 		var appDisplay = "block";
 		var srvDisplay = "none";
@@ -69,7 +69,7 @@ SystoolsConfig.prototype.config = function(launchPoint) {
 
 //
 
-SystoolsConfig.prototype.load = function(extensionPreferences) {
+SystoolsActions.prototype.load = function(extensionPreferences) {
 	var startAction = 0;
 	var closeAction = 0;
 	
@@ -110,7 +110,7 @@ SystoolsConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-SystoolsConfig.prototype.save = function(extensionConfig) {
+SystoolsActions.prototype.save = function(extensionConfig) {
 	if(extensionConfig.systoolsAppType == "app") {
 		var extensionPreferences = {
 			'type': "app",
@@ -166,7 +166,7 @@ SystoolsConfig.prototype.save = function(extensionConfig) {
 
 //
 
-SystoolsConfig.prototype.helpItemTapped = function(event) {
+SystoolsActions.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "SystoolsLaunchHelp") {
 		var helpTitle = "Launch";
 

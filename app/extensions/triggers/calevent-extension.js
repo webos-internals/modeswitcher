@@ -1,4 +1,4 @@
-function CaleventConfig(controller, prefs) {
+function CaleventTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function CaleventConfig(controller, prefs) {
 
 //
 
-CaleventConfig.prototype.label = function() {
+CaleventTriggers.prototype.label = function() {
 	return $L("Calendar Event Trigger");
 }
 
 //
 
-CaleventConfig.prototype.setup = function() {
+CaleventTriggers.prototype.setup = function() {
 	this.choicesCaleventCalendarSelector = [
 		{'label': $L("Any Calendar"), 'value': "any"} ];
 		
@@ -40,7 +40,7 @@ CaleventConfig.prototype.setup = function() {
 
 //
 
-CaleventConfig.prototype.config = function() {
+CaleventTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'caleventTitle': $L("Calendar Event"),
 		'caleventCalendar': "any",
@@ -52,7 +52,7 @@ CaleventConfig.prototype.config = function() {
 
 //
 
-CaleventConfig.prototype.load = function(extensionPreferences) {
+CaleventTriggers.prototype.load = function(extensionPreferences) {
 	var extensionConfig = {
 		'caleventTitle': $L("Calendar Event"),
 		'caleventCalendar': extensionPreferences.calendar,
@@ -62,7 +62,7 @@ CaleventConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-CaleventConfig.prototype.save = function(extensionConfig) {
+CaleventTriggers.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {
 		'calendar': extensionConfig.caleventCalendar,
 		'matchMode': extensionConfig.caleventMode,
@@ -73,7 +73,7 @@ CaleventConfig.prototype.save = function(extensionConfig) {
 
 //
 
-CaleventConfig.prototype.helpItemTapped = function(event) {
+CaleventTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "CaleventCalendarHelp") {
 		var helpTitle = "Calendar";
 
@@ -103,14 +103,14 @@ CaleventConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-CaleventConfig.prototype.retrieveCalendarAccounts = function() {
+CaleventTriggers.prototype.retrieveCalendarAccounts = function() {
 	this.controller.serviceRequest('palm://org.webosinternals.modeswitcher.sys/', {'method': "systemCall",
 		'parameters': {'id': "com.palm.app.calendar", 'service': "com.palm.db", 'method': "find", 
 			'params': {'query': {'from':"com.palm.calendar:1"}}},
 		'onSuccess': this.handleCalendarAccounts.bind(this) });
 }
 
-CaleventConfig.prototype.handleCalendarAccounts = function(serviceResponse) {
+CaleventTriggers.prototype.handleCalendarAccounts = function(serviceResponse) {
 	this.choicesCaleventCalendarSelector.clear();
 	
 	this.choicesCaleventCalendarSelector.push({'label': $L("Any Calendar"), 'value': "any"});

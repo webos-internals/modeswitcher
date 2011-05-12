@@ -1,4 +1,4 @@
-function NetworkConfig(controller, prefs) {
+function NetworkSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function NetworkConfig(controller, prefs) {
 
 //
 
-NetworkConfig.prototype.label = function() {
+NetworkSettings.prototype.label = function() {
 	return $L("Network Settings");
 }
 
 //
 
-NetworkConfig.prototype.setup = function(defaultChoiseLabel) {
+NetworkSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesNetworkTypeSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Automatic"), 'value': 1},
@@ -49,7 +49,7 @@ NetworkConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-NetworkConfig.prototype.config = function() {
+NetworkSettings.prototype.config = function() {
 	var extensionConfig = {
 		'networkTitle': $L("Network"),
 		'networkType': -1, 
@@ -62,7 +62,7 @@ NetworkConfig.prototype.config = function() {
 
 //
 
-NetworkConfig.prototype.fetch = function(doneCallback) {
+NetworkSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -70,7 +70,7 @@ NetworkConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-NetworkConfig.prototype.load = function(extensionPreferences) {
+NetworkSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	extensionConfig.disabledVoice = extensionPreferences.voiceDisabled;
@@ -103,7 +103,7 @@ NetworkConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-NetworkConfig.prototype.save = function(extensionConfig) {
+NetworkSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	extensionPreferences.voiceDisabled = extensionConfig.disabledVoice;
@@ -138,7 +138,7 @@ NetworkConfig.prototype.save = function(extensionConfig) {
 
 //
 
-NetworkConfig.prototype.helpItemTapped = function(event) {
+NetworkSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "NetworkTypeHelp") {
 		var helpTitle = "Network Type";
 
@@ -168,7 +168,7 @@ NetworkConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-NetworkConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+NetworkSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 
 	if(requestID == 0) {
@@ -196,7 +196,7 @@ NetworkConfig.prototype.getSystemSettings = function(requestID, extensionConfig,
 		doneCallback(extensionConfig);
 }
 
-NetworkConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+NetworkSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
 			if(serviceResponse.extended.mode == "gsm")

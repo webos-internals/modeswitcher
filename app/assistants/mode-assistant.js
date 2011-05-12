@@ -49,19 +49,19 @@ ModeAssistant.prototype.setup = function() {
 	for(var i = 0; i < this.extensions.appssrvs.length; i++) {
 		var className = this.extensions.appssrvs[i].charAt(0).toUpperCase() + this.extensions.appssrvs[i].slice(1);
 
-		this.appssrvsConfig[this.extensions.appssrvs[i]] = eval("new " + className + "Config(this.controller, prefs);");
+		this.appssrvsConfig[this.extensions.appssrvs[i]] = eval("new " + className + "Actions(this.controller, prefs);");
 	}
 
 	for(var i = 0; i < this.extensions.settings.length; i++) {
 		var className = this.extensions.settings[i].charAt(0).toUpperCase() + this.extensions.settings[i].slice(1);
 
-		this.settingsConfig[this.extensions.settings[i]] = eval("new " + className + "Config(this.controller, prefs);");
+		this.settingsConfig[this.extensions.settings[i]] = eval("new " + className + "Settings(this.controller, prefs);");
 	}
  
 	for(var i = 0; i < this.extensions.triggers.length; i++) {
 		var className = this.extensions.triggers[i].charAt(0).toUpperCase() + this.extensions.triggers[i].slice(1);
 
-		this.triggersConfig[this.extensions.triggers[i]] = eval("new " + className + "Config(this.controller, prefs);");
+		this.triggersConfig[this.extensions.triggers[i]] = eval("new " + className + "Triggers(this.controller, prefs);");
 	}
 
 //

@@ -1,4 +1,4 @@
-function CalendarConfig(controller, prefs) {
+function CalendarSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,14 +6,14 @@ function CalendarConfig(controller, prefs) {
 
 //
 
-CalendarConfig.prototype.label = function() {
+CalendarSettings.prototype.label = function() {
 	if(this.prefs.advancedPrefs)
 		return $L("Calendar Settings");
 }
 
 //
 
-CalendarConfig.prototype.setup = function(defaultChoiseLabel) {
+CalendarSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesCalendarBlinkSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -53,7 +53,7 @@ CalendarConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-CalendarConfig.prototype.config = function() {
+CalendarSettings.prototype.config = function() {
 	var extensionConfig = {
 		'calendarTitle': $L("Calendar"),
 		'calendarAlarmRow': "last",
@@ -69,7 +69,7 @@ CalendarConfig.prototype.config = function() {
 
 //
 
-CalendarConfig.prototype.fetch = function(doneCallback) {
+CalendarSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 	
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -77,7 +77,7 @@ CalendarConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-CalendarConfig.prototype.load = function(extensionPreferences) {
+CalendarSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
 	if(extensionPreferences.databaseId != undefined)
@@ -108,7 +108,7 @@ CalendarConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-CalendarConfig.prototype.save = function(extensionConfig) {
+CalendarSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.calendarDatabaseId != -1)
@@ -136,7 +136,7 @@ CalendarConfig.prototype.save = function(extensionConfig) {
 
 //
 
-CalendarConfig.prototype.helpItemTapped = function(event) {
+CalendarSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "CalendarBlinkHelp") {
 		var helpTitle = "Blink";
 
@@ -166,7 +166,7 @@ CalendarConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-CalendarConfig.prototype.handleListChange = function(changeEvent) {
+CalendarSettings.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "calendarReminderAlert") {
 		changeEvent.model.calendarAlarmRow = "last";
 		changeEvent.model.calendarRingtoneDisplay = "none";
@@ -196,7 +196,7 @@ CalendarConfig.prototype.handleListChange = function(changeEvent) {
 
 //
 
-CalendarConfig.prototype.executeRingtoneSelect = function(eventModel) {
+CalendarSettings.prototype.executeRingtoneSelect = function(eventModel) {
 	Mojo.FilePicker.pickFile({'defaultKind': "ringtone", 'kinds': ["ringtone"], 
 		'actionType': "attach", 'actionName': $L("Done"), 'onSelect': 
 			function(eventModel, serviceResponse) {
@@ -212,7 +212,7 @@ CalendarConfig.prototype.executeRingtoneSelect = function(eventModel) {
 
 //
 
-CalendarConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+CalendarSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 
 	if(requestID == 0) {
@@ -226,7 +226,7 @@ CalendarConfig.prototype.getSystemSettings = function(requestID, extensionConfig
 		doneCallback(extensionConfig);
 }
 
-CalendarConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+CalendarSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.errorCode != undefined)
 		return;
 

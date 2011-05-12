@@ -1,4 +1,4 @@
-function AirplaneConfig(controller, prefs) {
+function AirplaneSettings(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function AirplaneConfig(controller, prefs) {
 
 //
 
-AirplaneConfig.prototype.label = function() {
+AirplaneSettings.prototype.label = function() {
 	return $L("Airplane Settings");
 }
 
 //
 
-AirplaneConfig.prototype.setup = function(defaultChoiseLabel) {
+AirplaneSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.choicesAirplaneModeSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -28,7 +28,7 @@ AirplaneConfig.prototype.setup = function(defaultChoiseLabel) {
 
 //
 
-AirplaneConfig.prototype.config = function() {
+AirplaneSettings.prototype.config = function() {
 	var extensionConfig = {
 		'airplaneTitle': $L("Airplane"),
 		'airplaneFlightMode': -1 };
@@ -38,7 +38,7 @@ AirplaneConfig.prototype.config = function() {
 
 //
 
-AirplaneConfig.prototype.fetch = function(doneCallback) {
+AirplaneSettings.prototype.fetch = function(doneCallback) {
 	var extensionConfig = this.config();
 
 	this.getSystemSettings(0, extensionConfig, doneCallback);
@@ -46,7 +46,7 @@ AirplaneConfig.prototype.fetch = function(doneCallback) {
 
 //
 
-AirplaneConfig.prototype.load = function(extensionPreferences) {
+AirplaneSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 
 	if(extensionPreferences.flightMode != undefined) {
@@ -59,7 +59,7 @@ AirplaneConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-AirplaneConfig.prototype.save = function(extensionConfig) {
+AirplaneSettings.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
 	if(extensionConfig.airplaneFlightMode != -1) {
@@ -74,7 +74,7 @@ AirplaneConfig.prototype.save = function(extensionConfig) {
 
 //
 
-AirplaneConfig.prototype.helpItemTapped = function(event) {
+AirplaneSettings.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "AirplaneModeHelp") {
 		var helpTitle = "Flight Mode";
 
@@ -94,7 +94,7 @@ AirplaneConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-AirplaneConfig.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
+AirplaneSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
 	
 	if(requestID == 0) {
@@ -105,7 +105,7 @@ AirplaneConfig.prototype.getSystemSettings = function(requestID, extensionConfig
 		doneCallback(extensionConfig);
 }
 
-AirplaneConfig.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
+AirplaneSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {	
 		if(requestID == 0) {
 			extensionConfig.airplaneFlightMode = serviceResponse.airplaneMode;

@@ -1,4 +1,4 @@
-function BrowserConfig(controller, prefs) {
+function BrowserActions(controller, prefs) {
 	this.controller = controller;
 	
 	this.prefs = prefs;
@@ -6,14 +6,14 @@ function BrowserConfig(controller, prefs) {
 
 //
 
-BrowserConfig.prototype.appid = function(type) {
+BrowserActions.prototype.appid = function(type) {
 	if(type == "app")
 		return "com.palm.app.browser";
 }
 
 //
 
-BrowserConfig.prototype.setup = function() {
+BrowserActions.prototype.setup = function() {
 	this.choicesBrowserLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"}];  
@@ -34,7 +34,7 @@ BrowserConfig.prototype.setup = function() {
 
 //
 
-BrowserConfig.prototype.config = function(launchPoint) {
+BrowserActions.prototype.config = function(launchPoint) {
 	var url = "";
 
 	if((launchPoint.params) && (launchPoint.params.url))
@@ -50,7 +50,7 @@ BrowserConfig.prototype.config = function(launchPoint) {
 
 //
 
-BrowserConfig.prototype.load = function(extensionPreferences) {
+BrowserActions.prototype.load = function(extensionPreferences) {
 	var launchURL = "";
 	
 	try {eval("var params = " + extensionPreferences.params);} catch(error) {var params = "";}
@@ -66,7 +66,7 @@ BrowserConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-BrowserConfig.prototype.save = function(extensionConfig) {
+BrowserActions.prototype.save = function(extensionConfig) {
 	var params = "";
 
 	if(extensionConfig.launchURL.length != 0)
@@ -84,7 +84,7 @@ BrowserConfig.prototype.save = function(extensionConfig) {
 
 //
 
-BrowserConfig.prototype.helpItemTapped = function(event) {
+BrowserActions.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "BrowserLaunchHelp") {
 		var helpTitle = "Launch";
 

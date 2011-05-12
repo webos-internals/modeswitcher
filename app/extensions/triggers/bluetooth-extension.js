@@ -1,4 +1,4 @@
-function BluetoothConfig(controller, prefs) {
+function BluetoothTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,13 +6,13 @@ function BluetoothConfig(controller, prefs) {
 
 //
 
-BluetoothConfig.prototype.label = function() {
+BluetoothTriggers.prototype.label = function() {
 	return $L("BT Connection Trigger");
 }
 
 //
 
-BluetoothConfig.prototype.setup = function() {
+BluetoothTriggers.prototype.setup = function() {
 	this.choicesProfileStateSelector = [
 		{'label': $L("Connected"), 'value': 0},
 		{'label': $L("Disconnected"), 'value': 1},
@@ -51,7 +51,7 @@ BluetoothConfig.prototype.setup = function() {
 
 //
 
-BluetoothConfig.prototype.config = function() {
+BluetoothTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'bluetoothTitle': $L("BT Connection"),
 		'bluetoothState': 0,
@@ -65,7 +65,7 @@ BluetoothConfig.prototype.config = function() {
 
 //
 
-BluetoothConfig.prototype.load = function(extensionPreferences) {
+BluetoothTriggers.prototype.load = function(extensionPreferences) {
 	var row = "last";
 	var display = "none";
 
@@ -85,7 +85,7 @@ BluetoothConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-BluetoothConfig.prototype.save = function(extensionConfig) {
+BluetoothTriggers.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {
 		'state': extensionConfig.bluetoothState,
 		'profile': extensionConfig.bluetoothProfile,
@@ -96,7 +96,7 @@ BluetoothConfig.prototype.save = function(extensionConfig) {
 
 //
 
-BluetoothConfig.prototype.helpItemTapped = function(event) {
+BluetoothTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "BluetoothStateHelp") {
 		var helpTitle = "State";
 
@@ -126,7 +126,7 @@ BluetoothConfig.prototype.helpItemTapped = function(event) {
 
 //
 
-BluetoothConfig.prototype.handleListChange = function(changeEvent) {
+BluetoothTriggers.prototype.handleListChange = function(changeEvent) {
 	if(changeEvent.property == "bluetoothState") {
 		if(changeEvent.value >= 2) {
 			changeEvent.model.bluetoothProfileRow = "";			

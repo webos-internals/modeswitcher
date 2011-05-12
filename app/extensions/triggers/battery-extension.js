@@ -1,4 +1,4 @@
-function BatteryConfig(controller, prefs) {
+function BatteryTriggers(controller, prefs) {
 	this.controller = controller;
 
 	this.prefs = prefs;
@@ -6,14 +6,14 @@ function BatteryConfig(controller, prefs) {
 
 //
 
-BatteryConfig.prototype.label = function() {
+BatteryTriggers.prototype.label = function() {
 	if(this.prefs.advancedPrefs)
 		return $L("Battery Level Trigger");
 }
 
 //
 
-BatteryConfig.prototype.setup = function() {
+BatteryTriggers.prototype.setup = function() {
 	this.choicesHighLimitSelector = [
 		{'label': "100%", 'value': 100}, 
 		{'label': "95%", 'value': 95}, {'label': "90%", 'value': 90}, 
@@ -54,7 +54,7 @@ BatteryConfig.prototype.setup = function() {
 
 //
 
-BatteryConfig.prototype.config = function() {
+BatteryTriggers.prototype.config = function() {
 	var extensionConfig = {
 		'batteryTitle': $L("Battery Level"),
 		'batteryHigh': 100,
@@ -65,7 +65,7 @@ BatteryConfig.prototype.config = function() {
 
 //
 
-BatteryConfig.prototype.load = function(extensionPreferences) {
+BatteryTriggers.prototype.load = function(extensionPreferences) {
 	var extensionConfig = {
 		'batteryTitle': $L("Battery Level"),
 		'batteryHigh': extensionPreferences.levelHigh,
@@ -74,7 +74,7 @@ BatteryConfig.prototype.load = function(extensionPreferences) {
 	return extensionConfig;
 }
 
-BatteryConfig.prototype.save = function(extensionConfig) {
+BatteryTriggers.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {
 		'levelHigh': extensionConfig.batteryHigh,
 		'levelLow': extensionConfig.batteryLow };
@@ -84,7 +84,7 @@ BatteryConfig.prototype.save = function(extensionConfig) {
 
 //
 
-BatteryConfig.prototype.helpItemTapped = function(event) {
+BatteryTriggers.prototype.helpItemTapped = function(event) {
 	if(event.originalEvent.target.id == "BatteryHighHelp") {
 		var helpTitle = "High Limit";
 
