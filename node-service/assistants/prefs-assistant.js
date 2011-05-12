@@ -23,7 +23,8 @@ PrefsCommandAssistant.prototype.run = function(future) {
 				closeTimer: curConfig.closeTimer, 
 				activeModes: curConfig.activeModes,
 				customModes: curConfig.customModes,
-				extensions: curConfig.extensions };
+				extensions: curConfig.extensions,
+				preferences: curConfig.preferences };
 		});
 	}
 	else {
@@ -46,6 +47,9 @@ PrefsCommandAssistant.prototype.run = function(future) {
 
 		if(this.controller.args.extensions != undefined)
 			newConfig.extensions = this.controller.args.extensions;
+
+		if(this.controller.args.preferences != undefined)
+			newConfig.preferences = this.controller.args.preferences;
 	
 		future.nest(prefs.save(newConfig));
 

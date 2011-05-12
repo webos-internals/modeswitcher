@@ -285,18 +285,15 @@ ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, a
 				newActiveModes.push(config.customModes[index]);
 		}
 
-		if(newActiveModes[0].settings.notify != 0)
-			var notify = newActiveModes[0].settings.notify;
-		else
-			var notify = config.customModes[0].settings.notify;
-
-		if(args.popup) {
-			if((notify == 3) || (notify == 4))
-				notify = 1;
-			else if((notify == 5) || (notify == 6))
-				notify = 2;
+		if(args.notify == false)
+			var notify = 0;
+		else {
+			if(newActiveModes[0].settings.notify != 0)
+				var notify = newActiveModes[0].settings.notify;
+			else
+				var notify = config.customModes[0].settings.notify;
 		}
-
+		
 		utils.notify(notify, "Current Mode", "update");			
 
 		this.prepareModeChange(future, config, newActiveModes, "init", 0);
@@ -623,13 +620,14 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 			for(var j = 0; j < modes.length; j++) {
 				var index = utils.findArray(modes[j].settings.list, "extension", item);
 
-				if(index != -1) {
-					for(key in modes[j].settings.list[index])
-						newModeSettings[key] = modes[j].settings.list[index][key];
-				}
+				if(index != -1)
+					utils.extend(newModeSettings, modes[j].settings.list[index]);				
 			}
 		
-			if(oldActiveModes.length > 0) {
+			if((oldActiveModes.length > 0) && 
+				((!config.preferences.settings[item]) || 
+				(!config.preferences.settings[item].force))) 
+			{
 				var modes = [config.customModes[0]].concat(oldActiveModes);
 
 				for(var j = 0; j < modes.length; j++) {

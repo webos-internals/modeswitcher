@@ -15,23 +15,28 @@ function PopupAssistant(view, params) {
 
 	this.view = view;
 
-	this.modeName = params.name;
+	if(view == "toggle") {
+		this.modeName = params.name;
+	}
+	else if(view == "popup") {
+		this.event = "init";
+		this.notify = "none"
 
-	if(view == "popup") {
-		this.startModes = params.modes.start;
-		this.closeModes = params.modes.close;
+		if((params.notify == 3) || (params.notify == 5))
+			this.notify = "notifications";
+		else if((params.notify == 4) || (params.notify == 6))
+			this.notify = "vibrate";
+		
+		this.newModes = params.names;
 
-		this.modifiers = params.modes.modifiers;
+		this.startNModes = params.modes.startN;
+		this.closeNModes = params.modes.closeN;
+
+		this.startMModes = params.modes.startM;
+		this.closeMModes = params.modes.closeM;
 
 		this.startTimer = params.timers.start / 1000;
 		this.closeTimer = params.timers.close / 1000;
-	
-		if(this.startModes.length > 0)
-			this.event = "start";
-		else
-			this.event = "close";
-
-		this.modeidx = 0;
 	}
 }    
 
@@ -55,7 +60,7 @@ PopupAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get('StartButton'), Mojo.Event.tap, 
 		this.handleStartButtonPress.bind(this));
 
-	this.modelSelectButton = {label: $L("Default Mode"), buttonClass : 'popupbutton', disabled : false};
+	this.modelSelectButton = {label: $L("Default Mode"), buttonClass : 'popupbutton', disabled : true};
   
    this.controller.setupWidget('SelectButton', {}, this.modelSelectButton);
 
@@ -70,10 +75,7 @@ PopupAssistant.prototype.setup = function() {
 		this.handleCancelButtonPress.bind(this));
 	
 	if(this.view == "popup") {
-		if(this.event == "start")
-			this.setupStart();
-		else
-			this.setupClose();
+		this.selectEvent();
 	}
 	else if(this.view == "toggle") {
 		this.controller.document.body.style.backgroundColor = "#000000";
@@ -85,66 +87,83 @@ PopupAssistant.prototype.setup = function() {
 PopupAssistant.prototype.setupStart = function() {
 	clearTimeout(this.timer);
 
-	this.modelStartButton.label = $L("Switch Mode");
+	if(this.event == "start-n") {	
+		var startModes = this.startNModes;
+	
+		this.modelStartButton.label = $L("Switch Mode");
+	}
+	else if(this.event == "start-m") {
+		var startModes = this.startMModes;
+
+		this.modelStartButton.label = $L("Start Mode");
+	}
 		
 	this.controller.modelChanged(this.modelStartButton, this);
+
+	this.modelCancelButton.label = $L("Cancel");
+	this.controller.modelChanged(this.modelCancelButton, this);
 
 	this.counterCancel = this.startTimer;
 	this.counterStart = this.startTimer;
 
-	for(var i = 0 ; i < this.startModes.length ; i++)
-	{
-		if(this.startModes[i].start == 2)
-		{
+	// Give priority for modes with after timer setting
+
+	for(var i = 0 ; i < startModes.length ; i++) {
+		if(startModes[i].start == 2) {
 			this.modeidx = i;
 
-			this.modelSelectButton.label = this.startModes[i].name;
-			this.controller.modelChanged(this.modelSelectButton, this);
-	
-			this.updateStartTimer();
-			
-			return;
+			break;
 		}
 	}
 
-	this.modelSelectButton.label = this.startModes[this.modeidx].name;
+	this.modelSelectButton.label = startModes[this.modeidx].name;
 	this.controller.modelChanged(this.modelSelectButton, this);
 
-	if(this.counterCancel > 0)
+	if(startModes[this.modeidx].start == 2)
+		this.updateStartTimer();
+	else
 		this.updateCancelTimer();
-	else {
-		this.event = "cancel";			
-		this.controller.window.close();
-	}
 }
 
 PopupAssistant.prototype.setupClose = function() {
 	clearTimeout(this.timer);
 
-	this.modelStartButton.label = $L("Close Mode");
-		
+	if(this.event == "close-n") {	
+		var closeModes = this.closeNModes;
+	
+		this.modelStartButton.label = $L("Close Mode");
+	}
+	else if(this.event == "close-m") {
+		var closeModes = this.closeMModes;
+
+		this.modelStartButton.label = $L("Close Mode");
+	}
+
 	this.controller.modelChanged(this.modelStartButton, this);
 
-	this.modelSelectButton.label = this.closeModes[0].name;
-	
-	this.controller.modelChanged(this.modelSelectButton, this);
-	
+	this.modelCancelButton.label = $L("Cancel");
+	this.controller.modelChanged(this.modelCancelButton, this);
+
 	this.counterCancel = this.closeTimer;
 	this.counterClose = this.closeTimer;
 
-	if(this.closeModes[0].close == 2)
-	{
-		this.updateCloseTimer();
-		
-		return;
+	// Give priority for modes with after timer setting
+
+	for(var i = 0 ; i < closeModes.length ; i++) {
+		if(closeModes[i].close == 2) {
+			this.modeidx = i;
+
+			break;
+		}
 	}
 
-	if(this.counterCancel > 0)
+	this.modelSelectButton.label = closeModes[this.modeidx].name;
+	this.controller.modelChanged(this.modelSelectButton, this);
+
+	if(closeModes[this.modeidx].close == 2)
+		this.updateCloseTimer();
+	else
 		this.updateCancelTimer();
-	else {
-		this.event = "cancel";
-		this.controller.window.close();
-	}
 }
 
 PopupAssistant.prototype.updateCancelTimer = function() {
@@ -160,7 +179,10 @@ PopupAssistant.prototype.updateCancelTimer = function() {
 
 PopupAssistant.prototype.updateStartTimer = function() {
 	if(this.counterStart >= 0) {
-		this.modelStartButton.label = $L("Switch Mode") + " (" + this.counterStart-- + ")";
+		if(this.event == "start-n")
+			this.modelStartButton.label = $L("Switch Mode") + " (" + this.counterStart-- + ")";
+		else if(this.event == "start-m")
+			this.modelStartButton.label = $L("Start Mode") + " (" + this.counterStart-- + ")";
 			
 		this.controller.modelChanged(this.modelStartButton, this);
 		
@@ -184,13 +206,37 @@ PopupAssistant.prototype.updateCloseTimer = function() {
 PopupAssistant.prototype.handleStartButtonPress = function() {
 	clearTimeout(this.timer);
 
-	this.controller.window.close();
+	if(this.event == "start-n") {
+		this.newModes[0] = this.startNModes[this.modeidx].name;
+		
+		this.startNModes.clear();
+		this.closeNModes.clear();
+	}
+	else if(this.event == "start-m") {
+		this.newModes.push(this.startMModes[this.modeidx].name);
+		
+		this.startMModes.splice(this.modeidx, 1);
+	}
+	else if(this.event == "close-n") {
+		this.newModes[0] = "Default Mode";
+		
+		this.closeNModes.clear();
+	}
+	else if(this.event == "close-m") {
+		var index = this.newModes.indexOf(this.closeMModes[this.modeidx].name)
+	
+		this.newModes.splice(index, 1);
+		
+		this.closeMModes.splice(this.modeidx, 1);
+	}
+
+	this.selectEvent();
 }
 
 PopupAssistant.prototype.handleSelectButtonPress = function() {
 	clearTimeout(this.timer);
 
-	if(this.event == "start") {
+	if((this.event == "start-n") && (this.startNModes.length > 1)) {
 		this.modelStartButton.label = $L("Switch Mode");
 		
 		this.controller.modelChanged(this.modelStartButton, this);
@@ -200,29 +246,82 @@ PopupAssistant.prototype.handleSelectButtonPress = function() {
 
 		this.modeidx++;
 	
-		if(this.modeidx == this.startModes.length)
+		if(this.modeidx == this.startNModes.length)
 			this.modeidx = 0;
 
-		this.modelSelectButton.label = this.startModes[this.modeidx].name;
+		this.modelSelectButton.label = this.startNModes[this.modeidx].name;
 		this.controller.modelChanged(this.modelSelectButton, this);
 	}
 }
 
 PopupAssistant.prototype.handleCancelButtonPress = function() {
 	clearTimeout(this.timer);
-	
-	if((this.event == "start") && (this.closeModes.length > 0)) {
-		// FIXME: There should be some effect so user notices easily this!
 
-		this.event = "close";
-	
-		this.setupClose();
+	if(this.event == "start-n") {
+		this.startNModes.clear();
 	}
-	else {
-		this.event = "cancel";
+	else if(this.event == "start-m") {
+		this.startMModes.splice(this.modeidx, 1);
+	}
+	else if(this.event == "close-n") {
+		this.closeNModes.clear();
+	}
+	else if(this.event == "close-m") {
+		this.closeMModes.splice(this.modeidx, 1);
+	}
+
+	this.selectEvent();
+}	
+
+PopupAssistant.prototype.selectEvent = function() {
+	this.modeidx = 0;
+
+	if((this.event != "init") && (this.notify != "none")) {
+		var appController = Mojo.Controller.getAppController();
 		
-		this.controller.window.close();
+		appController.playSoundNotification(this.notify);
 	}
+
+	this.modelSelectButton.disabled = true;
+
+	if(this.startNModes.length > 0) {
+		this.event = "start-n";
+		
+		if(this.startNModes.length > 1)
+			this.modelSelectButton.disabled = false;
+	}
+	else if(this.closeNModes.length > 0)
+		this.event = "close-n";
+	else if(this.startMModes.length > 0)
+		this.event = "start-m";
+	else if(this.closeMModes.length > 0)
+		this.event = "close-m";
+	else
+		this.event = "done";
+
+	this.controller.modelChanged(this.modelSelectButton, this);
+
+	this.setActivity();
+	
+	if((this.event == "start-n") || (this.event == "start-m"))
+		this.setupStart();
+	else if((this.event == "close-n") || (this.event == "close-m"))
+		this.setupClose();
+	else
+		this.controller.window.close();
+}
+
+PopupAssistant.prototype.setActivity = function() {
+	if((this.event == "start-n") || (this.event == "start-m"))
+		var timeout = this.startTimer * 1000 + 5000;
+	else if((this.event == "close-n") || (this.event == "close-m"))
+		var timeout = this.closeTimer * 1000 + 5000;
+	else
+		return;
+
+	this.controller.serviceRequest("palm://com.palm.power/com/palm/power", {
+		'method': "activityStart", 'parameters': {'id': Mojo.Controller.appInfo.id,
+		'duration_ms': timeout} });
 }
 
 PopupAssistant.prototype.close = function() {
@@ -234,17 +333,7 @@ PopupAssistant.prototype.activate = function(event) {
 	 *	For  example, key handlers that are observing the document. 
 	 */
 
-	if(this.view == "popup") {
-		if(this.event == "start")
-			var timeout = this.startTimer * 1000 + 5000;
-		else
-			var timeout = this.closeTimer * 1000 + 5000;
-
-		this.controller.serviceRequest("palm://com.palm.power/com/palm/power", {
-			'method': "activityStart", 'parameters': {'id': Mojo.Controller.appInfo.id,
-			'duration_ms': timeout} });
-	}
-	else if(this.view == "toggle") {
+	if(this.view == "toggle") {
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 			method: 'execute', parameters: {action: "toggle", name: this.modeName},
 			onComplete: function() {
@@ -265,19 +354,8 @@ PopupAssistant.prototype.cleanup = function(event) {
 	 */    
 
 	if(this.view == "popup") {
-		var newModes = [];
-	
-		if(this.event == "start")
-			newModes.push(this.startModes[this.modeidx].name);
-		else if(this.event == "close")
-			newModes.push("Default Mode");		
-	
-		newModes = newModes.concat(this.modifiers);
-
-		if(this.event != "cancel") {
-			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", { 
-				'method': "execute", 'parameters': {'action': "update", 'names': newModes, 'popup': true}});
-		}
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {'method': "execute", 
+			'parameters': {'action': "update", 'names': this.newModes, 'notify': false}});
 	}
 }
 

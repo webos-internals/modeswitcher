@@ -17,9 +17,9 @@ TriggerCommandAssistant.prototype.run = function(future) {
 	future.then(this, function(future) {
 		var config = future.result;
 	
-		if(!config.activated)
+		if((!config.activated) || (config.activeModes.length == 0))
 			future.result = { returnValue: false, errorText: "Not activated" };
-		else if(!this.controller.args.extension)
+		else if((!this.controller.args) || (!this.controller.args.extension))
 			future.result = { returnValue: false, errorText: "No extension set" };
 		else if(config.extensions.triggers.indexOf(this.controller.args.extension) == -1)
 			future.result = { returnValue: false, errorText: "Unknown extension" };
@@ -85,39 +85,49 @@ TriggerCommandAssistant.prototype.checkTriggerEvent = function(future, config, a
 }
 
 TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config, triggeredModes) {  
-	var startNModes = [];
-	var startMModes = [];
-	var closeNModes = [];
-	var closeMModes = [];
+	var usePopup = false, startNModes = [], startMModes = [], closeNModes = [], closeMModes = [];
 	
 	// Determine the modes which should be started and / or closed.
 	
 	for(var i = 0; i < triggeredModes.length; i++) {
-		var modeInfo = {
-			name: triggeredModes[i].name,
-
-			start: triggeredModes[i].start,
-			close: triggeredModes[i].close,
-			
-			notify: triggeredModes[i].settings.notify
-		}
-	
 		if(utils.findArray(config.activeModes, "name", triggeredModes[i].name) == -1) {
 			if(triggeredModes[i].start != 0) {
 				if(this.checkModeTriggers(future, config, triggeredModes[i])) {
-					if(triggeredModes[i].type == "normal")
-						startNModes.push(modeInfo);
-					else if(triggeredModes[i].type == "modifier")
-						startMModes.push(modeInfo);
+					if(triggeredModes[i].start != 3)
+						usePopup = true;
+				
+					if(triggeredModes[i].type == "normal") {
+						startNModes.push({
+							name: triggeredModes[i].name,
+							start: triggeredModes[i].start,
+							notify: triggeredModes[i].settings.notify });
+					}
+					else if(triggeredModes[i].type == "modifier") {
+						startMModes.push({
+							name: triggeredModes[i].name,
+							start: triggeredModes[i].start,
+							notify: triggeredModes[i].settings.notify });
+					}
 				}
 			}
 		}
 		else if(triggeredModes[i].close != 0) {
 			if(!this.checkModeTriggers(future, config, triggeredModes[i])) {
-				if(triggeredModes[i].type == "normal")
-					closeNModes.push(modeInfo);
-				else if(triggeredModes[i].type == "modifier")
-					closeMModes.push(modeInfo);
+				if(triggeredModes[i].close != 3)
+					usePopup = true;
+
+				if(triggeredModes[i].type == "normal") {
+					closeNModes.push({
+						name: triggeredModes[i].name,
+						close: triggeredModes[i].close,
+						notify: triggeredModes[i].settings.notify });
+				}
+				else if(triggeredModes[i].type == "modifier") {
+					closeMModes.push({
+						name: triggeredModes[i].name,
+						close: triggeredModes[i].close,
+						notify: triggeredModes[i].settings.notify });
+				}
 			}
 		}
 	}
@@ -129,74 +139,106 @@ TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config,
 	{
 		future.result = { returnValue: true };
 	}
-	else {
+	else if((!usePopup) && (startNModes.length < 2) && (closeNModes.length < 2))
 		this.executeModeLaunching(future, config, startNModes, startMModes, closeNModes, closeMModes);
-	}
+	else
+		this.executePopupLaunching(future, config, startNModes, startMModes, closeNModes, closeMModes);
 }
 
 TriggerCommandAssistant.prototype.executeModeLaunching = function(future, config, startNModes, startMModes, closeNModes, closeMModes) {  
+	var newModes = [config.activeModes[0].name];
 
-	if(((startNModes.length == 1) && (startNModes[0].start != 3)) ||
-		((closeNModes.length == 1) && (closeNModes[0].close != 3)) ||
-		(startNModes.length >= 2))
-	{
-		var startModes = [];
-		var closeModes = [];
-		var modifiers = [];
+	if(startNModes.length == 1)
+		newModes[0] = startNModes[0].name;
 
-		if(startNModes.length > 0)
-			var startModes = startNModes;
+	if(closeNModes.length == 1)
+		newModes[0] = "Default Mode";
 	
-		if(closeNModes.length > 0)
-			var closeModes = closeNModes;
-
-		for(var i = 0; i < config.activeModes.length; i++) {
-			if(utils.findArray(closeMModes, "name", config.activeModes[i].name) == -1)
-				modifiers.push(config.activeModes[i].name);
-		}
-		
-		for(var i = 0; i < startMModes.length; i++)
-			modifiers.push(startMModes[i].name);
-		
-		var notify = config.customModes[0].settings.notify;
-
-		for(var i = 0; i < closeModes.length; i++) {
-			if(closeModes[i].notify > notify)
-				notify = closeModes[i].notify;
-		}
-
-		for(var i = 0; i < startModes.length; i++) {
-			if(startModes[i].notify > notify)
-				notify = startModes[i].notify;
-		}
-
-		future.nest(this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-			'id': "org.webosinternals.modeswitcher", 'params': { 'action': "popup", 'notify': notify, 
-				'modes': {'start': startModes, 'close': closeModes, 'modifiers': modifiers},
-				'timers': {'start': config.startTimer, 'close': config.closeTimer}}}));
+	for(var i = 1; i < config.activeModes.length; i++) {
+		if(utils.findArray(closeMModes, "name", config.activeModes[i].name) == -1)
+			newModes.push(config.activeModes[i].name);
 	}
-	else if(config.activeModes.length > 0) {
-		var newModes = [config.activeModes[0].name];
-		
-		if(startNModes.length == 1)
-			newModes[0] = startNModes[0].name;
-		
-		if(closeNModes.length == 1)
-			newModes[0] = "Default Mode";
-			
-		for(var i = 1; i < config.activeModes.length; i++) {
-			if(utils.findArray(closeMModes, "name", config.activeModes[i].name) == -1)
-				newModes.push(config.activeModes[i].name);
-		}
-		
-		for(var i = 1; i < config.customModes.length; i++) {
-			if(utils.findArray(startMModes, "name", config.customModes[i].name) != -1)
-				newModes.push(config.customModes[i].name);
-		}
-	
-		future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
-			'action': "update", 'names': newModes}));
+
+	for(var i = 1; i < config.customModes.length; i++) {
+		if(utils.findArray(startMModes, "name", config.customModes[i].name) != -1)
+			newModes.push(config.customModes[i].name);
 	}
+
+	future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
+		'action': "update", 'names': newModes, 'notify': true}));
+
+	future.then(this, function(future) {
+		future.result = { returnValue: true };
+	});
+}
+
+TriggerCommandAssistant.prototype.executePopupLaunching = function(future, config, startNModes, startMModes, closeNModes, closeMModes) {  
+	var newModes = [];
+
+	// Form notify setting based on all triggered modes
+
+	var notify = config.customModes[0].settings.notify;
+
+	for(var i = 0; i < closeMModes.length; i++) {
+		if(closeMModes[i].notify > notify)
+			notify = closeMModes[i].notify;
+	}
+
+	for(var i = 0; i < closeNModes.length; i++) {
+		if(closeNModes[i].notify > notify)
+			notify = closeNModes[i].notify;
+	}
+
+	for(var i = 0; i < startMModes.length; i++) {
+		if(startMModes[i].notify > notify)
+			notify = startMModes[i].notify;
+	}
+
+	for(var i = 0; i < startNModes.length; i++) {
+		if(startNModes[i].notify > notify)
+			notify = startNModes[i].notify;
+	}
+
+	// Form new modes list based on modes not needing popup
+
+	newModes.push(config.activeModes[0].name);
+
+	if((closeNModes.length == 1) && (closeNModes[0].close == 3)) {
+		newModes.push("Default Mode");
+
+		closeNModes = [];
+	}
+		
+	if((startNModes.length == 1) && (startNModes[0].start == 3)) {
+		newModes.push(startNModes[0].name);
+
+		startNModes = [];
+	}
+
+	for(var i = 1; i < config.activeModes.length; i++) {
+		var index = utils.findArray(closeMModes, "name", config.activeModes[i].name);
+		
+		if((config.activeModes[i].close != 3) || (index == -1))
+			newModes.push(config.activeModes[i].name);
+		else if(index != -1)
+			closeMModes.splice(index, 1);
+	}
+
+	for(var i = 1; i < config.customModes.length; i++) {
+		var index = utils.findArray(startMModes, "name", config.customModes[i].name);
+		
+		if((config.customModes[i].start == 3) && (index != -1)) {
+			startMModes.splice(index, 1);
+		
+			newModes.push(config.customModes[i].name);
+		}
+	}
+
+	future.nest(this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+		'id': "org.webosinternals.modeswitcher", 'params': { 'action': "popup", 
+			'notify': notify, 'names': newModes, 'modes': { 'startN': startNModes, 
+				'closeN': closeNModes, 'startM': startMModes, 'closeM': closeMModes},
+			'timers': {'start': config.startTimer, 'close': config.closeTimer}}}));
 
 	future.then(this, function(future) {
 		future.result = { returnValue: true };

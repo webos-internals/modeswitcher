@@ -26,8 +26,12 @@ var prefs = (function() {
 				settings: [], 
 				triggers: []},
 			statusData: {
-				appssrvs: {}, 
-				settings: {},
+				appssrvs: {}, // Not used currently
+				settings: {}, // Not used currently
+				triggers: {}},
+			preferences: {
+				appssrvs: {}, // Not used currently
+				settings: {}, // Not used currently
 				triggers: {}}
 		};
 	};
@@ -155,11 +159,44 @@ var prefs = (function() {
 				}
 			}
 		}
+
+		if(newPrefs.preferences != undefined) {
+			if(newPrefs.preferences.appssrvs != undefined) {
+				for(var ext in newPrefs.preferences.appssrvs) {
+					oldPrefs.preferences.appssrvs[ext] = newPrefs.preferences.appssrvs[ext];
+				}
+			}
+
+			if(newPrefs.preferences.settings != undefined) {
+				for(var ext in newPrefs.preferences.settings) {
+					oldPrefs.preferences.settings[ext] = newPrefs.preferences.settings[ext];
+				}
+			}
+
+			if(newPrefs.preferences.triggers != undefined) {
+				for(var ext in newPrefs.preferences.triggers) {
+					oldPrefs.preferences.triggers[ext] = newPrefs.preferences.triggers[ext];
+				}
+			}
+		}
 	};
 	
 	var upgradePrefs = function(curPrefs, newVersion) {
 		if(curPrefs.cfgVersion != newVersion)
 			console.log("Mode Switcher old preferences");
+
+		// Added configuration no need to bump version...
+
+		if(curPrefs.extensions.appssrvs.indexOf("impostah") != -1)
+			curPrefs.extensions.appssrvs = ["browser", "default", "govnah", "modesw", "phone", "systools"];
+
+		if(curPrefs.extensions.settings.length != 12) {
+			curPrefs.extensions.settings = ["airplane", "calendar", "connection", "contacts", "email", 
+				"messaging", "network", "phone", "ringer", "screen", "security", "sound"];
+		}
+
+		if(curPrefs.preferences == undefined)
+			curPrefs.preferences = {appssrvs: {}, settings: {}, triggers: {}};
 	};
 
 //
@@ -201,12 +238,6 @@ var prefs = (function() {
 
 			upgradePrefs(result, "2.0");
 
-// FIXME: temp override
-
-			result.extensions.appssrvs = ["browser", "default", "govnah", "modesw", "phone", "systools"];
-			result.extensions.settings = ["airplane", "calendar", "connection", "email", "messaging", "network", "ringer", "screen", "security", "sound"];
-			result.extensions.triggers = ["application", "battery", "bluetooth", "calevent", "charger", "display", "headset", "interval", "location", "modechange", "silentsw", "timeofday", "wireless"];
-		
 			future.result = result;
 		});
 		
@@ -218,6 +249,8 @@ var prefs = (function() {
 		
 		future.then(this, function(future) {
 			var result = future.result;
+
+			upgradePrefs(result, "2.0");
 
 			updatePrefs(result, prefs);
 			

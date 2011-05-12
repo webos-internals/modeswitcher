@@ -16,6 +16,8 @@ function MainAssistant(params) {
 
 	this.extensions = {appsrvs: [], settings: [], triggers: []};
 
+	this.preferences = {appsrvs: [], settings: [], triggers: []};
+
 	this.activeModes = [];
 	this.customModes = [];
 	
@@ -173,14 +175,15 @@ MainAssistant.prototype.updatePreferences = function(response) {
 	this.controller.modelChanged(this.modelCloseSelector, this);
 
 	this.extensions = response.extensions;
+	this.preferences = response.preferences;
 
 	// Check for need of initial default mode setup
 	
 	if((this.appAssistant.isNewOrFirstStart == 1) || (this.customModes.length == 0)) {
 		this.extensions = {
 			appssrvs: ["browser", "default", "govnah", "modesw", "phone", "systools"],
-			settings: ["airplane", "calendar", "connection", "email", "messaging", 
-				"network", "ringer", "screen", "security", "sound"],
+			settings: ["airplane", "calendar", "connection", "contacts", "email", "messaging", 
+				"network", "phone", "ringer", "screen", "security", "sound"],
 			triggers: ["application", "battery", "bluetooth", "calevent", "charger", 
 				"display", "headset", "location", "modechange", "silentsw", "timeofday", "wireless"] };
 
@@ -403,7 +406,7 @@ MainAssistant.prototype.handleCommand = function(event) {
 	}
 	else if(event.type == Mojo.Event.command) {
 		if(event.command == "prefs") {
-			this.controller.stageController.pushScene("prefs");
+			this.controller.stageController.pushScene("prefs", this.extensions, this.preferences);
 		}
 		else if(event.command == "export") {
 			this.controller.stageController.pushScene("gdm", "exportGDoc", "Modes", "[MSALL]", this.customModes, null);
@@ -412,40 +415,43 @@ MainAssistant.prototype.handleCommand = function(event) {
 			this.controller.stageController.pushScene("gdm", "importGDoc", "Modes", "[MSALL]", null, this.importAllModes.bind(this));
 		}
 		else if(event.command == "status") {
-			var text = "";
-			
-			if(this.activeModes.length == 0)
-				text += "Mode Switcher is not activated.";
-			else {
-				text += "<div style='float:left;'><b>Current Mode:</b></div><div style='float:right;'>" + this.activeModes[0].name + "</div><br><br>";
-
-				text += "<div style='float:left;'><b>Modifier Modes:</b></div><div style='float:right;'>" + this.activeModes.length - 1 + " Active</div><br>";
-				
-				if(this.activeModes.length > 0) {
-					text += "<br>";
-					
-					for(var i = 1; i < this.activeModes.length; i++) {
-						text += this.activeModes[i].name;
-						
-						if(i < (this.activeModes.length - 1))
-							text += ", ";
-					}
-				}
-			}
-			
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-				method: 'prefs', parameters: {extensions: this.extensions},
-				onComplete: function() {
-					this.controller.showAlertDialog({
-						title: $L("Mode Switcher Status"),
-						message: text,
-						choices:[
-							{label:$L("Close"), value:"close", type:'default'}],
-						preventCancel: true,
-						allowHTMLMessage: true,
-						onChoose: function(appControl, value) {
-						}.bind(this, this.appControl)}); 
-				}.bind(this)});					
+				method: 'status', parameters: {},
+				onComplete: function(response) {
+					if((response) && (response.activeModes)) {
+						var text = "";
+			
+						if(response.activeModes.length == 0)
+							text += "Mode Switcher is not activated.";
+						else {
+							text += "<div style='float:left;'><b>Current Mode:</b></div><div style='float:right;'>" + response.activeModes[0].name + "</div><br><br>";
+
+							text += "<div style='float:left;'><b>Modifier Modes:</b></div><div style='float:right;'>" + (response.activeModes.length - 1) + " Active</div><br>";
+				
+							if(response.activeModes.length > 0) {
+								text += "<br>";
+					
+								for(var i = 1; i < response.activeModes.length; i++) {
+									text += response.activeModes[i].name;
+						
+									if(i < (response.activeModes.length - 1))
+										text += ", ";
+								}
+							}
+						}
+
+						this.controller.showAlertDialog({
+							title: $L("Mode Switcher Status"),
+							message: text,
+							choices:[
+								{label:$L("Close"), value:"close", type:'default'}],
+							preventCancel: true,
+							allowHTMLMessage: true,
+							onChoose: function(appControl, value) {
+							}.bind(this, this.appControl)}); 
+
+					}
+				}.bind(this)});
 		}		
 		else if(event.command == "help") {
 			this.controller.stageController.pushScene("support", this.customModes);
@@ -553,8 +559,8 @@ MainAssistant.prototype.activate = function(event) {
 		// Check status and setup preference subscriptions for Mode Switcher service.
 	
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-			method: 'prefs', parameters: {keys: ["activated", "modeLocked", 
-				"startTimer", "closeTimer", "activeModes", "customModes", "extensions"]}, 
+			method: 'prefs', parameters: {keys: ["activated", "modeLocked", "startTimer", 
+				"closeTimer", "activeModes", "customModes", "extensions", "preferences"]}, 
 			onSuccess: this.updatePreferences.bind(this),
 			onFailure: function(response) {
 				this.controller.showAlertDialog({

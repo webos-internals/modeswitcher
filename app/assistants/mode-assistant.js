@@ -191,18 +191,11 @@ ModeAssistant.prototype.setup = function() {
 
 	this.modelStartSelector = {'value': this.mode.start, 'disabled': false};
 
-	if(this.mode.type == "normal") {
-		this.choicesStartSelector = [
-			{'label': $L("Only Manually"), 'value': 0},
-			{'label': $L("By Selection"), 'value': 1},
-			{'label': $L("After Timer"), 'value': 2},
-			{'label': $L("Immediate"), 'value': 3}];  
-	}
-	else {
-		this.choicesStartSelector = [
-			{'label': $L("Only Manually"), 'value': 0},
-			{'label': $L("Immediate"), 'value': 3}];  
-	}
+	this.choicesStartSelector = [
+		{'label': $L("Only Manually"), 'value': 0},
+		{'label': $L("By Selection"), 'value': 1},
+		{'label': $L("After Timer"), 'value': 2},
+		{'label': $L("Immediate"), 'value': 3}];  
 				
 	this.controller.setupWidget("StartSelector",	{'label': $L("Auto Start"),
 		'labelPlacement': "left", 'choices': this.choicesStartSelector},
@@ -216,18 +209,11 @@ ModeAssistant.prototype.setup = function() {
 		
 	this.modelCloseSelector = {'value': this.mode.close, 'disabled': false};
 
-	if(this.mode.type == "normal") {
-		this.choicesCloseSelector = [
-			{'label': $L("Only Manually"), 'value': 0},
-			{'label': $L("By Selection"), 'value': 1},
-			{'label': $L("After Timer"), 'value': 2},
-			{'label': $L("Immediate"), 'value': 3}];  
-	}
-	else {
-		this.choicesCloseSelector = [
-			{'label': "Only Manually", 'value': 0},
-			{'label': "Immediate", 'value': 3}];  
-	}
+	this.choicesCloseSelector = [
+		{'label': $L("Only Manually"), 'value': 0},
+		{'label': $L("By Selection"), 'value': 1},
+		{'label': $L("After Timer"), 'value': 2},
+		{'label': $L("Immediate"), 'value': 3}];  
 
 	this.controller.setupWidget("CloseSelector",	{'label': $L("Auto Close"), 
 		'labelPlacement': "left", 'choices': this.choicesCloseSelector},
@@ -772,21 +758,6 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 
 ModeAssistant.prototype.setModeType = function(event) {
 	if(event.value == "normal") {
-		this.modelStartSelector.value = 1;
-		this.modelCloseSelector.value = 1;
-		
-		this.modelStartSelector.choices = [
-			{'label': $L("Only Manually"), 'value': 0},
-			{'label': $L("By Selection"), 'value': 1},
-			{'label': $L("After Timer"), 'value': 2},
-			{'label': $L("Immediate"), 'value': 3} ];  
-
-		this.modelCloseSelector.choices = [
-			{'label': $L("Only Manually"), 'value': 0},
-			{'label': $L("By Selection"), 'value': 1},
-			{'label': $L("After Timer"), 'value': 2},
-			{'label': $L("Immediate"), 'value': 3} ];  
-
 		this.choicesNotifySelector[0].label = $L("Default");
 
 		this.controller.defaultChoiseLabel = $L("Default");
@@ -795,17 +766,6 @@ ModeAssistant.prototype.setModeType = function(event) {
 			this.settingsConfig[id].setup($L("Default"));
 	}
 	else {
-		this.modelStartSelector.value = 3;
-		this.modelCloseSelector.value = 3;
-
-		this.modelStartSelector.choices = [
-			{'label': $L("Only Manually"), 'value': 0},
-			{'label': $L("Immediate"), 'value': 3} ];  
-
-		this.modelCloseSelector.choices = [
-			{'label': $L("Only Manually"), 'value': 0},
-			{'label': $L("Immediate"), 'value': 3} ];  
-
 		this.choicesNotifySelector[0].label = $L("Do Not Set");
 
 		this.controller.defaultChoiseLabel = $L("Do Not Set");
@@ -814,9 +774,6 @@ ModeAssistant.prototype.setModeType = function(event) {
 			this.settingsConfig[id].setup($L("Do Not Set"));
 	}
 	
-	this.controller.modelChanged(this.modelStartSelector, this);
-	this.controller.modelChanged(this.modelCloseSelector, this);
-
 	this.controller.modelChanged(this.modelNotifySelector, this);
 	
 	this.controller.modelChanged(this.modelSettingsList, this);
@@ -1417,26 +1374,61 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.controller.stageController.pushScene("gdm", "importGDoc", "Config", "[MSMODE]", null, this.importModeConfig.bind(this));
 		}
 		else if(event.command == "status") {
-			var text = "Status info per mode not supported yet! In version 2.2 this will show the status of triggers etc.";
-			
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-				method: 'prefs', parameters: {extensions: this.extensions},
-				onComplete: function() {
-					this.controller.showAlertDialog({
-						title: this.mode.name + " " + $L("Status"),
-						message: text,
-						choices:[
-							{label:$L("Close"), value:"close", type:'default'}],
-						preventCancel: true,
-						allowHTMLMessage: true,
-						onChoose: function(appControl, value) {
-						}.bind(this, this.appControl)}); 
+				method: 'status', parameters: {mode: this.mode.name},
+				onComplete: function(response) {
+					if((response) && (response.triggers)) {
+						this.showStatusInfo(response, 0);
+					}
 				}.bind(this)});					
 		}
 		else if(event.command == "help") {
 			this.controller.stageController.pushScene("support", this.customModes);
 		}
 	}
+}
+
+ModeAssistant.prototype.showStatusInfo = function(status, group) {
+	if(group == 10)
+		group = 0;
+
+	if(this.mode.triggers.list.length == 0)
+		var text = "Status info not available since this mode has no triggers.";
+	else {
+		if(status.groups[group])
+			var state = "Valid";
+		else
+			var state = "Not Valid";
+	
+		if(this.modelRequiredSelector.value == 2) {
+			var choices = [{label:$L("Next Group"), value:"group", type:'default'}, {label:$L("Close"), value:"close", type:'default'}];
+			var text = "<div style='float:left;'><b>Current state for Group " + group + ":</b></div><div style='float:right;'>" + 
+				state + "</div><br><br>";
+		}
+		else {
+			var choices = [{label:$L("Close"), value:"close", type:'default'}];
+			var text = "<div style='float:left;'><b>Current state for this mode:</b></div><div style='float:right;'>" +
+				state + "</div><br><br>";
+		}
+	
+		for(var i = 0; i < status.triggers.length; i++) {
+			if(status.triggers[i].group == group) {
+				text += "<div style='float:left;'><b>Trigger - " + status.triggers[i].extension + 
+					":</b></div><div style='float:right;'>" + status.triggers[i].state.toString().toUpperCase() + "</div><br>";
+			}
+		}
+	}
+	
+	this.controller.showAlertDialog({
+		title: this.mode.name + " " + $L("Status"),
+		message: text,
+		choices: choices,
+		preventCancel: true,
+		allowHTMLMessage: true,
+		onChoose: function(status, group, value) {
+			if(value == "group")
+				this.showStatusInfo(status, ++group);
+		}.bind(this, status, group)}); 
 }
 
 //

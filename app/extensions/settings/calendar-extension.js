@@ -58,7 +58,7 @@ CalendarConfig.prototype.config = function() {
 		'calendarTitle': $L("Calendar"),
 		'calendarAlarmRow': "last",
 		'calendarRingtoneDisplay': "none",
-		'calendarDatabaseId': 0,
+		'calendarDatabaseId': -1,
 		'calendarReminderAlert': -1,
 		'calendarRingtoneName': "", 
 		'calendarRingtonePath': "",
@@ -80,7 +80,8 @@ CalendarConfig.prototype.fetch = function(doneCallback) {
 CalendarConfig.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 	
-	extensionConfig.calendarDatabaseId = extensionPreferences.databaseId;
+	if(extensionPreferences.databaseId != undefined)
+		extensionConfig.calendarDatabaseId = extensionPreferences.databaseId;
 	
 	if(extensionPreferences.reminderAlert != undefined)
 		extensionConfig.calendarReminderAlert = extensionPreferences.reminderAlert;
@@ -110,7 +111,8 @@ CalendarConfig.prototype.load = function(extensionPreferences) {
 CalendarConfig.prototype.save = function(extensionConfig) {
 	var extensionPreferences = {};
 	
-	extensionPreferences.databaseId = extensionConfig.calendarDatabaseId;
+	if(extensionConfig.calendarDatabaseId != -1)
+		extensionPreferences.databaseId = extensionConfig.calendarDatabaseId;
 	
 	if(extensionConfig.calendarReminderAlert != -1)
 		extensionPreferences.reminderAlert = parseInt(extensionConfig.calendarReminderAlert);
