@@ -157,7 +157,7 @@ ContactsSettings.prototype.handleGetResponse = function(requestID, extensionConf
 				if(serviceResponse.results[0].blockedNumbers)
 					extensionConfig.contactsBlockedNumbers = 1;
 				
-				if(serviceResponse.results[0].contactsUnknownNumbers)
+				if(serviceResponse.results[0].contactsNumbers)
 					extensionConfig.contactsUnknownNumbers = 1;
 			}
 		}

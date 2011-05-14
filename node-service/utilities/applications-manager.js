@@ -136,7 +136,7 @@ var apps = (function() {
 			// Start requested apps and collect and save the processid information.
 
 			for(var i = 0; i < startApps.length; i++)
-				this.setTimeout(executeLaunch.bind(this, startApps[i]), 250 * (i+1));
+				this.setTimeout(executeLaunch.bind(this, startApps[i]), 500 * (i+1));
 
 			future.result = { returnValue: true };				
 		}); 

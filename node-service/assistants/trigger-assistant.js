@@ -17,7 +17,7 @@ TriggerCommandAssistant.prototype.run = function(future) {
 	future.then(this, function(future) {
 		var config = future.result;
 	
-		if((!config.activated) || (config.activeModes.length == 0))
+		if((config.activated == false) || (config.activeModes.length == 0))
 			future.result = { returnValue: false, errorText: "Not activated" };
 		else if((!this.controller.args) || (!this.controller.args.extension))
 			future.result = { returnValue: false, errorText: "No extension set" };
@@ -73,7 +73,7 @@ TriggerCommandAssistant.prototype.checkTriggerEvent = function(future, config, a
 			if(future.result.returnValue != true)
 				future.result = { returnValue: false };
 			else {				
-				if(config.modeLocked)
+				if(config.modeLocked == true)
 					future.result = { returnValue: true };
 				else if(triggeredModes.length == 0)
 					future.result = { returnValue: true };

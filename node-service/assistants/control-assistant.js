@@ -17,7 +17,7 @@ ControlCommandAssistant.prototype.run = function(future) {
 	future.then(this, function(future) {
 		var config = future.result;
 
-		if(config.activated) {
+		if(config.activated == true) {
 			if(this.controller.args.action == "startup")
 				this.startupModeSwitcher(future, config);
 			else if(this.controller.args.action == "enable")
@@ -106,13 +106,13 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 			future.nest(prefs.save(newConfig));
 
 			future.then(this, function(future) {
-				if(config.customModes[0].startup) {
+				if(config.customModes[0].startup == 0) {
 					future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
-						'action': "start", 'name': "Default Mode", 'startup': true}));
+						'action': "reload", 'name': "Current Mode", 'startup': true}));
 				}
 				else{
 					future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
-						'action': "reload", 'name': "Current Mode", 'startup': true}));
+						'action': "start", 'name': "Default Mode", 'startup': true}));
 				}
 
 				future.then(this, function(future) {

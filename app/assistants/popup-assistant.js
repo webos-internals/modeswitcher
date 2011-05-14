@@ -19,7 +19,6 @@ function PopupAssistant(view, params) {
 		this.modeName = params.name;
 	}
 	else if(view == "popup") {
-		this.event = "init";
 		this.notify = "none"
 
 		if((params.notify == 3) || (params.notify == 5))
@@ -75,7 +74,7 @@ PopupAssistant.prototype.setup = function() {
 		this.handleCancelButtonPress.bind(this));
 	
 	if(this.view == "popup") {
-		this.selectEvent();
+		this.selectEvent(true);
 	}
 	else if(this.view == "toggle") {
 		this.controller.document.body.style.backgroundColor = "#000000";
@@ -230,7 +229,7 @@ PopupAssistant.prototype.handleStartButtonPress = function() {
 		this.closeMModes.splice(this.modeidx, 1);
 	}
 
-	this.selectEvent();
+	this.selectEvent(false);
 }
 
 PopupAssistant.prototype.handleSelectButtonPress = function() {
@@ -270,17 +269,11 @@ PopupAssistant.prototype.handleCancelButtonPress = function() {
 		this.closeMModes.splice(this.modeidx, 1);
 	}
 
-	this.selectEvent();
+	this.selectEvent(false);
 }	
 
-PopupAssistant.prototype.selectEvent = function() {
+PopupAssistant.prototype.selectEvent = function(init) {
 	this.modeidx = 0;
-
-	if((this.event != "init") && (this.notify != "none")) {
-		var appController = Mojo.Controller.getAppController();
-		
-		appController.playSoundNotification(this.notify);
-	}
 
 	this.modelSelectButton.disabled = true;
 
@@ -296,32 +289,33 @@ PopupAssistant.prototype.selectEvent = function() {
 		this.event = "start-m";
 	else if(this.closeMModes.length > 0)
 		this.event = "close-m";
-	else
-		this.event = "done";
+	else {
+		this.controller.window.close();
+		
+		return;
+	}
 
 	this.controller.modelChanged(this.modelSelectButton, this);
 
-	this.setActivity();
+	if((this.event == "start-n") || (this.event == "start-m"))
+		var timeout = this.startTimer * 1000 + 5000;
+	else if((this.event == "close-n") || (this.event == "close-m"))
+		var timeout = this.closeTimer * 1000 + 5000;
+
+	this.controller.serviceRequest("palm://com.palm.power/com/palm/power", {
+		'method': "activityStart", 'parameters': {'id': Mojo.Controller.appInfo.id,
+		'duration_ms': timeout} });
+
+	if((!init) && (this.notify != "none")) {
+		var appController = Mojo.Controller.getAppController();
+		
+		appController.playSoundNotification(this.notify);
+	}
 	
 	if((this.event == "start-n") || (this.event == "start-m"))
 		this.setupStart();
 	else if((this.event == "close-n") || (this.event == "close-m"))
 		this.setupClose();
-	else
-		this.controller.window.close();
-}
-
-PopupAssistant.prototype.setActivity = function() {
-	if((this.event == "start-n") || (this.event == "start-m"))
-		var timeout = this.startTimer * 1000 + 5000;
-	else if((this.event == "close-n") || (this.event == "close-m"))
-		var timeout = this.closeTimer * 1000 + 5000;
-	else
-		return;
-
-	this.controller.serviceRequest("palm://com.palm.power/com/palm/power", {
-		'method': "activityStart", 'parameters': {'id': Mojo.Controller.appInfo.id,
-		'duration_ms': timeout} });
 }
 
 PopupAssistant.prototype.close = function() {

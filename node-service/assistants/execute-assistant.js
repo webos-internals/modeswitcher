@@ -14,7 +14,7 @@ ExecuteCommandAssistant.prototype.run = function(future) {
 	future.then(this, function(future) {
 		var config = future.result;
 		
-		if(!config.activated)
+		if(config.activated == false)
 			future.result = { returnValue: false, errorText: "Not activated" };
 		else {
 			if(this.controller.args.action == "start")

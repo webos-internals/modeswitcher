@@ -187,17 +187,14 @@ var prefs = (function() {
 
 		// Added configuration no need to bump version...
 
-		if(curPrefs.extensions.appssrvs.indexOf("phone") != -1)
-			curPrefs.extensions.appssrvs = ["browser", "default", "govnah", "modesw", "phoneapp", "systools"];
+		curPrefs.extensions.appssrvs = ["browser", "default", "govnah", "modesw", "phoneapp", "systools"];
 
-		if(curPrefs.extensions.appssrvs.indexOf("impostah") != -1)
-			curPrefs.extensions.appssrvs = ["browser", "default", "govnah", "modesw", "phoneapp", "systools"];
+		curPrefs.extensions.settings = ["airplane", "calendar", "connection", "contacts", "email", 
+			"messaging", "network", "phone", "ringer", "screen", "security", "sound"];
 
-		if(curPrefs.extensions.settings.length != 12) {
-			curPrefs.extensions.settings = ["airplane", "calendar", "connection", "contacts", "email", 
-				"messaging", "network", "phone", "ringer", "screen", "security", "sound"];
-		}
-
+		curPrefs.extensions.triggers = ["application", "battery", "bluetooth", "calevent", "charger", 
+				"display", "headset", "interval", "location", "modechange", "silentsw", "timeofday", "wireless"];
+		
 		if(curPrefs.preferences == undefined)
 			curPrefs.preferences = {appssrvs: {}, settings: {}, triggers: {}};
 	};

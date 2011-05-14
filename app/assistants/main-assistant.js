@@ -185,7 +185,8 @@ MainAssistant.prototype.updatePreferences = function(response) {
 			settings: ["airplane", "calendar", "connection", "contacts", "email", "messaging", 
 				"network", "phone", "ringer", "screen", "security", "sound"],
 			triggers: ["application", "battery", "bluetooth", "calevent", "charger", 
-				"display", "headset", "location", "modechange", "silentsw", "timeofday", "wireless"] };
+				"display", "headset", "interval", "location", "modechange", "silentsw", 
+				"timeofday", "wireless"] };
 
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 			method: 'prefs', parameters: {extensions: this.extensions},
