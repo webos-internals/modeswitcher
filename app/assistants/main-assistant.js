@@ -181,7 +181,7 @@ MainAssistant.prototype.updatePreferences = function(response) {
 	
 	if((this.appAssistant.isNewOrFirstStart == 1) || (this.customModes.length == 0)) {
 		this.extensions = {
-			appssrvs: ["browser", "default", "govnah", "modesw", "phone", "systools"],
+			appssrvs: ["browser", "default", "govnah", "modesw", "phoneapp", "systools"],
 			settings: ["airplane", "calendar", "connection", "contacts", "email", "messaging", 
 				"network", "phone", "ringer", "screen", "security", "sound"],
 			triggers: ["application", "battery", "bluetooth", "calevent", "charger", 

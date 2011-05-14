@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.2.3', log: [
+			'Fixed bug that caused initial configuration to fail on new installs.'
+		]
+	},
+	{
 		version: '2.2.2', log: [
 			'Fixed few bugs introduced in 2.2.0 release, see wiki for details.'
 		]
