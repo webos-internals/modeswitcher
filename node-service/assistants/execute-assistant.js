@@ -1,4 +1,7 @@
 var ExecuteCommandAssistant = function() {
+	this.Foundations = IMPORTS.foundations;
+
+	this.PalmCall = this.Foundations.Comms.PalmCall;
 }
 
 //
@@ -565,7 +568,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 		this.prepareModeChange(future, config, newActiveModes, "init", ++roundCount);
 	else {
 		if(roundCount == 5) {
-			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+			this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 				'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': 5, 'name': "Current Mode", 'event': "error"}});
 		}

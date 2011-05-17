@@ -41,6 +41,8 @@ var emailSettings = (function() {
 			future = newFuture;
 		
 		if(item == "email") {
+		console.error("DEBUG1 " + JSON.stringify(settingsOld));
+		console.error("DEBUG2 " + JSON.stringify(settingsNew));
 			if((settingsNew.accounts) && (settingsNew.accounts.length > 0)) {
 				var objects = [];
 
@@ -80,7 +82,7 @@ var emailSettings = (function() {
 						objects.push(params);
 					}
 				}
-		
+				console.error("DEBUG3 " + JSON.stringify(objects));
 				if(objects.length > 0) {
 					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 						'id': "com.palm.app.email", 'service': "com.palm.db", 
@@ -100,6 +102,7 @@ var emailSettings = (function() {
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
+		console.error("DEBUG0 ");
 
 		utils.asyncForEach(configCalls, 
 			settingsUpdate.bind(this, future, settingsOld, settingsNew), 
