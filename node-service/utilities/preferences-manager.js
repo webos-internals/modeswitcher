@@ -14,23 +14,23 @@ var prefs = (function() {
 			_kind: DB_KIND,
 			activated: false,
 			modeLocked: false,
-			apiVersion: "2.0",
-			cfgVersion: "2.0",
+			apiVersion: "2.5",
+			cfgVersion: "2.5",
 			startTimer: 10000,
 			closeTimer: 10000,
 			historyList: [],
 			activeModes: [],
 			customModes: [],
 			extensions: {
-				appssrvs: [], 
+				actions: [], 
 				settings: [], 
 				triggers: []},
 			statusData: {
-				appssrvs: {}, // Not used currently
+				actions: {}, // Not used currently
 				settings: {}, // Not used currently
 				triggers: {}},
 			preferences: {
-				appssrvs: {}, // Not used currently
+				actions: {}, // Not used currently
 				settings: {}, 
 				triggers: {}} // Not used currently
 		};
@@ -101,6 +101,110 @@ var prefs = (function() {
 
 //
 
+	var checkPrefs = function(curPrefs) {
+		var currentVersion = defaultPrefs().cfgVersion;
+		
+		if(curPrefs.cfgVersion != currentVersion) {
+			console.error("Mode Switcher updating preferences");
+
+			curPrefs.apiVersion = currentVersion;
+			curPrefs.cfgVersion = currentVersion;
+
+			for(var i = 0; i < curPrefs.customModes.length; i++) {
+				curPrefs.customModes[i].actions = curPrefs.customModes[i].appssrvs;
+				delete curPrefs.customModes[i].appssrvs;
+
+				curPrefs.customModes[i].notify = curPrefs.customModes[i].settings.notify;
+				curPrefs.customModes[i].settings = curPrefs.customModes[i].settings.list;
+				
+				for(var j = 0; j < curPrefs.customModes[i].settings.length; j++) {
+					if(curPrefs.customModes[i].settings[j].extension == "email") {
+						if(curPrefs.customModes[i].settings[j].accounts) {
+							var accounts = {};
+						
+							for(var k = 0; k < curPrefs.customModes[i].settings[j].accounts.length; k++) {
+								var accId = curPrefs.customModes[i].settings[j].accounts[k].accountId;
+								
+								accounts[accId] = {
+									databaseId: curPrefs.customModes[i].settings[j].accounts[k].id,
+									identifier: curPrefs.customModes[i].settings[j].accounts[k].identifier };
+							}
+							
+							curPrefs.customModes[i].settings[j].accounts = accounts;
+						}
+					}
+					else if(curPrefs.customModes[i].settings[j].extension == "messaging") {
+						if(curPrefs.customModes[i].settings[j].accounts) {
+							var accounts = {};
+						
+							for(var k = 0; k < curPrefs.customModes[i].settings[j].accounts.length; k++) {
+								var accId = curPrefs.customModes[i].settings[j].accounts[k].accountId;
+								
+								accounts[accId] = {
+									databaseId: curPrefs.customModes[i].settings[j].accounts[k].id,
+									serviceName: curPrefs.customModes[i].settings[j].accounts[k].serviceName,
+									identifier: curPrefs.customModes[i].settings[j].accounts[k].identifier };
+							}
+							
+							curPrefs.customModes[i].settings[j].accounts = accounts;
+						}
+					}
+				}
+				
+				for(var j = 0; j < curPrefs.customModes[i].triggers.list.length; j++) {
+					if(curPrefs.customModes[i].triggers.list[j].group == undefined)
+						curPrefs.customModes[i].triggers.list[j].group = 0;
+				}
+					
+				if(curPrefs.customModes[i].triggers.require == 0) 
+					curPrefs.customModes[i].triggers = [{require: 0, list: curPrefs.customModes[i].triggers.list}];
+				else if(curPrefs.customModes[i].triggers.require == 1)
+					curPrefs.customModes[i].triggers = [{require: 1, list: curPrefs.customModes[i].triggers.list}];
+				else if(curPrefs.customModes[i].triggers.require == 2) {
+					var triggers = [];
+					
+					for(var group = 0; group < 10; group++) {
+						var tlist = [];
+					
+						for(var j = 0; j < curPrefs.customModes[i].triggers.list.length; j++) {
+							if(curPrefs.customModes[i].triggers.list[j].group == group)
+								tlist.push(curPrefs.customModes[i].triggers.list[j]);
+						}
+						
+						if(tlist.length > 0)
+							triggers.push({require: 2, list: tlist});
+					}
+					
+					curPrefs.customModes[i].triggers = triggers;
+				}
+			}
+
+			curPrefs.extensions.actions = ["browser", "default", "govnah", "modesw", "phoneapp", "systools"];
+			delete curPrefs.extensions.appssrvs;
+
+			curPrefs.extensions.settings = ["airplane", "calendar", "connection", "contacts", "email", 
+				"messaging", "network", "phone", "ringer", "screen", "security", "sound"];
+
+			curPrefs.extensions.triggers = ["application", "battery", "bluetooth", "calevent", "charger", 
+					"display", "headset", "interval", "location", "modechange", "silentsw", "timeofday", "wireless"];
+
+			curPrefs.statusData.actions = {};
+			delete curPrefs.statusData.appssrvs;
+		
+			if(curPrefs.preferences == undefined)
+				curPrefs.preferences = {actions: {}, settings: {}, triggers: {}};
+			else {
+				curPrefs.preferences.actions = curPrefs.preferences.appssrvs;
+
+				delete curPrefs.preferences.appssrvs;
+			}
+			
+			return true;
+		}
+		
+		return false
+	};
+
 	var updatePrefs = function(oldPrefs, newPrefs) {
 		if(newPrefs.activated != undefined)
 			oldPrefs.activated = newPrefs.activated;
@@ -130,8 +234,8 @@ var prefs = (function() {
 			oldPrefs.customModes = newPrefs.customModes;
 
 		if(newPrefs.extensions != undefined) {
-			if(newPrefs.extensions.appssrvs != undefined)
-				oldPrefs.extensions.appssrvs = newPrefs.extensions.appssrvs;
+			if(newPrefs.extensions.actions != undefined)
+				oldPrefs.extensions.actions = newPrefs.extensions.actions;
 
 			if(newPrefs.extensions.settings != undefined)
 				oldPrefs.extensions.settings = newPrefs.extensions.settings;
@@ -141,9 +245,9 @@ var prefs = (function() {
 		}
 
 		if(newPrefs.statusData != undefined) {
-			if(newPrefs.statusData.appssrvs != undefined) {
-				for(var ext in newPrefs.statusData.appssrvs) {
-					oldPrefs.statusData.appssrvs[ext] = newPrefs.statusData.appssrvs[ext];
+			if(newPrefs.statusData.actions != undefined) {
+				for(var ext in newPrefs.statusData.actions) {
+					oldPrefs.statusData.actions[ext] = newPrefs.statusData.actions[ext];
 				}
 			}
 
@@ -161,9 +265,9 @@ var prefs = (function() {
 		}
 
 		if(newPrefs.preferences != undefined) {
-			if(newPrefs.preferences.appssrvs != undefined) {
-				for(var ext in newPrefs.preferences.appssrvs) {
-					oldPrefs.preferences.appssrvs[ext] = newPrefs.preferences.appssrvs[ext];
+			if(newPrefs.preferences.actions != undefined) {
+				for(var ext in newPrefs.preferences.actions) {
+					oldPrefs.preferences.actions[ext] = newPrefs.preferences.actions[ext];
 				}
 			}
 
@@ -181,24 +285,6 @@ var prefs = (function() {
 		}
 	};
 	
-	var upgradePrefs = function(curPrefs, newVersion) {
-		if(curPrefs.cfgVersion != newVersion)
-			console.log("Mode Switcher old preferences");
-
-		// Added configuration no need to bump version...
-
-		curPrefs.extensions.appssrvs = ["browser", "default", "govnah", "modesw", "phoneapp", "systools"];
-
-		curPrefs.extensions.settings = ["airplane", "calendar", "connection", "contacts", "email", 
-			"messaging", "network", "phone", "ringer", "screen", "security", "sound"];
-
-		curPrefs.extensions.triggers = ["application", "battery", "bluetooth", "calevent", "charger", 
-				"display", "headset", "interval", "location", "modechange", "silentsw", "timeofday", "wireless"];
-		
-		if(curPrefs.preferences == undefined)
-			curPrefs.preferences = {appssrvs: {}, settings: {}, triggers: {}};
-	};
-
 //
 
 	var notifySubscribers = function(prefs) {
@@ -236,9 +322,15 @@ var prefs = (function() {
 
 			var result = future.result;
 
-			upgradePrefs(result, "2.0");
-
-			future.result = result;
+			if(checkPrefs(result)) {
+				future.nest(savePrefs(result));
+			
+				future.then(this, function(future) {
+					future.result = result;
+				});
+			}
+			else
+				future.result = result;
 		});
 		
 		return future;
@@ -249,8 +341,6 @@ var prefs = (function() {
 		
 		future.then(this, function(future) {
 			var result = future.result;
-
-			upgradePrefs(result, "2.0");
 
 			updatePrefs(result, prefs);
 			

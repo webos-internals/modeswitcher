@@ -5,6 +5,7 @@ function PrefsAssistant(extensions, preferences) {
 	this.currentView = "main";
 	
 	this.settingsPrefs = [];
+	this.triggersPrefs = [];
 	
 	for(var i = 0; i < this.extensions.settings.length; i++) {
 		var id = this.extensions.settings[i];
@@ -16,6 +17,18 @@ function PrefsAssistant(extensions, preferences) {
 			force = this.preferences.settings[id].force;
 	
 		this.settingsPrefs.push({'extension': id, 'title': title, 'force': force});
+	}
+
+	for(var i = 0; i < this.extensions.triggers.length; i++) {
+		var id = this.extensions.triggers[i];
+		var title = id.charAt(0).toUpperCase() + id.slice(1);
+			
+		var delay = 0;
+
+		if(this.preferences.triggers[id])
+			delay = this.preferences.triggers[id].delay;
+			
+		this.triggersPrefs.push({'extension': id, 'title': title, 'delay': delay});
 	}
 }
 
@@ -46,13 +59,16 @@ PrefsAssistant.prototype.setup = function() {
 	this.controller.setupWidget('ActionsPrefsButton', 
 		{label: $L("Action Extensions")}, this.modelActionsButton);
 
-	this.modelTriggersButton = {buttonClass: '', disabled: true};
+	this.modelTriggersButton = {buttonClass: '', disabled: false};
 
 	this.controller.setupWidget('TriggersPrefsButton', 
 		{label: $L("Trigger Extensions")}, this.modelTriggersButton);
 
+	Mojo.Event.listen(this.controller.get('TriggersPrefsButton'), 
+		Mojo.Event.tap, this.changeView.bind(this, "Triggers"));
+
 	this.modelSettingsList = {items: this.settingsPrefs, disabled: false};
-	
+
 	this.controller.setupWidget("SettingsList", {
 		itemTemplate: 'templates/settings-item',
 		swipeToDelete: false, reorderable: false},
@@ -63,10 +79,25 @@ PrefsAssistant.prototype.setup = function() {
 
 	this.controller.setupWidget("SettingsForcedToggle", {
 		modelProperty: "force"});
+
+	this.modelTriggersList = {items: this.triggersPrefs, disabled: false};
 	
+	this.controller.setupWidget("TriggersList", {
+		itemTemplate: 'templates/triggers-item',
+		swipeToDelete: false, reorderable: false},
+		this.modelTriggersList);
+
+	Mojo.Event.listen(this.controller.get('TriggersList'), 
+		Mojo.Event.propertyChange, this.saveExtensionPrefs.bind(this));	
+
+	this.controller.setupWidget("TriggersDelaysPicker", {
+		min: 0, max: 30, label: ' ', modelProperty: "delay"});
+
 	this.controller.listen(this.controller.get('help-toggle'), Mojo.Event.tap, this.helpButtonTapped.bindAsEventListener(this));
 
-	this.controller.listen(this.controller.get('SettingsForcedHelp'), Mojo.Event.tap, this.helpItemTapped.bindAsEventListener(this));
+	this.controller.listen(this.controller.get('SettingsForcedHelp'), Mojo.Event.tap, this.helpItemTapped.bindAsEventListener(this, "settings"));
+
+	this.controller.listen(this.controller.get('TriggersDelaysHelp'), Mojo.Event.tap, this.helpItemTapped.bindAsEventListener(this, "triggers"));
 }
 
 PrefsAssistant.prototype.advancedInfo = function(event) {
@@ -116,6 +147,7 @@ PrefsAssistant.prototype.handleCommand = function(event) {
 			this.currentView = "main";
 	
 			this.controller.get("settingsView").hide();
+			this.controller.get("triggersView").hide();
 
 			this.controller.get("mainView").show();
 
@@ -140,18 +172,33 @@ PrefsAssistant.prototype.helpButtonTapped = function(event)
 	}
 }
 
-PrefsAssistant.prototype.helpItemTapped = function(event) {
-	this.controller.showAlertDialog({
-		title: "Forced Settings Applying",
-		message: "<div style='text-align:justify;'>" +
-			"Normal behavior is that only settings that differ between old and new modes are applied. " +
-			"If settings that are same in both modes are changed manually between the mode changes they are not changed by Mode Switcher. " +
-			"When forced applying is enabled the settings are applied in every situation.<br><br>" +
-			"<b>NOTE:</b> Forced applying makes mode changes more 'heavier' so enable it only when really needed." + "</div>",
-		choices:[{"label": "Close", "command": "close"}],
-		preventCancel: false,
-		allowHTMLMessage: true
-	});
+PrefsAssistant.prototype.helpItemTapped = function(event, item) {
+	if(item == "settings") {
+		this.controller.showAlertDialog({
+			title: "Forced Settings Applying",
+			message: "<div style='text-align:justify;'>" +
+				"Normal behavior is that only settings that differ between old and new modes are applied. " +
+				"If settings that are same in both modes are changed manually between the mode changes they are not changed by Mode Switcher. " +
+				"When forced applying is enabled the settings are applied in every situation.<br><br>" +
+				"<b>NOTE:</b> Forced applying makes mode changes more 'heavier' so enable it only when really needed." + "</div>",
+			choices:[{"label": "Close", "command": "close"}],
+			preventCancel: false,
+			allowHTMLMessage: true
+		});
+	}
+	else if(item == "triggers") {
+		this.controller.showAlertDialog({
+			title: "Mode Changing Delays",
+			message: "<div style='text-align:justify;'>" +
+				"Normal behavior is that when trigger event happens the mode changing is initiated immeadiately. " +
+				"With delay time the mode changing is delayed and if the same trigger happens within that time the previous triggers is ignored. " +
+				"This is useful with triggers such as wireless trigger when you don't want short disconnections initiate a mode changing.<br><br>" +
+				"<b>NOTE:</b> The delay is not used when the trigger event only starts mode(s)." + "</div>",
+			choices:[{"label": "Close", "command": "close"}],
+			preventCancel: false,
+			allowHTMLMessage: true
+		});
+	}	
 }
 
 PrefsAssistant.prototype.saveExtensionPrefs = function() {
@@ -160,6 +207,13 @@ PrefsAssistant.prototype.saveExtensionPrefs = function() {
 			this.preferences.settings[this.settingsPrefs[i].extension] = {};
 	
 		this.preferences.settings[this.settingsPrefs[i].extension].force = this.settingsPrefs[i].force;
+	}
+
+	for(var i = 0; i < this.triggersPrefs.length; i++) {
+		if(this.preferences.triggers[this.triggersPrefs[i].extension] == undefined)
+			this.preferences.triggers[this.triggersPrefs[i].extension] = {};
+	
+		this.preferences.triggers[this.triggersPrefs[i].extension].delay = this.triggersPrefs[i].delay;
 	}
 
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {

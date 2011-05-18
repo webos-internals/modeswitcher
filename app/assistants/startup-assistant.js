@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.3.0', log: [
+			'Many changes and additions to the core functionality, see wiki for details.'
+		]
+	},
+	{
 		version: '2.2.5', log: [
 			'Fixed email and messaging settings not working bug.'
 		]

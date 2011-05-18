@@ -2,7 +2,7 @@
  *    ModeAssistant - Mode Launcher's Mode Edition Scene
 */
 
-function ModeAssistant(extensions, customModes, modeIndex) {
+function ModeAssistant(apiVersion, cfgVersion, extensions, customModes, modeIndex) {
 	/* This is the creator function for your scene assistant object. It will be passed all the 
 	 * additional parameters (after the scene name) that were passed to pushScene. The reference
 	 * to the scene controller (this.controller) has not be established yet, so any initialization
@@ -12,22 +12,23 @@ function ModeAssistant(extensions, customModes, modeIndex) {
 	this.appControl = Mojo.Controller.getAppController();
 	this.appAssistant = this.appControl.assistant;
 	
+	this.apiVersion = apiVersion;
+	this.cfgVersion = cfgVersion;
+	
 	this.extensions = extensions;
 	
 	this.customModes = customModes;
 	
 	this.modeIndex = modeIndex;
 
-	this.appssrvsConfig = {};
+	this.actionsConfig = {};
 	this.settingsConfig = {};
 	this.triggersConfig = {};
 	
-	this.loaded = {'appssrvs': [], 'settings': [], 'triggers': []};
-
-	this.unloaded = {'appssrvs': [], 'settings': [], 'triggers': []};
+	this.loaded = {'actions': [], 'settings': [], 'triggers': []};
 
 	this.retrieving = false;
-	
+
 	this.groupidx = 0;
 }    
 
@@ -46,10 +47,10 @@ ModeAssistant.prototype.setup = function() {
 		
 	//	
 
-	for(var i = 0; i < this.extensions.appssrvs.length; i++) {
-		var className = this.extensions.appssrvs[i].charAt(0).toUpperCase() + this.extensions.appssrvs[i].slice(1);
+	for(var i = 0; i < this.extensions.actions.length; i++) {
+		var className = this.extensions.actions[i].charAt(0).toUpperCase() + this.extensions.actions[i].slice(1);
 
-		this.appssrvsConfig[this.extensions.appssrvs[i]] = eval("new " + className + "Actions(this.controller, prefs);");
+		this.actionsConfig[this.extensions.actions[i]] = eval("new " + className + "Actions(this.controller, prefs);");
 	}
 
 	for(var i = 0; i < this.extensions.settings.length; i++) {
@@ -271,7 +272,7 @@ ModeAssistant.prototype.setup = function() {
 		{'label': $L("Do Nothing"), 'value': 0},
 		{'label': $L("Close All Apps"), 'value': 2}];  
 		
-	this.modelAppsStartSelector = {'value': this.mode.appssrvs.start, 'disabled': false};
+	this.modelAppsStartSelector = {'value': this.mode.actions.start, 'disabled': false};
 		
 	this.controller.setupWidget("AppsStartSelector", {'label': $L("On Start"), 
 		'labelPlacement': "left", 'choices': this.choicesAppsStartSelector},
@@ -290,7 +291,7 @@ ModeAssistant.prototype.setup = function() {
 		{'label': $L("Close Started"), 'value': 1},
 		{'label': $L("Close All Apps"), 'value': 2}];  
 		
-	this.modelAppsCloseSelector = {'value': this.mode.appssrvs.close, 'disabled': false};
+	this.modelAppsCloseSelector = {'value': this.mode.actions.close, 'disabled': false};
 		
 	this.controller.setupWidget("AppsCloseSelector", {'label': $L("On Close"), 
 		'labelPlacement': "left", 'choices': this.choicesAppsCloseSelector},
@@ -304,7 +305,7 @@ ModeAssistant.prototype.setup = function() {
 
 	// Applications list
 
-	this.modelAppsList = {'items': this.mode.appssrvs.list};
+	this.modelAppsList = {'items': this.mode.actions.list};
 	
 	this.controller.setupWidget("AppsList", {
 		'itemTemplate': 'templates/lists-item',
@@ -314,7 +315,7 @@ ModeAssistant.prototype.setup = function() {
 
 	// Applications extensions lists
 
-	for(var id in this.appssrvsConfig) {
+	for(var id in this.actionsConfig) {
 		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 		
 		this.controller.setupWidget(element, {
@@ -322,15 +323,15 @@ ModeAssistant.prototype.setup = function() {
 			'swipeToDelete': false, 'reorderable': false, 'itemsProperty': id});
 	}
 
-	for(var i = 0; i < this.loaded.appssrvs.length; i++) {
-		var id = this.loaded.appssrvs[i].extension;
+	for(var i = 0; i < this.loaded.actions.length; i++) {
+		var id = this.loaded.actions[i].extension;
 		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 		
 		var appsrv = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
 		
-		appsrv[id] = [this.loaded.appssrvs[i]]; 
+		appsrv[id] = [this.loaded.actions[i]]; 
 
-		this.mode.appssrvs.list.push(appsrv);
+		this.mode.actions.list.push(appsrv);
 	}
 
 	Mojo.Event.listen(this.controller.get("AppsList"), Mojo.Event.listDelete, 
@@ -346,8 +347,8 @@ ModeAssistant.prototype.setup = function() {
 // APPS LIST ITEM
 //
 
-	for(var id in this.appssrvsConfig)
-		this.appssrvsConfig[id].setup();
+	for(var id in this.actionsConfig)
+		this.actionsConfig[id].setup();
 
 //
 // SETTINGS
@@ -355,7 +356,7 @@ ModeAssistant.prototype.setup = function() {
 
 	// Mode notify selector
 
-	this.modelNotifySelector = {'value': this.mode.settings.notify, 'disabled': false};
+	this.modelNotifySelector = {'value': this.mode.notify, 'disabled': false};
 
 	if(this.mode.type == "default") {
 		this.choicesNotifySelector = [
@@ -389,7 +390,7 @@ ModeAssistant.prototype.setup = function() {
 		
 	// Settings list
 
-	this.modelSettingsList = {'items': this.mode.settings.list};
+	this.modelSettingsList = {'items': this.mode.settings};
 	
 	this.controller.setupWidget("SettingsList", {
 		'itemTemplate': 'templates/lists-item',
@@ -417,7 +418,7 @@ ModeAssistant.prototype.setup = function() {
 
 		setting['extension'] = this.loaded.settings[i].extension;
 
-		this.mode.settings.list.push(setting);
+		this.mode.settings.push(setting);
 	}
 
 	Mojo.Event.listen(this.controller.get("SettingsList"), Mojo.Event.listDelete, 
@@ -441,26 +442,26 @@ ModeAssistant.prototype.setup = function() {
 // TRIGGERS
 //
 
-	this.modelRequiredSelector = {'value': this.mode.triggers.require, 'disabled': false};
+	this.modelRequiredSelector = {'value': this.mode.require, 'disabled': false};
 
 	this.choicesTriggerSelector = [
 		{'label': $L("All Unique"), 'value': 0},
-		{'label': $L("One Trigger"), 'value': 1},
-		{'label': $L("Any Grouped"), 'value': 2} ];  
+		{'label': $L("Any Trigger"), 'value': 1},
+		{'label': $L("All Triggers"), 'value': 2} ];  
 
 	this.controller.setupWidget("RequiredSelector",	{'label': $L("Required"), 
 		'labelPlacement': "left", 'choices': this.choicesTriggerSelector},
 		this.modelRequiredSelector);	
 
 	Mojo.Event.listen(this.controller.get("RequiredSelector"), Mojo.Event.propertyChange, 
-		this.setTriggersView.bind(this));
+		this.setModeData.bind(this, false));
 
 	Mojo.Event.listen(this.controller.get("TriggersRequiredHelp"), Mojo.Event.tap, 
 		this.helpItemTapped.bind(this, "TriggersRequiredHelp"));
 
 	// Triggers list
 
-	this.modelTriggersList = {'items': this.mode.triggers.list};
+	this.modelTriggersList = {'items': this.mode.triggers};
 
 	this.controller.setupWidget("TriggersList", {
 		'itemTemplate': "templates/lists-item",
@@ -478,20 +479,18 @@ ModeAssistant.prototype.setup = function() {
 			'swipeToDelete': false, 'reorderable': false, 'itemsProperty': id});
 	}
 
-	for(var i = 0; i < this.loaded.triggers.length; i++) {
-		if(this.loaded.triggers[i].group == this.groupidx) {
-			var id = this.loaded.triggers[i].extension;
-			var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+	for(var i = 0; i < this.loaded.triggers[0].list.length; i++) {
+		var id = this.loaded.triggers[0].list[i].extension;
+		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 
-			var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+		var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
 
-			trigger[id] = [this.loaded.triggers[i]];
+		trigger[id] = [this.loaded.triggers[0].list[i]];
 
-			trigger['extension'] = this.loaded.triggers[i].extension;
+		trigger['extension'] = this.loaded.triggers[0].list[i].extension;
 
-			this.mode.triggers.list.push(trigger);
-		}
-	}		
+		this.mode.triggers.push(trigger);
+	}
 
 	Mojo.Event.listen(this.controller.get("TriggersList"), Mojo.Event.listDelete, 
 		this.handleListDelete.bind(this, "triggers"));
@@ -515,7 +514,7 @@ ModeAssistant.prototype.setup = function() {
 	{
 		this.appAssistant.isNewOrFirstStart = 1;	
 	
-		this.mode.settings.list.clear();
+		this.mode.settings.clear();
 
 		this.loaded.settings.clear();
 
@@ -530,24 +529,24 @@ ModeAssistant.prototype.setup = function() {
 ModeAssistant.prototype.getModeData = function(config) {
 	if((this.modeIndex == 0) || (this.customModes.length == 0)) {
 		var mode = {
-			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1,
-			'appssrvs': {'start': 0, 'close': 0, 'list': []},
-			'settings': {'notify': 2, 'list': []}, 
-			'triggers': {'require': 0, 'list': []}
+			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1, 'notify': 2, 
+			'actions': {'start': 0, 'close': 0, 'list': []}, 'settings': [], 'triggers': []
 		};
 	}
 	else {
 		var mode = {
-			'name': "", 'type': "normal", 'start': 1, 'close': 1,
-			'appssrvs': {'start': 0, 'close': 1, 'list': []},
-			'settings': {'notify': 0, 'list': []},
-			'triggers': {'require': 0, 'list': []}
+			'name': "", 'type': "normal", 'start': 1, 'close': 1, 'notify': 0, 
+			'actions': {'start': 0, 'close': 1, 'list': []}, 'settings': [], 'triggers': []
 		};		
 	}
 	
 	if(!config) {
-		if((this.modeIndex == undefined) || (this.customModes.length == 0))
+		if((this.modeIndex == undefined) || (this.customModes.length == 0)){
+			mode.require = 0;
+			this.loaded.triggers = [{require: 0, list: []}];
+		
 			return mode;
+		}
 
 		var config = this.customModes[this.modeIndex];
 	}
@@ -568,60 +567,63 @@ ModeAssistant.prototype.getModeData = function(config) {
 		mode.close = config.close;
 	}
 				
-	mode.appssrvs.start = config.appssrvs.start;
-	mode.appssrvs.close = config.appssrvs.close;
+	mode.actions.start = config.actions.start;
+	mode.actions.close = config.actions.close;
 
-	for(var i = 0; i < config.appssrvs.list.length; i++) {
-		var ext = config.appssrvs.list[i].extension;
+	for(var i = 0; i < config.actions.list.length; i++) {
+		var ext = config.actions.list[i].extension;
 			
-		if(this.appssrvsConfig[ext] != undefined) {
-			var data = this.appssrvsConfig[ext].load(config.appssrvs.list[i]);
+		if(this.actionsConfig[ext] != undefined) {
+			var data = this.actionsConfig[ext].load(config.actions.list[i]);
 	
 			data.extension = ext;
 
-			this.loaded.appssrvs.push(data);
+			this.loaded.actions.push(data);
 		}
-		else
-			this.unloaded.appssrvs.push(config.appssrvs.list[i]);
 	}
 
-	mode.settings.notify = config.settings.notify;
+	mode.notify = config.notify;
 
-	for(var i = 0; i < config.settings.list.length; i++) {
-		var ext = config.settings.list[i].extension;
+	for(var i = 0; i < config.settings.length; i++) {
+		var ext = config.settings[i].extension;
 			
 		if(this.settingsConfig[ext] != undefined) {
-			var data = this.settingsConfig[ext].load(config.settings.list[i]);
+			var data = this.settingsConfig[ext].load(config.settings[i]);
 			
 			data.extension = ext;
 			
 			this.loaded.settings.push(data);
 		}
-		else
-			this.unloaded.settings.push(config.settings.list[i]);
 	}
 
-	mode.triggers.require = config.triggers.require;
+	if(config.triggers.length == 0)
+		mode.require = 0;
+	else
+		mode.require = config.triggers[0].require;
 
-	for(var i = 0; i < config.triggers.list.length; i++) {
-		var ext = config.triggers.list[i].extension;
-		
-		if(this.triggersConfig[ext] != undefined) {
-			var data = this.triggersConfig[ext].load(config.triggers.list[i]);
+	for(var i = 0; i < config.triggers.length; i++) {
+		var trigger = {require: config.triggers[i].require, list: []};
 	
-			data.extension = ext;
-			
-			if(config.triggers.list[i].group == undefined)
-				data.group = 0;
-			else
-				data.group = config.triggers.list[i].group;
-			
-			this.loaded.triggers.push(data);
+		for(var j = 0; j < config.triggers[i].list.length; j++) {
+			var ext = config.triggers[i].list[j].extension;
+			var cfg = config.triggers[i].list[j];
+		
+			if(this.triggersConfig[ext] != undefined) {
+				var data = this.triggersConfig[ext].load(cfg);
+	
+				data.extension = ext;
+				
+				trigger.list.push(data);
+			}
 		}
-		else
-			this.unloaded.triggers.push(config.triggers.list[i]);
+		
+		if(trigger.list.length > 0)
+			this.loaded.triggers.push(trigger);
 	}
-
+	
+	if(this.loaded.triggers.length == 0)
+		this.loaded.triggers = [{require: 0, list: []}];	
+	
 	return mode;
 }
 
@@ -643,20 +645,18 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 
 	if((this.modeIndex == 0) || (this.customModes.length == 0)) {
 		var mode = {
-			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1,
-			'appssrvs': {'start': 0, 'close': 0, 'list': []},
-			'settings': {'notify': 2, 'list': []},
-			'triggers': {'require': 0, 'list': []}
+			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1, 'notify': 2, 
+			'actions': {'start': 0, 'close': 0, 'list': []}, 'settings': [], 'triggers': []
 		};
 	}
 	else {
 		var mode = {
-			'name': "", 'type': "normal", 'start': 1, 'close': 1,
-			'appssrvs': {'start': 0, 'close': 1, 'list': []},
-			'settings': {'notify': 0, 'list': []},
-			'triggers': {'require': 0, 'list': []}
+			'name': "", 'type': "normal", 'start': 1, 'close': 1, 'notify': 0, 
+			'actions': {'start': 0, 'close': 1, 'list': []}, 'settings': [], 'triggers': []
 		};
 	}
+
+	this.loaded.triggers[this.groupidx].require = this.modelRequiredSelector.value;
 
 	if((this.customModes.length == 0) || (this.modeIndex == undefined)) {
 		this.modeIndex = this.customModes.length;
@@ -681,25 +681,22 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 		mode.close = this.modelCloseSelector.value;
 	}
 	
-	mode.appssrvs.start = this.modelAppsStartSelector.value;
-	mode.appssrvs.close = this.modelAppsCloseSelector.value;								
+	mode.actions.start = this.modelAppsStartSelector.value;
+	mode.actions.close = this.modelAppsCloseSelector.value;								
 
-	for(var i = 0; i < this.loaded.appssrvs.length; i++) {
-		var ext = this.loaded.appssrvs[i].extension;
+	for(var i = 0; i < this.loaded.actions.length; i++) {
+		var ext = this.loaded.actions[i].extension;
 		
-		if(this.appssrvsConfig[ext] != undefined) {
-			var data = this.appssrvsConfig[ext].save(this.loaded.appssrvs[i]);
+		if(this.actionsConfig[ext] != undefined) {
+			var data = this.actionsConfig[ext].save(this.loaded.actions[i]);
 	
-			data.extension = this.loaded.appssrvs[i].extension;
+			data.extension = this.loaded.actions[i].extension;
 
-			mode.appssrvs.list.push(data);
+			mode.actions.list.push(data);
 		}
 	}
 
-	for(var i = 0; i < this.unloaded.appssrvs.length; i++)
-		mode.appssrvs.list.push(this.unloaded.appssrvs[i]);
-
-	mode.settings.notify = 	this.modelNotifySelector.value;
+	mode.notify = 	this.modelNotifySelector.value;
 		
 	for(var i = 0; i < this.loaded.settings.length; i++) {
 		var ext = this.loaded.settings[i].extension;
@@ -709,41 +706,28 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 			
 			data.extension = this.loaded.settings[i].extension;
 			
-			mode.settings.list.push(data);
+			mode.settings.push(data);
 		}
 	}
-
-	for(var i = 0; i < this.unloaded.settings.length; i++)
-		mode.settings.list.push(this.unloaded.settings[i]);
-
-	mode.triggers.require = this.modelRequiredSelector.value;
 
 	for(var i = 0; i < this.loaded.triggers.length; i++) {
-		if((this.loaded.triggers[i].group == undefined) || 
-			(this.loaded.triggers[i].group == 0) ||
-			(this.modelRequiredSelector.value == 2))
-		{
-			var ext = this.loaded.triggers[i].extension;
+		var trigger = {require: this.loaded.triggers[i].require, list: []};
 
+		for(var j = 0; j < this.loaded.triggers[i].list.length; j++) {
+			var ext = this.loaded.triggers[i].list[j].extension;
+			var cfg = this.loaded.triggers[i].list[j];
+			
 			if(this.triggersConfig[ext] != undefined) {
-				var data = this.triggersConfig[ext].save(this.loaded.triggers[i]);
+				var data = this.triggersConfig[ext].save(cfg);
 
 				data.extension = ext;
-				
-				data.group = this.loaded.triggers[i].group;
 		
-				mode.triggers.list.push(data);
+				trigger.list.push(data);
 			}
 		}
-	}
-
-	for(var i = 0; i < this.unloaded.triggers.length; i++) {
-		if((this.unloaded.triggers[i].group == undefined) || 
-			(this.unloaded.triggers[i].group == 0) ||
-			(this.modelRequiredSelector.value == 2))
-		{
-			mode.triggers.list.push(this.unloaded.triggers[i]);
-		}
+		
+		if(trigger.list.length > 0)
+			mode.triggers.push(trigger);
 	}
 
 	this.customModes.splice(this.modeIndex, 1, mode);
@@ -842,7 +826,7 @@ ModeAssistant.prototype.helpItemTapped = function(target) {
 	else if(target == "TriggersRequiredHelp") {
 		var helpTitle = "Required";
 
-		var helpText = "Controls what triggers needs to be valid for the mode to be active.<br><br><b>All Unique:</b> one of each type of triggers needs to be valid.<br><b>One Trigger:</b> only one of the triggers needs to be valid.<br><b>Any Grouped:</b> all triggers in any group needs to be valid.";
+		var helpText = "Controls what triggers needs to be valid for the mode to be active.<br><br><b>All Unique:</b> one of each type of triggers in the group needs to be valid.<br><b>Any Trigger:</b> only one trigger in the group needs to be valid.<br><b>All Triggers:</b> all triggers in the group needs to be valid.";
 	}
 	else
 		return;
@@ -854,47 +838,6 @@ ModeAssistant.prototype.helpItemTapped = function(target) {
 		preventCancel: false,
 		allowHTMLMessage: true
 	});
-}
-
-ModeAssistant.prototype.setTriggersView = function(event) {
-	if(event.value != 2) {
-		this.groupidx = 0;
-
-		this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers");
-
-		this.modelCommandMenu.items[0].disabled = true;
-		this.modelCommandMenu.items[2].disabled = true;
-
-		this.controller.modelChanged(this.modelCommandMenu, this);
-
-		this.mode.triggers.list.clear();
-		
-		for(var i = 0; i < this.loaded.triggers.length; i++) {
-			if(this.loaded.triggers[i].group == this.groupidx) {
-				var id = this.loaded.triggers[i].extension;
-				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
-
-				var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
-
-				trigger[id] = [this.loaded.triggers[i]];
-
-				trigger['extension'] = this.loaded.triggers[i].extension;
-
-				this.mode.triggers.list.push(trigger);
-			}
-		}
-
-		this.controller.modelChanged(this.modelTriggersList, this);
-	}
-	else {
-		this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers") +" (0)";
-	
-		this.modelCommandMenu.items[2].disabled = false;
-
-		this.controller.modelChanged(this.modelCommandMenu, this);
-	}
-
-	this.setModeData(false);
 }
 
 //
@@ -966,9 +909,9 @@ ModeAssistant.prototype.retrievedCurrentSettings = function(index, target, setti
 
 		setting['extension'] = this.extensions.settings[index];
 
-		this.mode.settings.list.push(setting);
+		this.mode.settings.push(setting);
 		
-		this.mode.settings.list.sort(this.sortAlphabeticallyFunction);
+		this.mode.settings.sort(this.sortAlphabeticallyFunction);
 	}
 
 	if(target == "everything")
@@ -1105,38 +1048,36 @@ ModeAssistant.prototype.handleCommand = function(event) {
 
 			this.groupidx = 0;
 
-			if(this.modelRequiredSelector.value == 2)
-				this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers") + " (" + this.groupidx + ")";
-			else
-				this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers");
-			
 			this.modelCommandMenu.items.push({'label': "< " + $L("Group"), 'command': "triggers-prev", 'disabled': true});
 
 			this.modelCommandMenu.items.push({'label': $L("Add Trigger"), 'command': "triggers-add", 'disabled': false});
 
-			if(this.modelRequiredSelector.value == 2)
-				this.modelCommandMenu.items.push({'label': $L("Group") + " >", 'command': "triggers-next", 'disabled': false});
-			else
+			if(this.loaded.triggers[0].list.length == 0)
 				this.modelCommandMenu.items.push({'label': $L("Group") + " >", 'command': "triggers-next", 'disabled': true});
+			else
+				this.modelCommandMenu.items.push({'label': $L("Group") + " >", 'command': "triggers-next", 'disabled': false});			
 
 			this.controller.modelChanged(this.modelCommandMenu, this);
 
-			this.mode.triggers.list.clear();
-		
-			for(var i = 0; i < this.loaded.triggers.length; i++) {
-				if(this.loaded.triggers[i].group == this.groupidx) {
-					var id = this.loaded.triggers[i].extension;
-					var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+			this.mode.triggers.clear();
 
-					var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+			for(var i = 1; i < this.loaded.triggers.length; i++) {
+				if(this.loaded.triggers[i].list.length == 0)
+					this.loaded.triggers.splice(i--, 1);
+			}
 
-					trigger[id] = [this.loaded.triggers[i]];
-					
-					trigger['extension'] = this.loaded.triggers[i].extension;
-					
-					this.mode.triggers.list.push(trigger);
-				}
-			}		
+			for(var i = 0; i < this.loaded.triggers[0].list.length; i++) {
+				var id = this.loaded.triggers[0].list[i].extension;
+				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+
+				var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+
+				trigger[id] = [this.loaded.triggers[0].list[i]];
+
+				trigger['extension'] = this.loaded.triggers[0].list[i].extension;
+
+				this.mode.triggers.push(trigger);
+			}
 
 			this.controller.modelChanged(this.modelTriggersList, this);
 
@@ -1168,11 +1109,12 @@ ModeAssistant.prototype.handleCommand = function(event) {
 		}
 		else if(event.command == "settings-all") {
 			this.modelCommandMenu.items[0].disabled = true;
+			this.modelCommandMenu.items[1].disabled = true;
 			this.modelCommandMenu.items[2].disabled = false;
 
 			this.controller.modelChanged(this.modelCommandMenu, this);
 
-			this.mode.settings.list.clear();
+			this.mode.settings.clear();
 
 			this.loaded.settings.clear();
 		
@@ -1180,11 +1122,12 @@ ModeAssistant.prototype.handleCommand = function(event) {
 		}	
 		else if(event.command == "settings-none") {
 			this.modelCommandMenu.items[0].disabled = false;
+			this.modelCommandMenu.items[1].disabled = false;
 			this.modelCommandMenu.items[2].disabled = true;
 
 			this.controller.modelChanged(this.modelCommandMenu, this);
 
-			this.mode.settings.list.clear();
+			this.mode.settings.clear();
 
 			this.loaded.settings.clear();
 						
@@ -1202,7 +1145,7 @@ ModeAssistant.prototype.handleCommand = function(event) {
 					this.launchPoints.sort(this.sortAlphabeticallyFunction);
 				
 					this.launchPoints.each(function(item, index){
-						if((this.extensions.appssrvs.indexOf("default") != -1) &&
+						if((this.extensions.actions.indexOf("default") != -1) &&
 							(item.id != "org.webosinternals.modeswitcher") &&
 							((item.id != "com.palm.app.contacts") || (!item.params)))
 						{
@@ -1215,23 +1158,23 @@ ModeAssistant.prototype.handleCommand = function(event) {
 				}.bind(this)});
 		}
 		else if(event.command == "applications-ms") {
-			if(this.appssrvsConfig.modesw != undefined) {
+			if(this.actionsConfig.modesw != undefined) {
 				var id = "modesw";
 				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 
 				var launchpoint = {'title': "Mode Switcher"};
 
-				var data = this.appssrvsConfig[id].config(launchpoint);
+				var data = this.actionsConfig[id].config(launchpoint);
 		
 				data.extension = id;
 
-				this.loaded.appssrvs.splice(0, 0, data);
+				this.loaded.actions.splice(0, 0, data);
 
 				var appsrv = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
 		
 				appsrv[id] = [data]; 
 
-				this.mode.appssrvs.list.splice(0, 0, appsrv);
+				this.mode.actions.list.splice(0, 0, appsrv);
 
 				this.controller.setupWidget(element, {
 					'itemTemplate': '../extensions/actions/' + id + '-listitem',
@@ -1253,8 +1196,8 @@ ModeAssistant.prototype.handleCommand = function(event) {
 					this.launchPoints.sort(this.sortAlphabeticallyFunction);
 				
 					this.launchPoints.each(function(item, index){
-						for(var i = 0; i < this.extensions.appssrvs.length; i++) {
-							var appid = this.appssrvsConfig[this.extensions.appssrvs[i]].appid("srv");
+						for(var i = 0; i < this.extensions.actions.length; i++) {
+							var appid = this.actionsConfig[this.extensions.actions[i]].appid("srv");
 
 							if((appid != undefined) && (appid == item.id)) {
 								appItems.push({'label': item.title, 'command': index});
@@ -1286,72 +1229,89 @@ ModeAssistant.prototype.handleCommand = function(event) {
 		else if(event.command == "triggers-prev") {
 			if(this.groupidx == 0)
 				return;
-			
+
+			if(this.loaded.triggers[this.groupidx].list.length == 0)
+				this.loaded.triggers.splice(this.groupidx, 1);				
+
 			this.groupidx--;
-
-			this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers") + " (" + this.groupidx + ")";
 		
-			if(this.groupidx == 0) {
+			if(this.groupidx == 0)
 				this.modelCommandMenu.items[0].disabled = true;
-				this.controller.modelChanged(this.modelCommandMenu, this);
-			}
-			else if(this.groupidx == 8) {
+			else
+				this.modelCommandMenu.items[0].disabled = false;
+				
+			if(this.loaded.triggers[this.groupidx].list.length == 0)
+				this.modelCommandMenu.items[2].disabled = true;
+			else
 				this.modelCommandMenu.items[2].disabled = false;
-				this.controller.modelChanged(this.modelCommandMenu, this);
+			
+			this.controller.modelChanged(this.modelCommandMenu, this);
+					
+			this.modelRequiredSelector.value = this.loaded.triggers[this.groupidx].require;
+			this.controller.modelChanged(this.modelRequiredSelector, this);
+
+			this.mode.triggers.clear();
+		
+			for(var i = 0; i < this.loaded.triggers[this.groupidx].list.length; i++) {
+				var id = this.loaded.triggers[this.groupidx].list[i].extension;
+				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+
+				var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+
+				trigger[id] = [this.loaded.triggers[this.groupidx].list[i]];
+
+				trigger['extension'] = this.loaded.triggers[this.groupidx].list[i].extension;
+
+				this.mode.triggers.push(trigger);
 			}
-		
-			this.mode.triggers.list.clear();
-		
-			for(var i = 0; i < this.loaded.triggers.length; i++) {
-				if(this.loaded.triggers[i].group == this.groupidx) {
-					var id = this.loaded.triggers[i].extension;
-					var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
-
-					var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
-
-					trigger[id] = [this.loaded.triggers[i]];
-					
-					trigger['extension'] = this.loaded.triggers[i].extension;
-					
-					this.mode.triggers.list.push(trigger);
-				}
-			}		
 
 			this.controller.modelChanged(this.modelTriggersList, this);
 		}
 		else if(event.command == "triggers-next") {
-			if(this.groupidx == 9)
-				return;
-			
-			this.groupidx++;
-
-			this.controller.get("TriggersTitle").innerHTML = $L("Activation Triggers") + " (" + this.groupidx + ")";
-
-			if(this.groupidx == 9) {
-				this.modelCommandMenu.items[2].disabled = true;
-				this.controller.modelChanged(this.modelCommandMenu, this);
+			if(this.loaded.triggers[this.groupidx].list.length == 0) {
+				if(this.groupidx == (this.loaded.triggers.length - 1))
+					return;
+				else
+					this.loaded.triggers.splice(this.groupidx, 1);				
 			}
-			else if(this.groupidx == 1) {
+			else
+				this.groupidx++;
+
+			if(this.groupidx == 0)
+				this.modelCommandMenu.items[0].disabled = true;
+			else
 				this.modelCommandMenu.items[0].disabled = false;
-				this.controller.modelChanged(this.modelCommandMenu, this);
-			}			
-		
-			this.mode.triggers.list.clear();
-		
-			for(var i = 0; i < this.loaded.triggers.length; i++) {
-				if(this.loaded.triggers[i].group == this.groupidx) {
-					var id = this.loaded.triggers[i].extension;
-					var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 
-					var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+			if(this.loaded.triggers.length <= this.groupidx) {
+				this.loaded.triggers.push({require: 0, list: []});
+				
+				this.groupidx = this.loaded.triggers.length - 1;
+			}
 
-					trigger[id] = [this.loaded.triggers[i]];
-	
-					trigger['extension'] = this.loaded.triggers[i].extension;
-	
-					this.mode.triggers.list.push(trigger);
-				}
-			}		
+			if(this.loaded.triggers[this.groupidx].list.length == 0)
+				this.modelCommandMenu.items[2].disabled = true;			
+			else
+				this.modelCommandMenu.items[2].disabled = false;			
+
+			this.controller.modelChanged(this.modelCommandMenu, this);
+		
+			this.modelRequiredSelector.value = this.loaded.triggers[this.groupidx].require;
+			this.controller.modelChanged(this.modelRequiredSelector, this);
+		
+			this.mode.triggers.clear();
+		
+			for(var i = 0; i < this.loaded.triggers[this.groupidx].list.length; i++) {
+				var id = this.loaded.triggers[this.groupidx].list[i].extension;
+				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+
+				var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+
+				trigger[id] = [this.loaded.triggers[this.groupidx].list[i]];
+
+				trigger['extension'] = this.loaded.triggers[this.groupidx].list[i].extension;
+
+				this.mode.triggers.push(trigger);
+			}
 
 			this.controller.modelChanged(this.modelTriggersList, this);
 		}
@@ -1366,18 +1326,20 @@ ModeAssistant.prototype.handleCommand = function(event) {
 		else if(event.command == "export") {
 			var mode = this.setModeData(false);
 		
-			this.controller.stageController.pushScene("gdm", "exportGDoc", "Config", "[MSMODE]", mode, null);
+			this.controller.stageController.pushScene("gdm", "exportGDoc", "Mode Config", "[MSCFG] -", 
+				{title: "Mode Switcher v" + this.cfgVersion + " - " + mode.name, body: mode}, null);
 		}
 		else if(event.command == "import") {
 			var mode = this.setModeData(false);
 		
-			this.controller.stageController.pushScene("gdm", "importGDoc", "Config", "[MSMODE]", null, this.importModeConfig.bind(this));
+			this.controller.stageController.pushScene("gdm", "importGDoc", "Mode Config", "[MSCFG] -", 
+				{title: "Mode Switcher v"}, this.importModeConfig.bind(this));
 		}
 		else if(event.command == "status") {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'status', parameters: {mode: this.mode.name},
 				onComplete: function(response) {
-					if((response) && (response.triggers)) {
+					if((response) && (response.groups) && (response.triggers)) {
 						this.showStatusInfo(response, 0);
 					}
 				}.bind(this)});					
@@ -1389,10 +1351,10 @@ ModeAssistant.prototype.handleCommand = function(event) {
 }
 
 ModeAssistant.prototype.showStatusInfo = function(status, group) {
-	if(group == 10)
+	if(group == status.groups.length)
 		group = 0;
 
-	if(this.mode.triggers.list.length == 0)
+	if(this.mode.triggers.length == 0)
 		var text = "Status info not available since this mode has no triggers.";
 	else {
 		if(status.groups[group])
@@ -1400,16 +1362,9 @@ ModeAssistant.prototype.showStatusInfo = function(status, group) {
 		else
 			var state = "Not Valid";
 	
-		if(this.modelRequiredSelector.value == 2) {
-			var choices = [{label:$L("Next Group"), value:"group", type:'default'}, {label:$L("Close"), value:"close", type:'default'}];
-			var text = "<div style='float:left;'><b>Current state for Group " + group + ":</b></div><div style='float:right;'>" + 
-				state + "</div><br><br>";
-		}
-		else {
-			var choices = [{label:$L("Close"), value:"close", type:'default'}];
-			var text = "<div style='float:left;'><b>Current state for this mode:</b></div><div style='float:right;'>" +
-				state + "</div><br><br>";
-		}
+		var choices = [{label:$L("Next Group"), value:"group", type:'default'}, {label:$L("Close"), value:"close", type:'default'}];
+		var text = "<div style='float:left;'><b>Current state for Group " + group + ":</b></div><div style='float:right;'>" + 
+			state + "</div><br><br>";
 	
 		for(var i = 0; i < status.triggers.length; i++) {
 			if(status.triggers[i].group == group) {
@@ -1438,9 +1393,11 @@ ModeAssistant.prototype.handleSettingsChoose = function(index) {
 		if(this.loaded.settings.length == 0)
 			this.modelCommandMenu.items[2].disabled = false;
 		
-		if(this.loaded.settings.length == this.extensions.settings.length - 1)
+		if(this.loaded.settings.length == this.extensions.settings.length - 1) {
 			this.modelCommandMenu.items[0].disabled = true;
-
+			this.modelCommandMenu.items[1].disabled = true;
+		}
+		
 		this.controller.modelChanged(this.modelCommandMenu, this);
 	
 		this.retrieveCurrentSettings(index, "single");
@@ -1451,8 +1408,8 @@ ModeAssistant.prototype.handleAppSrvChoose = function(type, index) {
 	if(index != undefined) {
 		var id = "default";
 
-		for(var key in this.appssrvsConfig) {
-			if(this.appssrvsConfig[key].appid(type) == this.launchPoints[index].id) {
+		for(var key in this.actionsConfig) {
+			if(this.actionsConfig[key].appid(type) == this.launchPoints[index].id) {
 				id = key;
 				break;
 			}
@@ -1462,17 +1419,17 @@ ModeAssistant.prototype.handleAppSrvChoose = function(type, index) {
 		
 		this.launchPoints[index].type = type;
 		
-		var data = this.appssrvsConfig[id].config(this.launchPoints[index]);
+		var data = this.actionsConfig[id].config(this.launchPoints[index]);
 		
 		data.extension = id;
 
-		this.loaded.appssrvs.push(data);
+		this.loaded.actions.push(data);
 
 		var appsrv = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
 		
 		appsrv[id] = [data]; 
 
-		this.mode.appssrvs.list.push(appsrv);
+		this.mode.actions.list.push(appsrv);
 
 		this.controller.setupWidget(element, {
 			'itemTemplate': '../extensions/actions/' + id + '-listitem',
@@ -1485,15 +1442,17 @@ ModeAssistant.prototype.handleAppSrvChoose = function(type, index) {
 
 ModeAssistant.prototype.handleTriggersChoose = function(index) {
 	if(index != undefined) {
+		this.modelCommandMenu.items[2].disabled = false;
+
+		this.controller.modelChanged(this.modelCommandMenu, this);
+
 		var data = this.triggersConfig[this.extensions.triggers[index]].config();
 
 		data.extension = this.extensions.triggers[index];
 
-		data.group = this.groupidx;
+		this.loaded.triggers[this.groupidx].list.push(data);
 
-		this.loaded.triggers.push(data);
-
-		this.loaded.triggers.sort(this.sortAlphabeticallyFunction);
+		this.loaded.triggers[this.groupidx].list.sort(this.sortAlphabeticallyFunction);
 
 		var id = this.extensions.triggers[index];
 		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
@@ -1504,9 +1463,9 @@ ModeAssistant.prototype.handleTriggersChoose = function(index) {
 	
 		trigger['extension'] = this.extensions.triggers[index];
 	
-		this.mode.triggers.list.push(trigger);
+		this.mode.triggers.push(trigger);
 
-		this.mode.triggers.list.sort(this.sortAlphabeticallyFunction);
+		this.mode.triggers.sort(this.sortAlphabeticallyFunction);
 		
 		this.setModeData(true);
 	}
@@ -1526,15 +1485,15 @@ ModeAssistant.prototype.handleListChange = function(list, event) {
 
 ModeAssistant.prototype.handleListReorder = function(list, event) {
 	if(list == "apps") {
-		var tempApp = this.mode.appssrvs.list[event.fromIndex];
+		var tempApp = this.mode.actions.list[event.fromIndex];
 	
-		this.mode.appssrvs.list.splice(event.fromIndex, 1);
-		this.mode.appssrvs.list.splice(event.toIndex, 0, tempApp);
+		this.mode.actions.list.splice(event.fromIndex, 1);
+		this.mode.actions.list.splice(event.toIndex, 0, tempApp);
 
-		var tempApp = this.loaded.appssrvs[event.fromIndex];
+		var tempApp = this.loaded.actions[event.fromIndex];
 	
-		this.loaded.appssrvs.splice(event.fromIndex, 1);
-		this.loaded.appssrvs.splice(event.toIndex, 0, tempApp);
+		this.loaded.actions.splice(event.fromIndex, 1);
+		this.loaded.actions.splice(event.toIndex, 0, tempApp);
 	}
 	
 	this.setModeData(false);
@@ -1547,11 +1506,12 @@ ModeAssistant.prototype.handleListDelete = function(list, event) {
 			return;
 		}
 
-		this.mode.settings.list.splice(event.index,1);
+		this.mode.settings.splice(event.index,1);
 
 		this.loaded.settings.splice(event.index,1);
 
 		this.modelCommandMenu.items[0].disabled = false;
+		this.modelCommandMenu.items[1].disabled = false;
 					
 		if(this.loaded.settings.length == 0)
 			this.modelCommandMenu.items[2].disabled = true;
@@ -1561,20 +1521,29 @@ ModeAssistant.prototype.handleListDelete = function(list, event) {
 		this.setModeData(false);
 	}
 	else if(list == "apps") {
-		this.mode.appssrvs.list.splice(event.index,1);
+		this.mode.actions.list.splice(event.index,1);
 
-		this.loaded.appssrvs.splice(event.index,1);
+		this.loaded.actions.splice(event.index,1);
 	}
 	else if(list == "triggers") {
-		for(var i = 0; i < this.loaded.triggers.length; i++) {
-			if(this.loaded.triggers[i] == this.mode.triggers.list[event.index][this.mode.triggers.list[event.index].extension][0]) {
-				this.loaded.triggers.splice(i, 1);
+		for(var i = 0; i < this.loaded.triggers[this.groupidx].list.length; i++) {
+			var deleted = this.mode.triggers[event.index][this.mode.triggers[event.index].extension][0];
+			if(this.loaded.triggers[this.groupidx].list[i] == deleted) {
+				this.loaded.triggers[this.groupidx].list.splice(i, 1);
 				
 				break;
 			}
 		}
-	
-		this.mode.triggers.list.splice(event.index,1);
+
+		if((this.groupidx == (this.loaded.triggers.length - 1)) && 
+			(this.loaded.triggers[this.groupidx].list.length == 0))
+		{
+			this.modelCommandMenu.items[2].disabled = true;
+			
+			this.controller.modelChanged(this.modelCommandMenu, this);
+		}
+
+		this.mode.triggers.splice(event.index,1);
 
 		this.setModeData(false);
 	}
@@ -1629,11 +1598,11 @@ ModeAssistant.prototype.checkModeName = function() {
 
 	if((this.modelNameText.value != this.mode.name) && (this.mode.name != "")) {
 		for(var i = 0; i < this.customModes.length; i++) {
-			for(var j = 0; j < this.customModes[i].appssrvs.list.length; j++) {
-				if((this.customModes[i].appssrvs.list[j].type == "ms") &&
-					(this.customModes[i].appssrvs.list[j].mode == this.mode.name))
+			for(var j = 0; j < this.customModes[i].actions.list.length; j++) {
+				if((this.customModes[i].actions.list[j].type == "ms") &&
+					(this.customModes[i].actions.list[j].mode == this.mode.name))
 				{
-					this.customModes[i].appssrvs.list[j].mode = this.modelNameText.value;
+					this.customModes[i].actions.list[j].mode = this.modelNameText.value;
 				}
 			}
 		}
@@ -1665,66 +1634,107 @@ ModeAssistant.prototype.sortAlphabeticallyFunction = function(a,b){
 
 //
 
-ModeAssistant.prototype.importModeConfig = function(mode) {
-	this.controller.showAlertDialog({
-		title: $L("Confirm Config Importing"),
-		message: "<div align='justify'>" + $L("You are about to override configuration of this mode.") + "</div>",
-		choices:[
-			{label:$L("Continue"), value:"continue", type:'default'},
-			{label:$L("Cancel"), value:"cancel", type:'default'}],
-		preventCancel: true,
-		allowHTMLMessage: true,
-		onChoose: function(mode, value) {
-			if(value == "continue") {
-				if((mode.appssrvs != undefined) && (mode.appssrvs.start != undefined) && 
-					(mode.appssrvs.close != undefined) && (mode.appssrvs.list != undefined) &&
-					(mode.settings != undefined) && (mode.settings.notify != undefined) && 
-					(mode.triggers != undefined) && (mode.triggers.require != undefined) &&
-					(mode.settings.list != undefined) && (mode.triggers.list != undefined))
-				{
-					if((mode.name == undefined) || (mode.name.length == 0) || 
-						(mode.name == "Current Mode") || (mode.name == "Previous Mode") ||
-						(mode.name == "All Modes") || (mode.name == "All Normal Modes") ||
-						(mode.name == "All Modifier Modes") || (mode.name == "Any Normal Mode") ||
-						(mode.name == "Any Modifier Mode"))
-					{
-						Mojo.Log.error("Invalid mode name in import");
-					}
-					else if((mode.name == "Default Mode") && (mode.type == "default") &&
-						(mode.startup != undefined) && (mode.start != undefined))
-					{
-						if(this.modeIndex == 0) {
-							this.customModes.splice(0, 1, mode);
+ModeAssistant.prototype.importModeConfig = function(data) {
+	var version = data.title.slice(15, 18);
 
-							this.controller.stageController.popScene({'customModes': this.customModes, 'modeIndex': this.modeIndex});
-						}
-					}
-					else if(((mode.type == "normal") || (mode.type == "modifier")) &&
-						(mode.start != undefined) && (mode.close != undefined))
+	if(version != this.cfgVersion) {
+		this.controller.showAlertDialog({
+			title: $L("Configuration Version Error"),
+			message: "The version of the mode configuration that you are trying to import is not supported.",
+			choices:[
+				{label:$L("Close"), value:"close", type:'default'}],
+			preventCancel: true,
+			allowHTMLMessage: true,
+			onChoose: function(value) {
+			}.bind(this)}); 
+	}
+	else {
+		var mode = data.body;
+
+		this.controller.showAlertDialog({
+			title: $L("Confirm Config Importing"),
+			message: "<div align='justify'>" + $L("You are about to override configuration of this mode.") + "</div>",
+			choices:[
+				{label:$L("Continue"), value:"continue", type:'default'},
+				{label:$L("Cancel"), value:"cancel", type:'default'}],
+			preventCancel: true,
+			allowHTMLMessage: true,
+			onChoose: function(mode, value) {
+				var importError = false;
+			
+				if(value == "continue") {
+					if((mode.actions != undefined) && (mode.actions.list != undefined) &&
+						(mode.actions.start != undefined) && (mode.actions.close != undefined) && 
+						(mode.settings != undefined) && (mode.triggers != undefined))
 					{
-						if(this.modeIndex != 0) {
-							if(this.modeIndex == undefined) {
-								this.modeIndex = this.customModes.length;
-								this.customModes.push(mode);
-							}
-							else	
-								this.customModes.splice(this.modeIndex, 1, mode);
-						
-							this.controller.stageController.popScene({'customModes': this.customModes, 'modeIndex': this.modeIndex});
+						if((mode.name == undefined) || (mode.name.length == 0) || 
+							(mode.name == "Current Mode") || (mode.name == "Previous Mode") ||
+							(mode.name == "All Modes") || (mode.name == "All Normal Modes") ||
+							(mode.name == "All Modifier Modes") || (mode.name == "Any Normal Mode") ||
+							(mode.name == "Any Modifier Mode"))
+						{
+							importError = true;
 						}
+						else if((mode.name == "Default Mode") && (mode.type == "default") &&
+							(mode.startup != undefined) && (mode.start != undefined) && (mode.notify != undefined))
+						{
+							if(this.modeIndex == 0) {
+								this.customModes.splice(0, 1, mode);
+
+								this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+									method: 'prefs', parameters: {customModes: this.customModes},
+									onComplete: function() {
+										this.controller.stageController.popScene({'customModes': this.customModes, 'modeIndex': this.modeIndex});
+									}.bind(this)});
+								
+								return;
+							}
+						}
+						else if(((mode.type == "normal") || (mode.type == "modifier")) &&
+							(mode.start != undefined) && (mode.close != undefined) && (mode.notify != undefined))
+						{
+							if(this.modeIndex != 0) {
+								if(this.modeIndex == undefined) {
+									this.modeIndex = this.customModes.length;
+									this.customModes.push(mode);
+								}
+								else	
+									this.customModes.splice(this.modeIndex, 1, mode);
+						
+								this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+									method: 'prefs', parameters: {customModes: this.customModes},
+									onComplete: function() {
+										this.controller.stageController.popScene({'customModes': this.customModes, 'modeIndex': this.modeIndex});
+									}.bind(this)});
+
+								return;
+							}
+						}
+						else
+							importError = true;
 					}
 					else
-						Mojo.Log.error("Malformed mode data in import");
+						importError = true;
 				}
-				else
-					Mojo.Log.error("Malformed mode data in import");
-			}
-		}.bind(this, mode)});
+				
+				if(importError) {
+					this.controller.showAlertDialog({
+						title: $L("Configuration Import Error"),
+						message: "There was error while importing mode configuration, most likely the configuration you tried to import was malformed.",
+						choices:[
+							{label:$L("Close"), value:"close", type:'default'}],
+						preventCancel: true,
+						allowHTMLMessage: true,
+						onChoose: function(value) {
+						}.bind(this)}); 
+				}
+			}.bind(this, mode)});
+	}
 }
 
 ModeAssistant.prototype.govnahProfiles = function(profiles) {
-	if(this.appssrvsConfig["govnah"] != undefined)
-		this.appssrvsConfig["govnah"].data(profiles);
+	if(this.actionsConfig["govnah"] != undefined)
+		this.actionsConfig["govnah"].data(profiles);
 }
 
 //

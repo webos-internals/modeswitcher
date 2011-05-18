@@ -1,11 +1,12 @@
 /*
 	Email Configuration Object:
 	
-	accounts: 				[{
-		id:						string,
-		accountId:				string,
-		identifier:				string 
-								}],
+	accounts: 				{
+		'accountId':			{
+			databaseId:				string,
+			identifier:				string 
+									}
+								},
 	blinkNotify:			{
 		'accountId':			boolean
 								},
@@ -41,13 +42,11 @@ var emailSettings = (function() {
 			future = newFuture;
 		
 		if(item == "email") {
-			if((settingsNew.accounts) && (settingsNew.accounts.length > 0)) {
+			if(settingsNew.accounts) {
 				var objects = [];
 
-				for(var i = 0; i < settingsNew.accounts.length; i++) {
-					var params  = {_id: settingsNew.accounts[i].id, notifications: {}};
-				
-					var accId = settingsNew.accounts[i].accountId;
+				for(var accId in settingsNew.accounts) {
+					var params  = {_id: settingsNew.accounts[accId].databaseId, notifications: {}};
 				
 					if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) ||
 						(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))

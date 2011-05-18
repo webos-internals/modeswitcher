@@ -116,12 +116,27 @@ MessagingSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 
 	if(extensionPreferences.accounts != undefined) {
-		extensionConfig.messagingAccountsCfg = extensionPreferences.accounts;
-
+		for(var accId in extensionPreferences.accounts) {
+			if(accId == "sms") {
+				extensionConfig.messagingAccountsCfg.unshift({
+					accountId: accId, 
+					databaseId: extensionPreferences.accounts[accId].databaseId,
+					serviceName: extensionPreferences.accounts[accId].serviceName,
+					identifier: extensionPreferences.accounts[accId].identifier });
+			}
+			else {
+				extensionConfig.messagingAccountsCfg.push({
+					accountId: accId, 
+					databaseId: extensionPreferences.accounts[accId].databaseId,
+					serviceName: extensionPreferences.accounts[accId].serviceName,
+					identifier: extensionPreferences.accounts[accId].identifier });
+			}
+		}
+				
 		this.accountSelectorChoices.clear();
 	
-		for(var i = 0; i < extensionPreferences.accounts.length; i++) {
-			var accId = extensionPreferences.accounts[i].accountId;
+		for(var i = 0; i < extensionConfig.messagingAccountsCfg.length; i++) {
+			var accId = extensionConfig.messagingAccountsCfg[i].accountId;
 
 			if(i == 0) {
 				extensionConfig.messagingAccountId = accId;
@@ -161,8 +176,8 @@ MessagingSettings.prototype.load = function(extensionPreferences) {
 				extensionConfig.messagingAvailabilityCfg[accId] = extensionPreferences.availability[accId];
 		
 			this.accountSelectorChoices.push({
-				'label': extensionPreferences.accounts[i].identifier, 
-				'value': extensionPreferences.accounts[i].accountId });
+				'label': extensionConfig.messagingAccountsCfg[i].identifier, 
+				'value': extensionConfig.messagingAccountsCfg[i].accountId });
 		}
 
 		extensionConfig.messagingBlinkNotify = extensionConfig.messagingBlinkNotifyCfg[extensionConfig.messagingCurrentId];
@@ -179,7 +194,7 @@ MessagingSettings.prototype.load = function(extensionPreferences) {
 		extensionConfig.messagingRingtoneDisplay = "none";
 		extensionConfig.messagingStatusDisplay = "none";
 
-		if(extensionPreferences.accounts[0].accountId == "sms") {
+		if(extensionConfig.messagingAccountsCfg[0].accountId == "sms") {
 			if((extensionConfig.messagingNotifyAlert == -1) || (extensionConfig.messagingNotifyAlert == 2))
 				extensionConfig.messagingAlertRow = "";
 		}
@@ -207,7 +222,16 @@ MessagingSettings.prototype.save = function(extensionConfig) {
 		if(extensionConfig.messagingAvailabilityCfg[extensionConfig.messagingCurrentId] != undefined)
 			extensionConfig.messagingAvailabilityCfg[extensionConfig.messagingCurrentId] = extensionConfig.messagingAvailability;
 
-		extensionPreferences.accounts = extensionConfig.messagingAccountsCfg;
+		extensionPreferences.accounts = {};
+		
+		for(var i = 0; i < extensionConfig.messagingAccountsCfg.length; i++) {
+			var accId = extensionConfig.messagingAccountsCfg[i].accountId;
+		
+			extensionPreferences.accounts[accId] = {
+				databaseId: extensionConfig.messagingAccountsCfg[i].databaseId,
+				serviceName: extensionConfig.messagingAccountsCfg[i].serviceName,
+				identifier: extensionConfig.messagingAccountsCfg[i].identifier };
+		}
 
 		extensionPreferences.blinkNotify = {};
 		extensionPreferences.notifyAlert = {};
@@ -466,7 +490,7 @@ MessagingSettings.prototype.handleGetResponse = function(requestID, extensionCon
 				extensionConfig.messagingNotifications = serviceResponse.results[0].accountNotifications;
 
 				extensionConfig.messagingAccountsCfg.push({
-					'id': serviceResponse.results[0]._id,
+					'databaseId': serviceResponse.results[0]._id,
 					'accountId': "sms",
 					'serviceName': "sms",
 					'identifier': "SMS - Messaging account" });
@@ -518,7 +542,7 @@ MessagingSettings.prototype.handleGetResponse = function(requestID, extensionCon
 				extensionConfig.messagingAvailabilityCfg[accId] = serviceResponse.results[i].availability;
 				
 				extensionConfig.messagingAccountsCfg.push({
-					'id': serviceResponse.results[i]._id,
+					'databaseId': serviceResponse.results[i]._id,
 					'accountId': serviceResponse.results[i].accountId,
 					'serviceName': sName,
 					'identifier': extensionConfig.messagingAccounts[accId] + " - " + serviceResponse.results[i].username });

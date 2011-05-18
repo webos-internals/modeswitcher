@@ -119,12 +119,17 @@ EmailSettings.prototype.load = function(extensionPreferences) {
 	var extensionConfig = this.config();
 
 	if(extensionPreferences.accounts != undefined) {
-		extensionConfig.emailAccountsCfg = extensionPreferences.accounts;
+		for(var accId in extensionPreferences.accounts) {
+			extensionConfig.emailAccountsCfg.push({
+				accountId: accId,
+				databaseId: extensionPreferences.accounts[accId].databaseId,
+				identifier: extensionPreferences.accounts[accId].identifier });
+		}
 
 		this.accountSelectorChoices.clear();
 	
-		for(var i = 0; i < extensionPreferences.accounts.length; i++) {
-			var accId = extensionPreferences.accounts[i].accountId;
+		for(var i = 0; i < extensionConfig.emailAccountsCfg.length; i++) {
+			var accId = extensionConfig.emailAccountsCfg[i].accountId;
 		
 			if(i == 0) {
 				extensionConfig.emailAccountId = accId;
@@ -169,8 +174,8 @@ EmailSettings.prototype.load = function(extensionPreferences) {
 			}
 			
 			this.accountSelectorChoices.push({
-				'label': extensionPreferences.accounts[i].identifier, 
-				'value': extensionPreferences.accounts[i].accountId });
+				'label': extensionConfig.emailAccountsCfg[i].identifier, 
+				'value': extensionConfig.emailAccountsCfg[i].accountId });
 		}
 
 		extensionConfig.emailBlinkNotify = extensionConfig.emailBlinkNotifyCfg[extensionConfig.emailCurrentId];
@@ -205,7 +210,15 @@ EmailSettings.prototype.save = function(extensionConfig) {
 		extensionConfig.emailRingtonePathCfg[extensionConfig.emailCurrentId] = extensionConfig.emailRingtonePath;
 		extensionConfig.emailSyncIntervalCfg[extensionConfig.emailCurrentId] = extensionConfig.emailSyncInterval;
 
-		extensionPreferences.accounts = extensionConfig.emailAccountsCfg;
+		extensionPreferences.accounts = {};
+
+		for(var i = 0; i < extensionConfig.emailAccountsCfg.length; i++) {
+			var accId = extensionConfig.emailAccountsCfg[i].accountId;
+			
+			extensionPreferences.accounts[accId] = {
+				databaseId: extensionConfig.emailAccountsCfg[i].databaseId,
+				identifier: extensionConfig.emailAccountsCfg[i].identifier };
+		}
 
 		extensionPreferences.blinkNotify = {};
 		extensionPreferences.notifyAlert = {};
@@ -446,7 +459,7 @@ EmailSettings.prototype.handleGetResponse = function(requestID, extensionConfig,
 				}
 
 				extensionConfig.emailAccountsCfg.push({
-					'id': serviceResponse.results[i]._id,
+					'databaseId': serviceResponse.results[i]._id,
 					'accountId': serviceResponse.results[i].accountId,
 					'identifier': extensionConfig.emailAccounts[accId] + " - " + serviceResponse.results[i].username });
 				

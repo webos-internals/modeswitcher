@@ -73,9 +73,11 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 			var triggersData = [];
 
 			for(var i = 0; i < config.customModes.length; i++) {
-				for(var j = 0; j < config.customModes[i].triggers.list.length; j++) {
-					if(config.customModes[i].triggers.list[j].extension == item)
-						triggersData.push(config.customModes[i].triggers.list[j]);
+				for(var j = 0; j < config.customModes[i].triggers.length; j++) {
+					for(var k = 0; k < config.customModes[i].triggers[j].list.length; k++) {
+						if(config.customModes[i].triggers[j].list[k].extension == item)
+							triggersData.push(config.customModes[i].triggers[j].list[k]);
+					}
 				}
 			}				
 			
@@ -139,9 +141,11 @@ ControlCommandAssistant.prototype.enableModeSwitcher = function(future, config) 
 			var triggersData = [];
 
 			for(var i = 0; i < config.customModes.length; i++) {
-				for(var j = 0; j < config.customModes[i].triggers.list.length; j++) {
-					if(config.customModes[i].triggers.list[j].extension == item)
-						triggersData.push(config.customModes[i].triggers.list[j]);
+				for(var j = 0; j < config.customModes[i].triggers.length; j++) {
+					for(var k = 0; k < config.customModes[i].triggers[j].list.length; k++) {
+						if(config.customModes[i].triggers[j].list[k].extension == item)
+							triggersData.push(config.customModes[i].triggers[j].list[k]);
+					}
 				}
 			}				
 			
@@ -236,9 +240,11 @@ ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) 
 			var triggersData = [];
 			
 			for(var i = 0; i < config.customModes.length; i++) {
-				for(var j = 0; j < config.customModes[i].triggers.list.length; j++) {
-					if(config.customModes[i].triggers.list[j].extension == item)
-						triggersData.push(config.customModes[i].triggers.list[j]);
+				for(var j = 0; j < config.customModes[i].triggers.length; j++) {
+					for(var k = 0; k < config.customModes[i].triggers[j].list.length; k++) {
+						if(config.customModes[i].triggers[j].list[k].extension == item)
+							triggersData.push(config.customModes[i].triggers[j].list[k]);
+					}
 				}
 			}				
 

@@ -48,6 +48,9 @@ cp $APPS/usr/palm/applications/${AID}/cfg/${PID}.json /var/palm/ls2/roles/pub/${
 mkdir -p /var/palm/event.d
 cp $APPS/usr/palm/services/${SID}/configuration/event.d/${SID} /var/palm/event.d/${SID}
 
+# Stop the JS service if running
+/usr/bin/pkill switcher.srv.js || true
+
 /usr/bin/ls-control scan-services || true
 
 exit 0

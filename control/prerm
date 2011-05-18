@@ -31,6 +31,9 @@ rm -f /usr/share/dbus-1/system-services/${PID}.service /var/palm/system-services
 rm -f /usr/share/ls2/roles/prv/${PID}.json /var/palm/ls2/roles/prv/${PID}.json
 rm -f /usr/share/ls2/roles/pub/${PID}.json /var/palm/ls2/roles/pub/${PID}.json
 
+# Stop the JS service if running
+/usr/bin/pkill switcher.srv.js || true
+
 # Stop the service if running
 /usr/bin/killall -9 ${PID} || true
 

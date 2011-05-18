@@ -1,12 +1,13 @@
 /*
 	Messaging Configuration Object:
 	
-	accounts: 				[{
-		id:						string,
-		accountId:				string,
-		serviceName:			string,
-		identifier:				string 
-								}],
+	accounts: 				{
+		'accountId':			{
+			databaseId:				string,
+			serviceName:			string,
+			identifier:				string 
+									}
+								},
 	blinkNotify:			{
 		'accountId':			boolean
 								},
@@ -42,16 +43,17 @@ var messagingSettings = (function() {
 			future = newFuture;
 
 		if(item == "msg") {
-			if((settingsNew.accounts) && (settingsNew.accounts.length > 0)) {
+			if(settingsNew.accounts) {
 				var objects = [];
 
-				var notifParams  = {_id: settingsNew.accounts[0].id};
+				var notifParams = {};
 
-				for(var i = 0; i < settingsNew.accounts.length; i++) {
-					var accId = settingsNew.accounts[i].accountId;
-					var sName = settingsNew.accounts[i].serviceName;
+				for(var accId in settingsNew.accounts) {
+					var sName = settingsNew.accounts[accId].serviceName;
 
 					if(accId == "sms") {
+						notifParams._id = settingsNew.accounts[accId].databaseId;					
+					
 						if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) ||
 							(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))
 						{
@@ -111,7 +113,7 @@ var messagingSettings = (function() {
 								path: settingsNew.ringtonePath[accId] };
 						}
 
-						var params = {_id: settingsNew.accounts[i].id};
+						var params = {_id: settingsNew.accounts[accId].databaseId};
 				
 						if((settingsNew.availability[accId] != undefined) && ((!settingsOld.availability) ||
 							(settingsOld.availability[accId] != settingsNew.availability[accId])))

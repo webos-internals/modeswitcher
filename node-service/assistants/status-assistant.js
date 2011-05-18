@@ -57,71 +57,53 @@ StatusCommandAssistant.prototype.checkModeStatus = function(config, modeName) {
 		}
 	}
 
-	if((!mode) || (mode.triggers.list.length == 0))
+	if((!mode) || (mode.triggers.length == 0))
 		return status;
 
-	var hadTriggers = false;
+	// Loop through triggers in all groups and test are they valid or not.
 
-	if(mode.triggers.require == 2)
-		var groups = 10;
-	else
-		var groups = 1;
+	for(var group = 0; group < mode.triggers.length; group++) {
+		var triggerState = false;
 	
-	// Loop through triggers and test are they valid or no.
+		for(var i = 0; i < config.extensions.triggers.length; i++) {
+			triggerState = "unknown";
 
-	for(var i = 0; i < config.extensions.triggers.length; i++) {
-		for(var group = 0; group < groups; group++) {
-			var triggerState = "unknown";
-	
-			for(var j = 0; j < mode.triggers.list.length; j++) {
-				if((mode.triggers.list[j].group == undefined) ||
-					(mode.triggers.list[j].group == group))
-				{
-					if(config.extensions.triggers[i] == mode.triggers.list[j].extension) {
-						hadTriggers = true;
+			for(var j = 0; j < mode.triggers[group].list.length; j++) {
+				var extension = mode.triggers[group].list[j].extension;
+			
+				if(config.extensions.triggers[i] == extension) {
+					var configData = config.statusData.triggers[extension];
 
-						var extension = config.extensions.triggers[i];
-					
-						var configData = config.statusData.triggers[extension];
-						var triggerData = mode.triggers.list[j];
-					
-						eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
+					var triggerData = mode.triggers[group].list[j];
+				
+					eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
 
-						status.triggers.push({"extension": extension, 'state': triggerState, 'group': group});
+					status.triggers.push({"extension": extension, 'state': triggerState, 'group': group});
 
-						if((triggerState == true) && (mode.triggers.require != 2))
-							break;
-						
-						if((triggerState == false) && (mode.triggers.require == 2))
-							break;
+					if(((triggerState == true) && (mode.triggers[group].require == 0)) ||
+						((triggerState == true) && (mode.triggers[group].require == 1)) ||
+						((triggerState == false) && (mode.triggers[group].require == 2)))
+					{
+						break;
 					}
 				}
-			}		
+			}
 
-			if((mode.triggers.require == 2) && (status.groups[group] != false) && (triggerState != "unknown"))
-				status.groups[group] = triggerState;
-		}
-		
-		// If all unique then single invalid trigger is enough and
-		// if any trigger then single valid trigger is enough.
-		
-		// For grouped modes we need to loop all triggers through.
-				
-		if((mode.triggers.require == 0) && (triggerState == false) && (status.groups[0] == undefined))
-			status.groups[0] = false;
-		else if((mode.triggers.require == 1) && (triggerState == true) && (status.groups[0] == undefined))
-			status.groups[0] = true;
+			// Check the global state for triggers with same extension
+
+			if(((triggerState == false) && (mode.triggers[group].require == 0)) ||
+				((triggerState == true) && (mode.triggers[group].require == 1)) ||
+				((triggerState == false) && (mode.triggers[group].require == 2)))
+			{
+				break;
+			}
+		}		
+
+		if(triggerState == true)
+			status.groups[group] = true;
+		else
+			status.groups[group] = false;
 	}
-
-	// If all unique and all valid then mode triggers are valid and
-	// if any trigger and all invalid then mode triggers are invalid.
-
-	if((hadTriggers) && (mode.triggers.require == 0) && (status.groups[0] == undefined)) 		
-		status.groups[0] = true;
-	else if((hadTriggers) && (mode.triggers.require == 1) && (status.groups[0] == undefined))
-		status.groups[0] = false;
-	
-	// If triggers left on group pages then triggers are valid.
 	
 	return status;
 }

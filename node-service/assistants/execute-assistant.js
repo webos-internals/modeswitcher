@@ -95,10 +95,10 @@ ExecuteCommandAssistant.prototype.executeStartMode = function(future, config, ar
 
 			// Notify about the mode starting.
 		
-			if(requestedMode.settings.notify != 0)
-				var notify = requestedMode.settings.notify;
+			if(requestedMode.notify != 0)
+				var notify = requestedMode.notify;
 			else
-				var notify = config.customModes[0].settings.notify;
+				var notify = config.customModes[0].notify;
 		
 			if((requestedMode.type == "default") || (config.activeModes.length == 0))
 				utils.notify(notify, requestedMode.name, "start");
@@ -168,10 +168,10 @@ ExecuteCommandAssistant.prototype.executeCloseMode = function(future, config, ar
 			
 			// Notify about the mode closing.
 
-			if(requestedMode.settings.notify != 0)
-				var notify = requestedMode.settings.notify;
+			if(requestedMode.notify != 0)
+				var notify = requestedMode.notify;
 			else
-				var notify = config.customModes[0].settings.notify;
+				var notify = config.customModes[0].notify;
 
 			if(requestedMode.type == "default")
 				utils.notify(notify, requestedMode.name, "close");
@@ -291,10 +291,10 @@ ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, a
 		if(args.notify == false)
 			var notify = 0;
 		else {
-			if(newActiveModes[0].settings.notify != 0)
-				var notify = newActiveModes[0].settings.notify;
+			if(newActiveModes[0].notify != 0)
+				var notify = newActiveModes[0].notify;
 			else
-				var notify = config.customModes[0].settings.notify;
+				var notify = config.customModes[0].notify;
 		}
 		
 		utils.notify(notify, "Current Mode", "update");			
@@ -349,83 +349,51 @@ ExecuteCommandAssistant.prototype.executeTriggerMode = function(future, config, 
 ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, mode) {  
 	// If mode does not have triggers then always return true.
 
-	if(mode.triggers.list.length == 0)
+	if(mode.triggers.length == 0)
 		return true;
 
-	var hadTriggers = false;
+	// Loop through triggers in all groups and test are they valid or not.
 
-	var grouped = new Array(10);
-
-	if(mode.triggers.require == 2)
-		var groups = 10;
-	else
-		var groups = 1;
+	for(var group = 0; group < mode.triggers.length; group++) {
+		var triggerState = false;
 	
-	// Loop through triggers and test are they valid or no.
+		for(var i = 0; i < config.extensions.triggers.length; i++) {
+			triggerState = "unknown";
 
-	for(var i = 0; i < config.extensions.triggers.length; i++) {
-		for(var group = 0; group < groups; group++) {
-			var triggerState = "unknown";
-	
-			if(grouped[group] != false) {
-				for(var j = 0; j < mode.triggers.list.length; j++) {
-					if((mode.triggers.list[j].group == undefined) ||
-						(mode.triggers.list[j].group == group))
-					{
-						if(config.extensions.triggers[i] == mode.triggers.list[j].extension) {
-							hadTriggers = true;
+			for(var j = 0; j < mode.triggers[group].list.length; j++) {
+				var extension = mode.triggers[group].list[j].extension;
+			
+				if(config.extensions.triggers[i] == extension) {
+					var configData = config.statusData.triggers[extension];
 
-							var extension = config.extensions.triggers[i];
-						
-							var configData = config.statusData.triggers[extension];
-							var triggerData = mode.triggers.list[j];
-						
-							eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
-
-							if((triggerState == true) && (mode.triggers.require != 2))
-								break;
-							
-							if((triggerState == false) && (mode.triggers.require == 2))
-								break;
-						}
-					}
-				}		
-
-				if((mode.triggers.require == 2) && (triggerState != "unknown"))
-					grouped[group] = triggerState;
-			}
-		}
-		
-		// If all unique then single invalid trigger is enough and
-		// if any trigger then single valid trigger is enough.
-		
-		// For grouped modes we need to loop all triggers through.
+					var triggerData = mode.triggers[group].list[j];
 				
-		if((mode.triggers.require == 0) && (triggerState == false))
-			return false;
-		else if((mode.triggers.require == 1) && (triggerState == true))
+					eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
+
+					if(((triggerState == true) && (mode.triggers[group].require == 0)) ||
+						((triggerState == true) && (mode.triggers[group].require == 1)) ||
+						((triggerState == false) && (mode.triggers[group].require == 2)))
+					{
+						break;
+					}
+				}
+			}
+
+			// Check the global state for triggers with same extension
+
+			if(((triggerState == false) && (mode.triggers[group].require == 0)) ||
+				((triggerState == true) && (mode.triggers[group].require == 1)) ||
+				((triggerState == false) && (mode.triggers[group].require == 2)))
+			{
+				break;
+			}
+		}		
+
+		if(triggerState == true)
 			return true;
 	}
 
-	// If all unique and all valid then mode triggers are valid and
-	// if any trigger and all invalid then mode triggers are invalid.
-
-	if((hadTriggers) && (mode.triggers.require == 0)) 		
-		return true;
-	else if((hadTriggers) && (mode.triggers.require == 1))
-		return false;
-	else if((hadTriggers) && (mode.triggers.require == 2)) {
-		for(var i = 0; i < grouped.length; i++) {
-			if(grouped[i] == true)
-				return true;
-		}
-		
-		return false;
-	}
-	
-	// If triggers left on group pages then triggers are valid.
-	
-	return true;
+	return false;
 }
 
 //
@@ -455,27 +423,27 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 	
 		for(var i = 0; i < modesA[loop].length; i++) {
 			if((this.controller.args.startup) || (utils.findArray(modesB[loop], "name", modesA[loop][i].name) == -1)) {
-				for(var j = 0; j < modesA[loop][i].appssrvs.list.length; j++) {
-					if(modesA[loop][i].appssrvs.list[j].type == "ms") {
+				for(var j = 0; j < modesA[loop][i].actions.list.length; j++) {
+					if(modesA[loop][i].actions.list[j].type == "ms") {
 						// Should check for: reloading, starting, switching and closing.
-					
-						if(((modesA[loop][i].appssrvs.list[j].event == events[loop]) ||
-							((modesA[loop][i].appssrvs.list[j].event == "switch") && (roundPhase == "init")) ||
-							((modesA[loop][i].appssrvs.list[j].event == "switched") && (roundPhase == "done"))) &&
+
+						if(((modesA[loop][i].actions.list[j].event == events[loop]) ||
+							((modesA[loop][i].actions.list[j].event == "switch") && (roundPhase == "init")) ||
+							((modesA[loop][i].actions.list[j].event == "switched") && (roundPhase == "done"))) &&
 							((((this.controller.args.startup) || (newActiveModes[0].type != "default") ||
 							(oldActiveModes.length == 0) || (oldActiveModes[0].type == "default")) && 
 							((events[loop] == "start") || (events[loop] == "started"))) ||
-							(modesA[loop][i].appssrvs.list[j].force == "yes") || 
+							(modesA[loop][i].actions.list[j].force == "yes") || 
 							(((newActiveModes[0].type == "default") || 
 							(modesA[loop][i].type == "modifier")) &&
 							((events[loop] == "close") || (events[loop] == "closed"))))) 
 						{
-							if(modesA[loop][i].appssrvs.list[j].action == "lock")
+							if(modesA[loop][i].actions.list[j].action == "lock")
 								lockedState = true;
-							else if(modesA[loop][i].appssrvs.list[j].action == "unlock")
+							else if(modesA[loop][i].actions.list[j].action == "unlock")
 								lockedState = false;
 							else		
-								control.push(modesA[loop][i].appssrvs.list[j]);
+								control.push(modesA[loop][i].actions.list[j]);
 						}
 					}
 				}
@@ -599,7 +567,7 @@ ExecuteCommandAssistant.prototype.executeModeChange = function(future, config, n
 		function(config, newActiveModes, roundPhase, roundCount, newFuture) {
 			// When done updating the system settings then call apps update.
 			
-			this.executeAppsSrvsUpdate(newFuture, config, config.activeModes, newActiveModes, 
+			this.executeActionsUpdate(newFuture, config, config.activeModes, newActiveModes, 
 				function(config, newActiveModes, roundPhase, roundCount, newFuture) {
 					// When done updating apps and srvs then call mode update.
 
@@ -623,10 +591,10 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 			var modes = [config.customModes[0]].concat(newActiveModes);
 
 			for(var j = 0; j < modes.length; j++) {
-				var index = utils.findArray(modes[j].settings.list, "extension", item);
+				var index = utils.findArray(modes[j].settings, "extension", item);
 
 				if(index != -1)
-					utils.extend(newModeSettings, modes[j].settings.list[index]);				
+					utils.extend(newModeSettings, modes[j].settings[index]);				
 			}
 		
 			if((oldActiveModes.length > 0) && 
@@ -636,10 +604,10 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 				var modes = [config.customModes[0]].concat(oldActiveModes);
 
 				for(var j = 0; j < modes.length; j++) {
-					var index = utils.findArray(modes[j].settings.list, "extension", item);
+					var index = utils.findArray(modes[j].settings, "extension", item);
 
 					if(index != -1)
-						utils.extend(oldModeSettings, modes[j].settings.list[index]);				
+						utils.extend(oldModeSettings, modes[j].settings[index]);
 				}
 			}
 
@@ -657,7 +625,7 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 	);
 }
 
-ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, config, oldActiveModes, newActiveModes, doneCallback) {  
+ExecuteCommandAssistant.prototype.executeActionsUpdate = function(future, config, oldActiveModes, newActiveModes, doneCallback) {  
 	console.error("Updating applications and services");
 	
 	var closeAppsSrvs = new Array();
@@ -673,23 +641,23 @@ ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, confi
 			if((utils.findArray(oldActiveModes, "name", newActiveModes[i].name) == -1) ||
 				(this.controller.args.startup))
 			{
-				if(newActiveModes[i].appssrvs.start == 2)
+				if(newActiveModes[i].actions.start == 2)
 					newCloseAllStartedApps = true;
 
-				for(var j = 0; j < newActiveModes[i].appssrvs.list.length; j++) {
-					if(newActiveModes[i].appssrvs.list[j].type == "ms")
+				for(var j = 0; j < newActiveModes[i].actions.list.length; j++) {
+					if(newActiveModes[i].actions.list[j].type == "ms")
 						continue;
 
-					if(config.extensions.appssrvs.indexOf(newActiveModes[i].appssrvs.list[j].extension) == -1)
+					if(config.extensions.actions.indexOf(newActiveModes[i].actions.list[j].extension) == -1)
 						continue;
 
-					if((this.controller.args.startup) && (newActiveModes[i].appssrvs.list[j].extension == "systools"))
+					if((this.controller.args.startup) && (newActiveModes[i].actions.list[j].extension == "systools"))
 						continue;
 				
-					if((newActiveModes[i].appssrvs.list[j].event == "start") ||
-						(newActiveModes[i].appssrvs.list[j].event == "both"))
+					if((newActiveModes[i].actions.list[j].event == "start") ||
+						(newActiveModes[i].actions.list[j].event == "both"))
 					{
-						startAppsSrvs.push(newActiveModes[i].appssrvs.list[j]);
+						startAppsSrvs.push(newActiveModes[i].actions.list[j]);
 					}
 				}
 			}
@@ -700,40 +668,40 @@ ExecuteCommandAssistant.prototype.executeAppsSrvsUpdate = function(future, confi
 		for(var i = 0; i < oldActiveModes.length; i++) {
 			if((utils.findArray(newActiveModes, "name", oldActiveModes[i].name) == -1))
 			{
-				if(oldActiveModes[i].appssrvs.close == 2)
+				if(oldActiveModes[i].actions.close == 2)
 					oldCloseAllStartedApps = true;
 
-				for(var j = 0; j < oldActiveModes[i].appssrvs.list.length; j++) {
-					if(oldActiveModes[i].appssrvs.list[j].type == "ms")
+				for(var j = 0; j < oldActiveModes[i].actions.list.length; j++) {
+					if(oldActiveModes[i].actions.list[j].type == "ms")
 						continue;
 
-					if(config.extensions.appssrvs.indexOf(oldActiveModes[i].appssrvs.list[j].extension) == -1)
+					if(config.extensions.actions.indexOf(oldActiveModes[i].actions.list[j].extension) == -1)
 						continue;
 
-					if((this.controller.args.startup) && (newActiveModes[i].appssrvs.list[j].extension == "systools"))
+					if((this.controller.args.startup) && (newActiveModes[i].actions.list[j].extension == "systools"))
 						continue;
 
-					if((oldActiveModes[i].appssrvs.list[j].event == "start") ||
-						(oldActiveModes[i].appssrvs.list[j].event == "both"))
+					if((oldActiveModes[i].actions.list[j].event == "start") ||
+						(oldActiveModes[i].actions.list[j].event == "both"))
 					{
-						if((oldActiveModes[i].appssrvs.list[j].type == "app") &&
-							(oldActiveModes[i].appssrvs.close == 1))
+						if((oldActiveModes[i].actions.list[j].type == "app") &&
+							(oldActiveModes[i].actions.close == 1))
 						{
-							closeAppsSrvs.push(oldActiveModes[i].appssrvs.list[j]);
+							closeAppsSrvs.push(oldActiveModes[i].actions.list[j]);
 						}
 					}
 				
-					if((oldActiveModes[i].appssrvs.list[j].event == "close") ||
-						(oldActiveModes[i].appssrvs.list[j].event == "both"))
+					if((oldActiveModes[i].actions.list[j].event == "close") ||
+						(oldActiveModes[i].actions.list[j].event == "both"))
 					{
-						if((oldActiveModes[i].appssrvs.list[j].type == "app") && 
+						if((oldActiveModes[i].actions.list[j].type == "app") && 
 							(!newCloseAllStartedApps)) 
 						{
-							startAppsSrvs.push(oldActiveModes[i].appssrvs.list[j]);
+							startAppsSrvs.push(oldActiveModes[i].actions.list[j]);
 						}
-						else if(oldActiveModes[i].appssrvs.list[j].type == "srv")
+						else if(oldActiveModes[i].actions.list[j].type == "srv")
 						{
-							closeAppsSrvs.push(oldActiveModes[i].appssrvs.list[j]);
+							closeAppsSrvs.push(oldActiveModes[i].actions.list[j]);
 						}
 					}
 				}

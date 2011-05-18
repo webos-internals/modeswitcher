@@ -42,17 +42,19 @@ TriggerCommandAssistant.prototype.checkTriggerEvent = function(future, config, a
 	var configData = config.statusData.triggers[args.extension];
 
 	for(var i = 0; i < config.customModes.length; i++) {
-		for(var j = 0; j < config.customModes[i].triggers.list.length; j++) {
-			if(config.customModes[i].triggers.list[j].extension == args.extension) {
-				var triggerData = config.customModes[i].triggers.list[j];
+		for(var j = 0; j < config.customModes[i].triggers.length; j++) {
+			for(var k = 0; k < config.customModes[i].triggers[j].list.length; k++) {		
+				if(config.customModes[i].triggers[j].list[k].extension == args.extension) {
+					var triggerData = config.customModes[i].triggers[j].list[k];
 
-				eval("var triggered = " + args.extension + "Triggers.trigger(configData, triggerData, args);");
+					eval("var triggered = " + args.extension + "Triggers.trigger(configData, triggerData, args);");
 
-				triggersData.push(config.customModes[i].triggers.list[j]);
+					triggersData.push(config.customModes[i].triggers[j].list[k]);
 		
-				if(triggered) {
-					if(utils.findArray(triggeredModes, "name", config.customModes[i].name) == -1)
-						triggeredModes.push(config.customModes[i]);
+					if(triggered) {
+						if(utils.findArray(triggeredModes, "name", config.customModes[i].name) == -1)
+							triggeredModes.push(config.customModes[i]);
+					}
 				}
 			}
 		}
@@ -100,13 +102,13 @@ TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config,
 						startNModes.push({
 							name: triggeredModes[i].name,
 							start: triggeredModes[i].start,
-							notify: triggeredModes[i].settings.notify });
+							notify: triggeredModes[i].notify });
 					}
 					else if(triggeredModes[i].type == "modifier") {
 						startMModes.push({
 							name: triggeredModes[i].name,
 							start: triggeredModes[i].start,
-							notify: triggeredModes[i].settings.notify });
+							notify: triggeredModes[i].notify });
 					}
 				}
 			}
@@ -120,13 +122,13 @@ TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config,
 					closeNModes.push({
 						name: triggeredModes[i].name,
 						close: triggeredModes[i].close,
-						notify: triggeredModes[i].settings.notify });
+						notify: triggeredModes[i].notify });
 				}
 				else if(triggeredModes[i].type == "modifier") {
 					closeMModes.push({
 						name: triggeredModes[i].name,
 						close: triggeredModes[i].close,
-						notify: triggeredModes[i].settings.notify });
+						notify: triggeredModes[i].notify });
 				}
 			}
 		}
@@ -177,7 +179,7 @@ TriggerCommandAssistant.prototype.executePopupLaunching = function(future, confi
 
 	// Form notify setting based on all triggered modes
 
-	var notify = config.customModes[0].settings.notify;
+	var notify = config.customModes[0].notify;
 
 	for(var i = 0; i < closeMModes.length; i++) {
 		if(closeMModes[i].notify > notify)
@@ -250,82 +252,50 @@ TriggerCommandAssistant.prototype.executePopupLaunching = function(future, confi
 TriggerCommandAssistant.prototype.checkModeTriggers = function(future, config, mode) {  
 	// If mode does not have triggers then always return true.
 
-	if(mode.triggers.list.length == 0)
+	if(mode.triggers.length == 0)
 		return true;
 
-	var hadTriggers = false;
+	// Loop through triggers in all groups and test are they valid or not.
 
-	var grouped = new Array(10);
-
-	if(mode.triggers.require == 2)
-		var groups = 10;
-	else
-		var groups = 1;
+	for(var group = 0; group < mode.triggers.length; group++) {
+		var triggerState = false;
 	
-	// Loop through triggers and test are they valid or no.
+		for(var i = 0; i < config.extensions.triggers.length; i++) {
+			triggerState = "unknown";
 
-	for(var i = 0; i < config.extensions.triggers.length; i++) {
-		for(var group = 0; group < groups; group++) {
-			var triggerState = "unknown";
-	
-			if(grouped[group] != false) {
-				for(var j = 0; j < mode.triggers.list.length; j++) {
-					if((mode.triggers.list[j].group == undefined) ||
-						(mode.triggers.list[j].group == group))
-					{
-						if(config.extensions.triggers[i] == mode.triggers.list[j].extension) {
-							hadTriggers = true;
+			for(var j = 0; j < mode.triggers[group].list.length; j++) {
+				var extension = mode.triggers[group].list[j].extension;
+			
+				if(config.extensions.triggers[i] == extension) {
+					var configData = config.statusData.triggers[extension];
 
-							var extension = config.extensions.triggers[i];
-						
-							var configData = config.statusData.triggers[extension];
-							var triggerData = mode.triggers.list[j];
-						
-							eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
-
-							if((triggerState == true) && (mode.triggers.require != 2))
-								break;
-							
-							if((triggerState == false) && (mode.triggers.require == 2))
-								break;
-						}
-					}
-				}		
-
-				if((mode.triggers.require == 2) && (triggerState != "unknown"))
-					grouped[group] = triggerState;
-			}
-		}
-		
-		// If all unique then single invalid trigger is enough and
-		// if any trigger then single valid trigger is enough.
-		
-		// For grouped modes we need to loop all triggers through.
+					var triggerData = mode.triggers[group].list[j];
 				
-		if((mode.triggers.require == 0) && (triggerState == false))
-			return false;
-		else if((mode.triggers.require == 1) && (triggerState == true))
+					eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
+
+					if(((triggerState == true) && (mode.triggers[group].require == 0)) ||
+						((triggerState == true) && (mode.triggers[group].require == 1)) ||
+						((triggerState == false) && (mode.triggers[group].require == 2)))
+					{
+						break;
+					}
+				}
+			}
+
+			// Check the global state for triggers with same extension
+
+			if(((triggerState == true) && (mode.triggers[group].require == 0)) ||
+				((triggerState == false) && (mode.triggers[group].require == 1)) ||
+				((triggerState == false) && (mode.triggers[group].require == 2)))
+			{
+				break;
+			}
+		}		
+
+		if(triggerState == true)
 			return true;
 	}
 
-	// If all unique and all valid then mode triggers are valid and
-	// if any trigger and all invalid then mode triggers are invalid.
-
-	if((hadTriggers) && (mode.triggers.require == 0)) 		
-		return true;
-	else if((hadTriggers) && (mode.triggers.require == 1))
-		return false;
-	else if((hadTriggers) && (mode.triggers.require == 2)) {
-		for(var i = 0; i < grouped.length; i++) {
-			if(grouped[i] == true)
-				return true;
-		}
-		
-		return false;
-	}
-	
-	// If triggers left on group pages then triggers are valid.
-	
-	return true;
+	return false;
 }
 

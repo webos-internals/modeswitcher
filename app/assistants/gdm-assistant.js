@@ -89,8 +89,11 @@ GdmAssistant.prototype.setup = function() {
 			
 	// EXPORT
 	
-	this.modelExportGDTitle = {value: "", disabled: false};
-		
+	if((this.data) && (this.data.title))
+		this.modelExportGDTitle = {value: this.data.title, disabled: true};
+	else
+		this.modelExportGDTitle = {value: "", disabled: false};
+			
 	this.controller.setupWidget("ExportGDTitle", {'hintText': $L("Descriptive document name..."), 
 		'multiline': false, 'enterSubmits': false, 'focus': true},
 		this.modelExportGDTitle); 
@@ -155,7 +158,10 @@ GdmAssistant.prototype.setup = function() {
 //
 
 GdmAssistant.prototype.listGoogleDocuments = function(event) {
-	var match = this.filter;
+	if((!this.data) || (!this.data.title))
+		var match = "";
+	else
+		var match = this.data.title;
 
 	if(this.modelImportGDMatch.value.length > 0)
 		match += "+" + this.modelImportGDMatch.value.replace(" ", "+");
@@ -194,9 +200,25 @@ GdmAssistant.prototype.listGoogleDocuments = function(event) {
 
 					if((data) && (data.feed) && (data.feed.entry)) {
 						for(var i = 0; i < data.feed.entry.length; i++) {
-							var info = data.feed.entry[i].title['$t'].split(" - ");
-
-							this.modelImportGDList.items.push({'label': info[1], 'desc': info[2], 'value': data.feed.entry[i].id['$t']});
+							var fullTitle = data.feed.entry[i].title['$t'];
+							
+							if((!this.filter) || (fullTitle.substr(0, this.filter.length) == this.filter)) {
+								if(this.filter)
+									fullTitle = fullTitle.substr(this.filter.length + 1);
+							
+								var descIndex = fullTitle.indexOf(" (");
+								
+								if(descIndex == -1) {
+									var title = fullTitle;
+									var desc = "No description";
+								}
+								else {
+									var title = fullTitle.slice(0, descIndex);
+									var desc = fullTitle.slice(descIndex + 2, -1);
+								}
+							
+								this.modelImportGDList.items.push({'label': title, 'desc': desc, 'value': data.feed.entry[i].id['$t']});
+							}
 						}
 
 						this.viewLevel = 1;
@@ -268,12 +290,12 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 					"GData-Version": "2.0",
 					"Authorization": "GoogleLogin auth=" + auth
 				},
-				onSuccess: function(response) {
-					var data = null;
+				onSuccess: function(title, response) {
+					var data = {title: title, body: null};
 
-					try {data = Mojo.parseJSON(response.responseText);} catch (e) {}
+					try {data.body = Mojo.parseJSON(response.responseText);} catch (e) {}
 
-					if(data) {
+					if(data.body) {
 						this.controller.showAlertDialog({
 							title: $L("Download succesful!"),
 							message: "<div align='justify'>" + $L("Downloading from Google Docs was succesful.") + "</div>",
@@ -295,7 +317,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 							preventCancel: true,
 							allowHTMLMessage: true}); 
 					}
-				}.bind(this),
+				}.bind(this, event.item.label),
 				onFailure: function(response) { 
 					this.controller.showAlertDialog({
 						title: $L("Unable to download!"),
@@ -322,17 +344,20 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 	
 	this.controller.modelChanged(this.modelExportGDButton, this);
 
-	var docData = Object.toJSON(this.data);
+	var docData = Object.toJSON(this.data.body);
+
+	if(!this.filter)
+		var slug = "";
+	else
+		var slug = this.filter + " ";
 
 	if(this.modelExportGDTitle.value.length > 0)
-		var docName = encodeURIComponent(this.modelExportGDTitle.value.replace("/", "_").replace("-", "_"));
+		slug += encodeURIComponent(this.modelExportGDTitle.value.replace("/", "_").replace(":", "_"));
 	else
-		var docName = "Exported Document";
+		slug += "Exported Document";
 
 	if(this.modelExportGDDesc.value.length > 0)
-		var docDesc = encodeURIComponent(this.modelExportGDDesc.value.replace("/", "_").replace("-", "_"));
-	else
-		var docDesc = "No description";
+		slug += " (" + encodeURIComponent(this.modelExportGDDesc.value.replace("/", "_").replace(":", "_")) + ")";
 
 	new Ajax.Request("https://www.google.com/accounts/ClientLogin?accountType=HOSTED_OR_GOOGLE&Email=" + this.modelExportGDUsername.value + "&Passwd=" + encodeURIComponent(this.modelExportGDPassword.value) + "&service=writely&source=ModeSwitcher", {
 		method: "post",
@@ -349,7 +374,7 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 					"GData-Version": "2.0",
 					"Content-Type": "text/plain",
 					"Authorization": "GoogleLogin auth=" + auth,
-					"Slug": this.filter + " - " + docName + " - " + docDesc
+					"Slug": slug
 				},
 				onSuccess: function(response) {
 					if(this.modelExportGDShare.value) {

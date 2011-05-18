@@ -19,6 +19,9 @@ PrefsCommandAssistant.prototype.run = function(future) {
 				activated: curConfig.activated,
 				modeLocked: curConfig.modeLocked,
 				
+				apiVersion: curConfig.apiVersion,
+				cfgVersion: curConfig.cfgVersion,
+				
 				startTimer: curConfig.startTimer, 
 				closeTimer: curConfig.closeTimer, 
 				activeModes: curConfig.activeModes,
