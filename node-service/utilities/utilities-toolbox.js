@@ -14,15 +14,10 @@ var utils = (function() {
 	that.extend = function(targetObject, sourceObject) {
 		for(key in sourceObject) {
 			if(typeof(sourceObject[key]) == 'object') {
-				if(sourceObject[key] instanceof Array) {
-					targetObject[key] = sourceObject[key];
-				}
-				else {
-					if(!targetObject[key])
-						targetObject[key] = {};
-			
-					that.extend(targetObject[key], sourceObject[key]);
-				}
+				if(!targetObject[key])
+					targetObject[key] = {};
+		
+				that.extend(targetObject[key], sourceObject[key]);
 			}
 			else
 				targetObject[key] = sourceObject[key];
