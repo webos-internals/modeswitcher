@@ -14,9 +14,7 @@ var utils = (function() {
 	that.extend = function(targetObject, sourceObject) {
 		for(key in sourceObject) {
 			if(typeof(sourceObject[key]) == 'object') {
-				var value = sourceObject[key];
-			
-				if (value instanceof Array) {
+				if (key == "accounts") {
 				console.error("AAA1 array");
 					targetObject[key] = sourceObject[key].slice(0);
 				}
