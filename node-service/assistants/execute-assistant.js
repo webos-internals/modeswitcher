@@ -625,12 +625,8 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 			for(var j = 0; j < modes.length; j++) {
 				var index = utils.findArray(modes[j].settings.list, "extension", item);
 
-				if(index != -1) {
-					for(key in modes[j].settings.list[index])
-		            newModeSettings[key] = modes[j].settings.list[index][key];
-
-					//utils.extend(newModeSettings, modes[j].settings.list[index]);				
-				}
+				if(index != -1)
+					utils.extend(newModeSettings, modes[j].settings.list[index]);				
 			}
 		
 			if((oldActiveModes.length > 0) && 
@@ -642,12 +638,8 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 				for(var j = 0; j < modes.length; j++) {
 					var index = utils.findArray(modes[j].settings.list, "extension", item);
 
-					if(index != -1) {
-						for(key in modes[j].settings.list[index])
-				         oldModeSettings[key] = modes[j].settings.list[index][key];
-
-						//utils.extend(oldModeSettings, modes[j].settings.list[index]);				
-					}
+					if(index != -1)
+						utils.extend(oldModeSettings, modes[j].settings.list[index]);				
 				}
 			}
 
