@@ -15,11 +15,9 @@ var utils = (function() {
 		for(key in sourceObject) {
 			if(typeof(sourceObject[key]) == 'object') {
 				if (key == "accounts") {
-				console.error("AAA1 array");
 					targetObject[key] = sourceObject[key].slice(0);
 				}
 				else {
-				console.error("AAA1 object");
 					if(!targetObject[key])
 						targetObject[key] = {};
 		

@@ -41,7 +41,6 @@ var emailSettings = (function() {
 			future = newFuture;
 		
 		if(item == "email") {
-		console.error("DEBUG4 " + JSON.stringify(settingsNew));
 			if((settingsNew.accounts) && (settingsNew.accounts.length > 0)) {
 				var objects = [];
 
