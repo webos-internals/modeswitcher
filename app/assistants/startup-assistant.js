@@ -15,8 +15,13 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.2.5', log: [
+			'Fixed email and messaging settings not working bug.'
+		]
+	},
+	{
 		version: '2.2.4', log: [
-			'Fixed mode action loop notification not working bug.'
+			'Fixed two bugs related to mode actions, see wiki for details.'
 		]
 	},
 	{

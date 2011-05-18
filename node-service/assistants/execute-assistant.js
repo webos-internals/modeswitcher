@@ -502,8 +502,10 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 			}
 			else if(modeName == "All Modifier Modes") {
 				if(control[i].action == "close") {
-					changed = true;
-					newActiveModes.splice(1, newActiveModes.length - 1);
+					if(newActiveModes.length > 1) {
+						changed = true;
+						newActiveModes.splice(1, newActiveModes.length - 1);
+					}
 				}
 				else if((control[i].action == "start") || (control[i].action == "trigger")) {
 					for(var j = 0; j < config.customModes.length; j ++) {
