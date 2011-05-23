@@ -1,16 +1,16 @@
 [
 	{	"library": { "name": "foundations", "version": "1.0" } },
-
+	
 	{	"source": "assistants/control-assistant.js" },
 	{ "source": "assistants/execute-assistant.js" },
 	{ "source": "assistants/prefs-assistant.js" },
 	{ "source": "assistants/status-assistant.js" },
 	{ "source": "assistants/trigger-assistant.js" },
-
+	
 	{ "source": "utilities/applications-manager.js" },
 	{ "source": "utilities/preferences-manager.js" },
 	{ "source": "utilities/utilities-toolbox.js" },
-
+	
 	{ "source": "extensions/settings/airplane-extension.js" },
 	{ "source": "extensions/settings/calendar-extension.js" },
 	{ "source": "extensions/settings/connection-extension.js" },
@@ -23,7 +23,7 @@
 	{ "source": "extensions/settings/screen-extension.js" },
 	{ "source": "extensions/settings/security-extension.js" },
 	{ "source": "extensions/settings/sound-extension.js" },
-
+	
 	{ "source": "extensions/triggers/application-extension.js" },
 	{ "source": "extensions/triggers/battery-extension.js" },
 	{ "source": "extensions/triggers/bluetooth-extension.js" },

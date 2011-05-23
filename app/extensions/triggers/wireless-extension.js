@@ -1,7 +1,11 @@
-function WirelessTriggers(controller, prefs) {
+function WirelessTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+WirelessTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ WirelessTriggers.prototype.label = function() {
 
 //
 
-WirelessTriggers.prototype.setup = function() {
+WirelessTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesWiFiStateSelector = [
 		{'label': $L("Connected"), 'value': 0},
 		{'label': $L("Disconnected"), 'value': 1},

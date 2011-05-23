@@ -1,19 +1,24 @@
-function PhoneSettings(controller, prefs) {
+function PhoneSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+PhoneSettings.prototype.basic = function() {
+	return false;
 }
 
 //
 
 PhoneSettings.prototype.label = function() {
-	if(this.prefs.advancedPrefs)
-		return $L("Phone Settings");
+	return $L("Phone Settings");
 }
 
 //
 
-PhoneSettings.prototype.setup = function(defaultChoiseLabel) {
+PhoneSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesPhoneReplySelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Do Nothing"), 'value': 0},
@@ -114,6 +119,15 @@ PhoneSettings.prototype.save = function(extensionConfig) {
 		extensionPreferences.blinkNotify = false;	
 	
 	return extensionPreferences;
+}
+
+//
+
+PhoneSettings.prototype.export = function(extensionPreferences) {
+}
+
+PhoneSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

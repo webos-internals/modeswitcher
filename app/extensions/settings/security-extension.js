@@ -1,7 +1,11 @@
-function SecuritySettings(controller, prefs) {
+function SecuritySettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+SecuritySettings.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ SecuritySettings.prototype.label = function() {
 
 //
 
-SecuritySettings.prototype.setup = function(defaultChoiseLabel) {
+SecuritySettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesSecurityLockSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Unsecure"), 'value': 0},
@@ -164,6 +170,17 @@ SecuritySettings.prototype.save = function(extensionConfig) {
 	}
 
 	return extensionPreferences;
+}
+
+//
+
+SecuritySettings.prototype.export = function(extensionPreferences) {
+	if(extensionPreferences.lockSecret != undefined)
+		extensionPreferences.lockSecret = "";
+}
+
+SecuritySettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

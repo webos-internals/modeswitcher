@@ -4,30 +4,30 @@
 	locked:						boolean
 	
 	Display Status Object:
-
+	
 	activity:					integer,
 	locked:						boolean
 */
 
 var displayTriggers = (function() {
 	var that = {};
-
+	
 	var Foundations = IMPORTS.foundations;
-
+	
 	var PalmCall = Foundations.Comms.PalmCall;
-
+	
 	var Future = Foundations.Control.Future;
-
+	
 //
-
+	
 	var initExtension = function(config) {
 		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.systemmanager", 'service': "com.palm.systemmanager", 
 				'method': "getLockStatus", 'params': {}});
-
+		
 		future.then(this, function(future) {
 			config.locked = future.result.locked;
-		
+			
 			future.result = { returnValue: true };
 		});
 			
@@ -35,7 +35,7 @@ var displayTriggers = (function() {
 	};
 	
 //
-
+	
 	var addActivity = function(config) {
 		var newActivity = {
 			"start" : true,
@@ -51,20 +51,20 @@ var displayTriggers = (function() {
 				"callback" : {
 					"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
 					"params" : {"extension": "display"}
-				}                                                                                           
+				}
 			}
 		};
-
+		
 		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
 				'method': "create", 'params': newActivity});
-	
+		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
-		
+			
 			future.result = { returnValue: true };
 		});
-			
+		
 		return future;
 	};
 	
@@ -72,32 +72,32 @@ var displayTriggers = (function() {
 		var oldActivity = {
 			"activityId": config.activity
 		};
-	
+		
 		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
-			'method': "cancel", 'params': oldActivity}); 
-
+			'method': "cancel", 'params': oldActivity});
+		
 		future.then(this, function(future) {
 			config.activity = null;
-
+			
 			future.result = { returnValue: true };
 		});
 		
 		return future; 
 	};
-
+	
 //
-
+	
 	var checkState = function(config, trigger) {
 		if(config.locked == "unknown")
 			return false;
-
+		
 		if(config.locked == trigger.locked)
 			return true;
 		
 		return false;
 	};
-
+	
 	var triggerState = function(config, trigger, args) {
 		if((args.$activity) && (args.$activity.trigger) &&
 			(args.$activity.trigger.locked != undefined) &&
@@ -108,20 +108,20 @@ var displayTriggers = (function() {
 		
 		return false;
 	};
-
+	
 // Asynchronous public functions
-
+	
 	that.initialize = function(config, triggers) {
-		config.activity = null;		
+		config.activity = null;
 		config.locked = "unknown";
-
+		
 		var future = new Future();
-
+		
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
 			future.nest(initExtension(config));
-		
+			
 			future.then(this, function(future) {
 				future.nest(addActivity(config));
 				
@@ -130,20 +130,20 @@ var displayTriggers = (function() {
 				});
 			});
 		}
-			
+		
 		return future;
 	};
-
+	
 	that.shutdown = function(config) {
 		config.locked = "unknown";
-
+		
 		var future = new Future();
 		
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
 			future.nest(delActivity(config));
-
+			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
@@ -151,15 +151,15 @@ var displayTriggers = (function() {
 		
 		return future;
 	};
-
+	
 //
-
+	
 	that.reload = function(config, triggers, args) {
 		config.activity = null;
-		config.locked = "unknown";			
-
+		config.locked = "unknown";
+		
 		var future = new Future();
-
+		
 		if((!triggers) || (triggers.length == 0) ||
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
@@ -169,27 +169,26 @@ var displayTriggers = (function() {
 		else {
 			if(args.$activity.trigger.locked != undefined)
 				config.locked = args.$activity.trigger.locked;
-
+			
 			future.nest(addActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});			
 		}
-			
+		
 		return future;
 	};
-
+	
 // Synchronous public functions
-
+	
 	that.check = function(config, trigger) {
 		return checkState(config, trigger);
 	};
-
+	
 	that.trigger = function(config, trigger, args) {
 		return triggerState(config, trigger, args);
 	};
-
+	
 	return that;
 }());
-

@@ -1,7 +1,11 @@
-function DisplayTriggers(controller, prefs) {
+function DisplayTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+DisplayTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ DisplayTriggers.prototype.label = function() {
 
 //
 
-DisplayTriggers.prototype.setup = function() {
+DisplayTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesStateSelector = [
 		{'label': $L("Locked"), 'value': 1},
 		{'label': $L("Unlocked"), 'value': 0} ];  

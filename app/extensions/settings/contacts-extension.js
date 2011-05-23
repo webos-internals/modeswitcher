@@ -1,19 +1,24 @@
-function ContactsSettings(controller, prefs) {
+function ContactsSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+ContactsSettings.prototype.basic = function() {
+	return false;
 }
 
 //
 
 ContactsSettings.prototype.label = function() {
-	if(this.prefs.advancedPrefs)
-		return $L("Contacts Settings");
+	return $L("Contacts Settings");
 }
 
 //
 
-ContactsSettings.prototype.setup = function(defaultChoiseLabel) {
+ContactsSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesContactsBlockedSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -102,6 +107,15 @@ ContactsSettings.prototype.save = function(extensionConfig) {
 	}
 
 	return extensionPreferences;
+}
+
+//
+
+ContactsSettings.prototype.export = function(extensionPreferences) {
+}
+
+ContactsSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

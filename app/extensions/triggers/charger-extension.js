@@ -1,19 +1,24 @@
-function ChargerTriggers(controller, prefs) {
+function ChargerTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+ChargerTriggers.prototype.basic = function() {
+	return false;
 }
 
 //
 
 ChargerTriggers.prototype.label = function() {
-	if(this.prefs.advancedPrefs)
-		return $L("Charger Event Trigger");
+	return $L("Charger Event Trigger");
 }
 
 //
 
-ChargerTriggers.prototype.setup = function() {
+ChargerTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesChargerSelector = [
 		{'label': $L("No Charger"), 'value': "none"},
 		{'label': $L("Touchstone"), 'value': "ts"},

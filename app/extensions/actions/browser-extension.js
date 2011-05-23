@@ -1,7 +1,5 @@
-function BrowserActions(controller, prefs) {
+function BrowserActions(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
 }
 
 //
@@ -13,7 +11,9 @@ BrowserActions.prototype.appid = function(type) {
 
 //
 
-BrowserActions.prototype.setup = function() {
+BrowserActions.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesBrowserLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"}];  

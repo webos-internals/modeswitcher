@@ -1,7 +1,11 @@
-function NetworkSettings(controller, prefs) {
+function NetworkSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+NetworkSettings.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ NetworkSettings.prototype.label = function() {
 
 //
 
-NetworkSettings.prototype.setup = function(defaultChoiseLabel) {
+NetworkSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesNetworkTypeSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Automatic"), 'value': 1},
@@ -134,6 +140,15 @@ NetworkSettings.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+NetworkSettings.prototype.export = function(extensionPreferences) {
+}
+
+NetworkSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

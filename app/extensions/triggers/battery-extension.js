@@ -1,19 +1,24 @@
-function BatteryTriggers(controller, prefs) {
+function BatteryTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+BatteryTriggers.prototype.basic = function() {
+	return false;
 }
 
 //
 
 BatteryTriggers.prototype.label = function() {
-	if(this.prefs.advancedPrefs)
-		return $L("Battery Level Trigger");
+	return $L("Battery Level Trigger");
 }
 
 //
 
-BatteryTriggers.prototype.setup = function() {
+BatteryTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesHighLimitSelector = [
 		{'label': "100%", 'value': 100}, 
 		{'label': "95%", 'value': 95}, {'label': "90%", 'value': 90}, 

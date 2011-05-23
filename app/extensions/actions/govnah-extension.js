@@ -1,7 +1,5 @@
-function GovnahActions(controller, prefs) {
+function GovnahActions(controller) {
 	this.controller = controller;
-
-	this.prefs = prefs;
 }
 
 //
@@ -47,7 +45,9 @@ GovnahActions.prototype.data = function(profiles) {
 
 //
 
-GovnahActions.prototype.setup = function() {
+GovnahActions.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesGovnahLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  

@@ -2,7 +2,7 @@
  *    ModeAssistant - Mode Launcher's Mode Edition Scene
 */
 
-function ModeAssistant(apiVersion, cfgVersion, extensions, customModes, modeIndex) {
+function ModeAssistant(apiVersion, cfgVersion, extensions, modules, customModes, modeIndex) {
 	/* This is the creator function for your scene assistant object. It will be passed all the 
 	 * additional parameters (after the scene name) that were passed to pushScene. The reference
 	 * to the scene controller (this.controller) has not be established yet, so any initialization
@@ -17,19 +17,24 @@ function ModeAssistant(apiVersion, cfgVersion, extensions, customModes, modeInde
 	
 	this.extensions = extensions;
 	
+	this.extensionModules = modules;
+	
 	this.customModes = customModes;
 	
 	this.modeIndex = modeIndex;
 
-	this.actionsConfig = {};
-	this.settingsConfig = {};
-	this.triggersConfig = {};
-	
 	this.loaded = {'actions': [], 'settings': [], 'triggers': []};
 
 	this.retrieving = false;
 
 	this.groupidx = 0;
+	
+	this.cookie = new Mojo.Model.Cookie('preferences');
+
+	this.prefs = this.cookie.get();
+	
+	if(!this.prefs)
+		this.prefs = {'advancedPrefs': false};
 }    
 
 ModeAssistant.prototype.setup = function() {
@@ -37,35 +42,6 @@ ModeAssistant.prototype.setup = function() {
 	 * Use Mojo.View.render to render view templates and add them to the scene, if needed.
     * Setup widgets and add event handlers to listen to events from widgets here. 
     */
-
-	this.cookie = new Mojo.Model.Cookie('preferences');
-
-	var prefs = this.cookie.get();
-	
-	if(!prefs)
-		prefs = {'advancedPrefs': false};
-		
-	//	
-
-	for(var i = 0; i < this.extensions.actions.length; i++) {
-		var className = this.extensions.actions[i].charAt(0).toUpperCase() + this.extensions.actions[i].slice(1);
-
-		this.actionsConfig[this.extensions.actions[i]] = eval("new " + className + "Actions(this.controller, prefs);");
-	}
-
-	for(var i = 0; i < this.extensions.settings.length; i++) {
-		var className = this.extensions.settings[i].charAt(0).toUpperCase() + this.extensions.settings[i].slice(1);
-
-		this.settingsConfig[this.extensions.settings[i]] = eval("new " + className + "Settings(this.controller, prefs);");
-	}
- 
-	for(var i = 0; i < this.extensions.triggers.length; i++) {
-		var className = this.extensions.triggers[i].charAt(0).toUpperCase() + this.extensions.triggers[i].slice(1);
-
-		this.triggersConfig[this.extensions.triggers[i]] = eval("new " + className + "Triggers(this.controller, prefs);");
-	}
-
-//
 
 	this.mode = this.getModeData();
 
@@ -103,7 +79,7 @@ ModeAssistant.prototype.setup = function() {
 	this.configurationView = this.controller.get("ConfigurationView");
 	
 	this.configurationView.style.display = 'block';
-		
+	
 //
 // Command menu
 //
@@ -111,6 +87,10 @@ ModeAssistant.prototype.setup = function() {
 	this.settingsView = this.controller.get("ModeSettingsView");
 	this.appsView = this.controller.get("ModeAppsView");
 	this.triggersView = this.controller.get("ModeTriggersView");
+
+	this.settingsView.style.display = 'none';
+	this.appsView.style.display = 'none';
+	this.triggersView.style.display = 'none';
 
 	this.customCfg = this.controller.get("ConfigurationCustom");
 	this.defaultCfg = this.controller.get("ConfigurationDefault");
@@ -315,7 +295,7 @@ ModeAssistant.prototype.setup = function() {
 
 	// Applications extensions lists
 
-	for(var id in this.actionsConfig) {
+	for(var id in this.extensionModules.actions) {
 		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 		
 		this.controller.setupWidget(element, {
@@ -335,10 +315,10 @@ ModeAssistant.prototype.setup = function() {
 	}
 
 	Mojo.Event.listen(this.controller.get("AppsList"), Mojo.Event.listDelete, 
-		this.handleListDelete.bind(this, "apps"));
+		this.handleListDelete.bind(this, "actions"));
 
 	Mojo.Event.listen(this.controller.get("AppsList"), Mojo.Event.listReorder, 
-		this.handleListReorder.bind(this, "apps"));
+		this.handleListReorder.bind(this, "actions"));
 
 	Mojo.Event.listen(this.controller.get("AppsList"), Mojo.Event.propertyChange, 
 		this.setModeData.bind(this, true));
@@ -347,9 +327,9 @@ ModeAssistant.prototype.setup = function() {
 // APPS LIST ITEM
 //
 
-	for(var id in this.actionsConfig)
-		this.actionsConfig[id].setup();
-
+	for(var id in this.extensionModules.actions)
+		this.extensionModules.actions[id].setup(this.controller, this.mode.name, this.mode.type);
+	
 //
 // SETTINGS
 //
@@ -400,7 +380,7 @@ ModeAssistant.prototype.setup = function() {
 
 	// Settings extensions lists
 
-	for(var id in this.settingsConfig) {
+	for(var id in this.extensionModules.settings) {
 		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 
 		this.controller.setupWidget(element, {
@@ -431,18 +411,18 @@ ModeAssistant.prototype.setup = function() {
 // SETTINGS LIST ITEMS
 //
 
-	for(var id in this.settingsConfig) {
+	for(var id in this.extensionModules.settings) {
 		if(this.mode.type == "normal")
-			this.settingsConfig[id].setup($L("Default"));
+			this.extensionModules.settings[id].setup(this.controller, $L("Default"));
 		else
-			this.settingsConfig[id].setup($L("Do Not Set"));
+			this.extensionModules.settings[id].setup(this.controller, $L("Do Not Set"));
 	}
 
 //
 // TRIGGERS
 //
 
-	this.modelRequiredSelector = {'value': this.mode.require, 'disabled': false};
+	this.modelRequiredSelector = {'value': 0, 'disabled': false};
 
 	this.choicesTriggerSelector = [
 		{'label': $L("All Unique"), 'value': 0},
@@ -471,7 +451,7 @@ ModeAssistant.prototype.setup = function() {
 
 	// Triggers extensions lists
 
-	for(var id in this.triggersConfig) {
+	for(var id in this.extensionModules.triggers) {
 		var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 
 		this.controller.setupWidget(element, {
@@ -502,24 +482,8 @@ ModeAssistant.prototype.setup = function() {
 	// TRIGGERS LIST ITEM
 	//
 
-	for(var id in this.triggersConfig)
-		this.triggersConfig[id].setup();
-
-	//
-	// INITIALIZE DEFAULT MODE IF NEEDED
-	//
-
-	if((this.customModes.length == 0) || ((this.modeIndex == 0) &&
-		(this.appAssistant.isNewOrFirstStart == 1)))
-	{
-		this.appAssistant.isNewOrFirstStart = 1;	
-	
-		this.mode.settings.clear();
-
-		this.loaded.settings.clear();
-
-		this.retrieveCurrentSettings(0, "everything");
-	}
+	for(var id in this.extensionModules.triggers)
+		this.extensionModules.triggers[id].setup(this.controller);
 
 	this.controller.listen(this.controller.get('help-toggle'), Mojo.Event.tap, this.helpButtonTapped.bindAsEventListener(this));
 }
@@ -527,6 +491,10 @@ ModeAssistant.prototype.setup = function() {
 //
 
 ModeAssistant.prototype.getModeData = function(config) {
+	this.groupidx = 0;
+	
+	this.loaded = {'actions': [], 'settings': [], 'triggers': []};
+	
 	if((this.modeIndex == 0) || (this.customModes.length == 0)) {
 		var mode = {
 			'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1, 'notify': 2, 
@@ -573,8 +541,8 @@ ModeAssistant.prototype.getModeData = function(config) {
 	for(var i = 0; i < config.actions.list.length; i++) {
 		var ext = config.actions.list[i].extension;
 			
-		if(this.actionsConfig[ext] != undefined) {
-			var data = this.actionsConfig[ext].load(config.actions.list[i]);
+		if(this.extensionModules.actions[ext] != undefined) {
+			var data = this.extensionModules.actions[ext].load(config.actions.list[i]);
 	
 			data.extension = ext;
 
@@ -587,8 +555,8 @@ ModeAssistant.prototype.getModeData = function(config) {
 	for(var i = 0; i < config.settings.length; i++) {
 		var ext = config.settings[i].extension;
 			
-		if(this.settingsConfig[ext] != undefined) {
-			var data = this.settingsConfig[ext].load(config.settings[i]);
+		if(this.extensionModules.settings[ext] != undefined) {
+			var data = this.extensionModules.settings[ext].load(config.settings[i]);
 			
 			data.extension = ext;
 			
@@ -608,8 +576,8 @@ ModeAssistant.prototype.getModeData = function(config) {
 			var ext = config.triggers[i].list[j].extension;
 			var cfg = config.triggers[i].list[j];
 		
-			if(this.triggersConfig[ext] != undefined) {
-				var data = this.triggersConfig[ext].load(cfg);
+			if(this.extensionModules.triggers[ext] != undefined) {
+				var data = this.extensionModules.triggers[ext].load(cfg);
 	
 				data.extension = ext;
 				
@@ -687,8 +655,8 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 	for(var i = 0; i < this.loaded.actions.length; i++) {
 		var ext = this.loaded.actions[i].extension;
 		
-		if(this.actionsConfig[ext] != undefined) {
-			var data = this.actionsConfig[ext].save(this.loaded.actions[i]);
+		if(this.extensionModules.actions[ext] != undefined) {
+			var data = this.extensionModules.actions[ext].save(this.loaded.actions[i]);
 	
 			data.extension = this.loaded.actions[i].extension;
 
@@ -701,8 +669,8 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 	for(var i = 0; i < this.loaded.settings.length; i++) {
 		var ext = this.loaded.settings[i].extension;
 		
-		if(this.settingsConfig[ext] != undefined) {
-			var data = this.settingsConfig[ext].save(this.loaded.settings[i]);
+		if(this.extensionModules.settings[ext] != undefined) {
+			var data = this.extensionModules.settings[ext].save(this.loaded.settings[i]);
 			
 			data.extension = this.loaded.settings[i].extension;
 			
@@ -717,8 +685,8 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 			var ext = this.loaded.triggers[i].list[j].extension;
 			var cfg = this.loaded.triggers[i].list[j];
 			
-			if(this.triggersConfig[ext] != undefined) {
-				var data = this.triggersConfig[ext].save(cfg);
+			if(this.extensionModules.triggers[ext] != undefined) {
+				var data = this.extensionModules.triggers[ext].save(cfg);
 
 				data.extension = ext;
 		
@@ -744,23 +712,33 @@ ModeAssistant.prototype.setModeType = function(event) {
 	if(event.value == "normal") {
 		this.choicesNotifySelector[0].label = $L("Default");
 
-		this.controller.defaultChoiseLabel = $L("Default");
-
-		for(var id in this.settingsConfig)
-			this.settingsConfig[id].setup($L("Default"));
+		for(var id in this.extensionModules.settings)
+			this.extensionModules.settings[id].setup(this.controller, $L("Default"));
 	}
 	else {
 		this.choicesNotifySelector[0].label = $L("Do Not Set");
 
-		this.controller.defaultChoiseLabel = $L("Do Not Set");
-
-		for(var id in this.settingsConfig)
-			this.settingsConfig[id].setup($L("Do Not Set"));
+		for(var id in this.extensionModules.settings)
+			this.extensionModules.settings[id].setup(this.controller, $L("Do Not Set"));
 	}
 	
 	this.controller.modelChanged(this.modelNotifySelector, this);
 	
 	this.controller.modelChanged(this.modelSettingsList, this);
+	
+	// Clear list of MS actions since they are different for different mode types
+
+	for(var i = 0; i < this.mode.actions.list.length; i++) {
+		if(this.mode.actions.list[i]["modesw"] != undefined)
+			this.mode.actions.list.splice(i--, 1);
+	}
+
+	for(var i = 0; i < this.loaded.actions.length; i++) {
+		if(this.loaded.actions[i].extension == "modesw")
+			this.loaded.actions.splice(i--, 1);
+	}
+	
+	this.controller.modelChanged(this.modelAppsList, this);
 	
 	this.setModeData(false);	
 }
@@ -846,7 +824,7 @@ ModeAssistant.prototype.retrieveCurrentSettings = function(index, target) {
 	if((index == 0) || (target == "single")) {
 		Mojo.Log.info("Retrieving current system settings");
 
-		this.controller.get("waitSpinner").show();
+		this.controller.get("overlay-scrim").show();
 
 		this.modelWaitSpinner.spinning = true;
 		
@@ -858,15 +836,18 @@ ModeAssistant.prototype.retrieveCurrentSettings = function(index, target) {
 	}
 
 	if(index < this.extensions.settings.length) {
-		if(this.settingsConfig[this.extensions.settings[index]].label() == undefined)
-			this.retrieveCurrentSettings(++index, target);
-		else {
+		if((this.prefs.advancedPrefs == true) || 
+			(this.extensionModules.settings[this.extensions.settings[index]].basic() == true))
+		{
 			Mojo.Log.info("Retrieving " + this.extensions.settings[index] + " settings");
 
 			var callback = this.retrievedCurrentSettings.bind(this, index, target);
 
-			this.settingsConfig[this.extensions.settings[index]].fetch(callback);
+			this.extensionModules.settings[this.extensions.settings[index]].fetch(callback);
 		}
+		else {
+			this.retrieveCurrentSettings(++index, target);
+		}		
 	}
 	else {
 		Mojo.Log.info("Retrieving system settings finished");
@@ -875,19 +856,13 @@ ModeAssistant.prototype.retrieveCurrentSettings = function(index, target) {
 		
 		this.controller.modelChanged(this.modelWaitSpinner, this);
 
-		this.controller.get("waitSpinner").hide();
+		this.controller.get("overlay-scrim").hide();
 
 		this.appControl.showBanner($L("Retrieving system settings finished"), {});
 
 		this.retrieving = false;
 
 		this.setModeData(true);
-		
-		if((this.modeIndex == 0) && (this.appAssistant.isNewOrFirstStart == 1)) {
-			this.appAssistant.isNewOrFirstStart = 0;
-
-			this.controller.stageController.popScene();
-		}
 	}
 }
 
@@ -989,8 +964,11 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			var totalCount = 0;
 
 			for(var i = 0; i < this.extensions.settings.length; i++) {
-				if(this.settingsConfig[this.extensions.settings[i]].label() != undefined)
+				if((this.prefs.advancedPrefs == true) || 
+					(this.extensionModules.settings[this.extensions.settings[i]].basic() == true))
+				{
 					totalCount++;
+				}
 			}
 
 			if(this.loaded.settings.length == totalCount)
@@ -1095,10 +1073,13 @@ ModeAssistant.prototype.handleCommand = function(event) {
 
 			for(var i = 0; i < this.extensions.settings.length; i++) {
 				if(this.loaded.settings.search("extension", this.extensions.settings[i]) == -1) {
-					var label = this.settingsConfig[this.extensions.settings[i]].label();
+					if((this.prefs.advancedPrefs == true) || 
+						(this.extensionModules.settings[this.extensions.settings[i]].basic() == true))
+					{
+						var label = this.extensionModules.settings[this.extensions.settings[i]].label();
 				
-					if(label != undefined)
 						settingItems.push({'label': label, 'command': i});
+					}
 				}
 			}
 
@@ -1158,13 +1139,13 @@ ModeAssistant.prototype.handleCommand = function(event) {
 				}.bind(this)});
 		}
 		else if(event.command == "applications-ms") {
-			if(this.actionsConfig.modesw != undefined) {
+			if(this.extensionModules.actions.modesw != undefined) {
 				var id = "modesw";
 				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
 
 				var launchpoint = {'title': "Mode Switcher"};
 
-				var data = this.actionsConfig[id].config(launchpoint);
+				var data = this.extensionModules.actions[id].config(launchpoint);
 		
 				data.extension = id;
 
@@ -1197,7 +1178,7 @@ ModeAssistant.prototype.handleCommand = function(event) {
 				
 					this.launchPoints.each(function(item, index){
 						for(var i = 0; i < this.extensions.actions.length; i++) {
-							var appid = this.actionsConfig[this.extensions.actions[i]].appid("srv");
+							var appid = this.extensionModules.actions[this.extensions.actions[i]].appid("srv");
 
 							if((appid != undefined) && (appid == item.id)) {
 								appItems.push({'label': item.title, 'command': index});
@@ -1215,10 +1196,13 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			var triggerItems = [];
 			
 			for(var i = 0; i < this.extensions.triggers.length; i++) {
-				var label = this.triggersConfig[this.extensions.triggers[i]].label();
-				
-				if(label != undefined)
+				if((this.prefs.advancedPrefs == true) || 
+					(this.extensionModules.triggers[this.extensions.triggers[i]].basic() == true))
+				{
+					var label = this.extensionModules.triggers[this.extensions.triggers[i]].label();
+			
 					triggerItems.push({'label': label, 'command': i});
+				}
 			}
 
 			triggerItems.sort(this.sortAlphabeticallyFunction);
@@ -1324,16 +1308,37 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			}
 		}
 		else if(event.command == "export") {
-			var mode = this.setModeData(false);
+			this.controller.get("overlay-scrim").show();
+
+			this.modelWaitSpinner.spinning = true;
 		
+			this.controller.modelChanged(this.modelWaitSpinner, this);
+
+			var document = {version: this.cfgVersion, mode: this.setModeData(false)};
+
+			for(var i = 0; i < document.mode.settings.length; i++) {
+				var ext = document.mode.settings[i].extension;
+				
+				var module = this.extensionModules.settings[ext];
+
+				if(module != undefined)
+					module.export(document.mode.settings[i]);
+				else
+					document.mode.settings.splice(i, 1);
+			}
+
+			this.modelWaitSpinner.spinning = false;
+
+			this.controller.modelChanged(this.modelWaitSpinner, this);
+
+			this.controller.get("overlay-scrim").hide();
+
 			this.controller.stageController.pushScene("gdm", "exportGDoc", "Mode Config", "[MSCFG] -", 
-				{title: "Mode Switcher v" + this.cfgVersion + " - " + mode.name, body: mode}, null);
+				{title: "Mode Switcher - " + document.mode.name, body: document}, null);
 		}
 		else if(event.command == "import") {
-			var mode = this.setModeData(false);
-		
 			this.controller.stageController.pushScene("gdm", "importGDoc", "Mode Config", "[MSCFG] -", 
-				{title: "Mode Switcher v"}, this.importModeConfig.bind(this));
+				null, this.importSingleMode.bind(this));
 		}
 		else if(event.command == "status") {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
@@ -1408,8 +1413,8 @@ ModeAssistant.prototype.handleAppSrvChoose = function(type, index) {
 	if(index != undefined) {
 		var id = "default";
 
-		for(var key in this.actionsConfig) {
-			if(this.actionsConfig[key].appid(type) == this.launchPoints[index].id) {
+		for(var key in this.extensionModules.actions) {
+			if(this.extensionModules.actions[key].appid(type) == this.launchPoints[index].id) {
 				id = key;
 				break;
 			}
@@ -1419,7 +1424,7 @@ ModeAssistant.prototype.handleAppSrvChoose = function(type, index) {
 		
 		this.launchPoints[index].type = type;
 		
-		var data = this.actionsConfig[id].config(this.launchPoints[index]);
+		var data = this.extensionModules.actions[id].config(this.launchPoints[index]);
 		
 		data.extension = id;
 
@@ -1446,7 +1451,7 @@ ModeAssistant.prototype.handleTriggersChoose = function(index) {
 
 		this.controller.modelChanged(this.modelCommandMenu, this);
 
-		var data = this.triggersConfig[this.extensions.triggers[index]].config();
+		var data = this.extensionModules.triggers[this.extensions.triggers[index]].config();
 
 		data.extension = this.extensions.triggers[index];
 
@@ -1484,7 +1489,7 @@ ModeAssistant.prototype.handleListChange = function(list, event) {
 }
 
 ModeAssistant.prototype.handleListReorder = function(list, event) {
-	if(list == "apps") {
+	if(list == "actions") {
 		var tempApp = this.mode.actions.list[event.fromIndex];
 	
 		this.mode.actions.list.splice(event.fromIndex, 1);
@@ -1520,7 +1525,7 @@ ModeAssistant.prototype.handleListDelete = function(list, event) {
 		
 		this.setModeData(false);
 	}
-	else if(list == "apps") {
+	else if(list == "actions") {
 		this.mode.actions.list.splice(event.index,1);
 
 		this.loaded.actions.splice(event.index,1);
@@ -1596,13 +1601,18 @@ ModeAssistant.prototype.checkModeName = function() {
 
 	// Rename the mode also in MS app configurations if any exists
 
-	if((this.modelNameText.value != this.mode.name) && (this.mode.name != "")) {
-		for(var i = 0; i < this.customModes.length; i++) {
-			for(var j = 0; j < this.customModes[i].actions.list.length; j++) {
-				if((this.customModes[i].actions.list[j].type == "ms") &&
-					(this.customModes[i].actions.list[j].mode == this.mode.name))
-				{
-					this.customModes[i].actions.list[j].mode = this.modelNameText.value;
+	if(this.modelNameText.value != this.mode.name) {
+		this.extensionModules.actions["modesw"].setup(this.controller, 
+			this.modelNameText.value, this.modelTypeSelector.value);
+
+		if(this.mode.name != "") {
+			for(var i = 0; i < this.customModes.length; i++) {
+				for(var j = 0; j < this.customModes[i].actions.list.length; j++) {
+					if((this.customModes[i].actions.list[j].type == "ms") &&
+						(this.customModes[i].actions.list[j].mode == this.mode.name))
+					{
+						this.customModes[i].actions.list[j].mode = this.modelNameText.value;
+					}
 				}
 			}
 		}
@@ -1634,10 +1644,8 @@ ModeAssistant.prototype.sortAlphabeticallyFunction = function(a,b){
 
 //
 
-ModeAssistant.prototype.importModeConfig = function(data) {
-	var version = data.title.slice(15, 18);
-
-	if(version != this.cfgVersion) {
+ModeAssistant.prototype.importSingleMode = function(data) {
+	if((data.body.version != this.cfgVersion) || (data.body.mode == undefined)) {
 		this.controller.showAlertDialog({
 			title: $L("Configuration Version Error"),
 			message: "The version of the mode configuration that you are trying to import is not supported.",
@@ -1649,92 +1657,214 @@ ModeAssistant.prototype.importModeConfig = function(data) {
 			}.bind(this)}); 
 	}
 	else {
-		var mode = data.body;
-
 		this.controller.showAlertDialog({
 			title: $L("Confirm Config Importing"),
 			message: "<div align='justify'>" + $L("You are about to override configuration of this mode.") + "</div>",
 			choices:[
 				{label:$L("Continue"), value:"continue", type:'default'},
 				{label:$L("Cancel"), value:"cancel", type:'default'}],
-			preventCancel: true,
+			preventCancel: false,
 			allowHTMLMessage: true,
 			onChoose: function(mode, value) {
-				var importError = false;
-			
 				if(value == "continue") {
-					if((mode.actions != undefined) && (mode.actions.list != undefined) &&
-						(mode.actions.start != undefined) && (mode.actions.close != undefined) && 
-						(mode.settings != undefined) && (mode.triggers != undefined))
-					{
-						if((mode.name == undefined) || (mode.name.length == 0) || 
-							(mode.name == "Current Mode") || (mode.name == "Previous Mode") ||
-							(mode.name == "All Modes") || (mode.name == "All Normal Modes") ||
-							(mode.name == "All Modifier Modes") || (mode.name == "Any Normal Mode") ||
-							(mode.name == "Any Modifier Mode"))
-						{
-							importError = true;
-						}
-						else if((mode.name == "Default Mode") && (mode.type == "default") &&
-							(mode.startup != undefined) && (mode.start != undefined) && (mode.notify != undefined))
-						{
-							if(this.modeIndex == 0) {
-								this.customModes.splice(0, 1, mode);
+					this.controller.get("overlay-scrim").show();
 
-								this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-									method: 'prefs', parameters: {customModes: this.customModes},
-									onComplete: function() {
-										this.controller.stageController.popScene({'customModes': this.customModes, 'modeIndex': this.modeIndex});
-									}.bind(this)});
-								
-								return;
-							}
-						}
-						else if(((mode.type == "normal") || (mode.type == "modifier")) &&
-							(mode.start != undefined) && (mode.close != undefined) && (mode.notify != undefined))
-						{
-							if(this.modeIndex != 0) {
-								if(this.modeIndex == undefined) {
-									this.modeIndex = this.customModes.length;
-									this.customModes.push(mode);
-								}
-								else	
-									this.customModes.splice(this.modeIndex, 1, mode);
-						
-								this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-									method: 'prefs', parameters: {customModes: this.customModes},
-									onComplete: function() {
-										this.controller.stageController.popScene({'customModes': this.customModes, 'modeIndex': this.modeIndex});
-									}.bind(this)});
+					this.modelWaitSpinner.spinning = true;
 
-								return;
-							}
-						}
-						else
-							importError = true;
-					}
-					else
-						importError = true;
-				}
+					this.controller.modelChanged(this.modelWaitSpinner, this);
 				
-				if(importError) {
-					this.controller.showAlertDialog({
-						title: $L("Configuration Import Error"),
-						message: "There was error while importing mode configuration, most likely the configuration you tried to import was malformed.",
-						choices:[
-							{label:$L("Close"), value:"close", type:'default'}],
-						preventCancel: true,
-						allowHTMLMessage: true,
-						onChoose: function(value) {
-						}.bind(this)}); 
+					this.importModeConfig(mode, 0);
 				}
-			}.bind(this, mode)});
+			}.bind(this, data.body.mode)});
 	}
 }
 
+ModeAssistant.prototype.importModeConfig = function(mode, settingsIdx) {
+	if((settingsIdx == 0) && (!this.importModeCheck(mode))) {
+		this.modelWaitSpinner.spinning = false;
+
+		this.controller.modelChanged(this.modelWaitSpinner, this);
+
+		this.controller.get("overlay-scrim").hide();
+		
+		this.controller.showAlertDialog({
+			title: $L("Configuration Import Error"),
+			message: "<div align='justify'>There was error while importing mode configuration, most likely the configuration you tried to import was malformed.</div>",
+			choices:[
+				{label:$L("Close"), value:"close", type:'default'}],
+			preventCancel: true,
+			allowHTMLMessage: true,
+			onChoose: function(value) {
+		}.bind(this)}); 
+	}
+	else {
+		if(mode.settings.length == settingsIdx) {
+			// Re-setup the scene with the new mode data and save config.
+		
+			var mode = this.getModeData(mode);
+			
+			this.modelNameText.value = mode.name;
+			this.controller.modelChanged(this.modelNameText, this);
+			
+			this.modelTypeSelector.value = mode.type;
+			this.controller.modelChanged(this.modelTypeSelector, this);
+			
+			if(mode.type == "default") {
+				this.modelStartupSelector.value = mode.startup;
+				this.controller.modelChanged(this.modelStartupSelector, this);		
+				
+				this.modelAppsSelector.value = mode.start;
+				this.controller.modelChanged(this.modelAppsSelector, this);		
+			}
+			else {
+				this.modelStartSelector.value = mode.start;			
+				this.controller.modelChanged(this.modelStartSelector, this);		
+				
+				this.modelCloseSelector.value = mode.close;
+				this.controller.modelChanged(this.modelCloseSelector, this);		
+			}
+			
+			this.modelAppsStartSelector.value = mode.actions.start;
+			this.controller.modelChanged(this.modelAppsStartSelector, this);		
+			
+			this.modelAppsCloseSelector.value = mode.actions.close;
+			this.controller.modelChanged(this.modelAppsCloseSelector, this);
+			
+			this.mode.actions.list.clear();
+			
+			for(var i = 0; i < this.loaded.actions.length; i++) {
+				var id = this.loaded.actions[i].extension;
+				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+		
+				var appsrv = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+		
+				appsrv[id] = [this.loaded.actions[i]]; 
+
+				this.mode.actions.list.push(appsrv);
+			}
+					
+			this.controller.modelChanged(this.modelAppsList, this);		
+			
+			this.modelNotifySelector.value = mode.notify;
+			this.controller.modelChanged(this.modelNotifySelector, this);
+			
+			this.mode.settings.clear();
+			
+			for(var i = 0; i < this.loaded.settings.length; i++) {
+				var id = this.loaded.settings[i].extension;
+				var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+
+				var setting = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+		
+				setting[id] = [this.loaded.settings[i]];
+
+				setting['extension'] = this.loaded.settings[i].extension;
+
+				this.mode.settings.push(setting);
+			}
+			
+			this.controller.modelChanged(this.modelSettingsList, this);		
+
+			if(mode.type != "default") {
+				if(mode.triggers.length == 0)
+					this.modelRequiredSelector.value = 0;			
+				else
+					this.modelRequiredSelector.value = mode.notify;			
+				
+				this.controller.modelChanged(this.modelRequiredSelector, this);		
+
+				this.mode.triggers.clear();
+
+				for(var i = 0; i < this.loaded.triggers[0].list.length; i++) {
+					var id = this.loaded.triggers[0].list[i].extension;
+					var element = id.charAt(0).toUpperCase() + id.slice(1) + "List";
+
+					var trigger = {'list': "<div name='" + element + "' x-mojo-element='List'></div>"};
+
+					trigger[id] = [this.loaded.triggers[0].list[i]];
+
+					trigger['extension'] = this.loaded.triggers[0].list[i].extension;
+
+					this.mode.triggers.push(trigger);
+				}
+				
+				this.controller.modelChanged(this.modelTriggersList, this);		
+			}
+							
+			this.setModeData(false);
+		
+			this.modelWaitSpinner.spinning = false;
+
+			this.controller.modelChanged(this.modelWaitSpinner, this);
+
+			this.controller.get("overlay-scrim").hide();
+		}
+		else {
+			var ext = mode.settings[settingsIdx].extension;
+		
+			var module = this.extensionModules.settings[ext];
+
+			if(module != undefined) {
+				module.import(mode.settings[settingsIdx], 
+					this.importModeConfig.bind(this, mode, ++settingsIdx));
+			}
+			else {
+				mode.settings.splice(settingsIdx, 1);
+			
+				this.importModeConfig(mode, ++settingsIdx);
+			}
+		}
+	}
+}
+
+ModeAssistant.prototype.importModeCheck = function(mode) {
+	if((mode.name == undefined) || (mode.type == undefined) ||
+		(mode.name.length == 0) || (mode.name == "Current Mode") ||
+		((mode.name == "Default Mode") && (mode.type != "default")) ||
+		(mode.name == "Previous Mode") || (mode.name == "All Modes") || 
+		(mode.name == "Any Normal Mode") || (mode.name == "Any Modifier Mode") ||
+		(mode.name == "All Normal Modes") || (mode.name == "All Modifier Modes"))
+	{
+		return false;
+	}
+
+	if((mode.actions == undefined) || (mode.actions.list == undefined) || 
+		(mode.actions.start == undefined) || (mode.actions.close == undefined) || 
+		(mode.settings == undefined) || (mode.triggers == undefined))
+	{
+		return false;
+	}
+
+	if((mode.type == "default") && (mode.startup != undefined) && 
+		(mode.start != undefined) && (mode.notify != undefined))
+	{
+		if(this.modeIndex == 0) {
+			mode.name = "Default Mode";
+		
+			return true;
+		}
+	}
+
+	if(((mode.type == "normal") || (mode.type == "modifier")) && 
+		(mode.start != undefined) && (mode.close != undefined) && 
+		(mode.notify != undefined))
+	{
+		if(this.modeIndex != 0) {
+			if(this.customModes.search("name", mode.name) != -1)
+				mode.name = mode.name + " (I)";
+		
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//
+
 ModeAssistant.prototype.govnahProfiles = function(profiles) {
-	if(this.actionsConfig["govnah"] != undefined)
-		this.actionsConfig["govnah"].data(profiles);
+	if(this.extensionModules.actions["govnah"] != undefined)
+		this.extensionModules.actions["govnah"].data(profiles);
 }
 
 //

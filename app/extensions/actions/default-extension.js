@@ -1,7 +1,5 @@
-function DefaultActions(controller, prefs) {
+function DefaultActions(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
 }
 
 //
@@ -13,7 +11,9 @@ DefaultActions.prototype.appid = function(type) {
 
 //
 
-DefaultActions.prototype.setup = function() {
+DefaultActions.prototype.setup = function(controller) {
+	this.controller = controller;
+	
 	this.choicesDefaultLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  

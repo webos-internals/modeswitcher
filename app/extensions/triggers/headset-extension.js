@@ -1,7 +1,11 @@
-function HeadsetTriggers(controller, prefs) {
+function HeadsetTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+HeadsetTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ HeadsetTriggers.prototype.label = function() {
 
 //
 
-HeadsetTriggers.prototype.setup = function() {
+HeadsetTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesStateSelector = [
 		{'label': $L("Connected"), 'value': 0}, 
 		{'label': $L("Not Connected"), 'value': 1} ];  

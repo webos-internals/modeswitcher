@@ -1,7 +1,11 @@
-function ModechangeTriggers(controller, prefs) {
+function ModechangeTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+ModechangeTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ ModechangeTriggers.prototype.label = function() {
 
 //
 
-ModechangeTriggers.prototype.setup = function() {
+ModechangeTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesModeStateSelector = [
 		{'label': $L("Mode Active"), 'value': 0},
 		{'label': $L("Mode Not Active"), 'value': 1} ];  

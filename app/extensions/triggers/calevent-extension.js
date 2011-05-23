@@ -1,7 +1,11 @@
-function CaleventTriggers(controller, prefs) {
+function CaleventTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+CaleventTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ CaleventTriggers.prototype.label = function() {
 
 //
 
-CaleventTriggers.prototype.setup = function() {
+CaleventTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesCaleventCalendarSelector = [
 		{'label': $L("Any Calendar"), 'value': "any"} ];
 		

@@ -1,7 +1,11 @@
-function SoundSettings(controller, prefs) {
+function SoundSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+SoundSettings.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ SoundSettings.prototype.label = function() {
 
 //
 
-SoundSettings.prototype.setup = function(defaultChoiseLabel) {
+SoundSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	// Ringer, System and Media volume selectors
 	
 	this.choicesRingerVolumeSelector = [
@@ -105,6 +111,15 @@ SoundSettings.prototype.save = function(extensionConfig) {
 		extensionPreferences.mediaVolume = parseInt(extensionConfig.soundMedia);
 	
 	return extensionPreferences;
+}
+
+//
+
+SoundSettings.prototype.export = function(extensionPreferences) {
+}
+
+SoundSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

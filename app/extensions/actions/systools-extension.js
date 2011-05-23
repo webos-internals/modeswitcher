@@ -1,7 +1,5 @@
-function SystoolsActions(controller, prefs) {
+function SystoolsActions(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
 }
 
 //
@@ -12,7 +10,9 @@ SystoolsActions.prototype.appid = function(type) {
 
 //
 
-SystoolsActions.prototype.setup = function() {
+SystoolsActions.prototype.setup = function(controller) {
+	this.controller = controller;
+	
 	this.choicesSystoolsLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  

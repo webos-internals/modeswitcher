@@ -1,7 +1,11 @@
-function ScreenSettings(controller, prefs) {
+function ScreenSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+ScreenSettings.prototype.basic = function() {
+	return false;
 }
 
 //
@@ -12,7 +16,9 @@ ScreenSettings.prototype.label = function() {
 
 //
 
-ScreenSettings.prototype.setup = function(defaultChoiseLabel) {
+ScreenSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	// Screen brightness slider, timeout and wallpaper selector
 
 	this.choicesScreenSelector = [
@@ -27,25 +33,15 @@ ScreenSettings.prototype.setup = function(defaultChoiseLabel) {
 	this.controller.setupWidget("ScreenBrightnessSlider", {'minValue': -1, 'maxValue': 100, 
 		'round': true, 'modelProperty': "screenBrightnessLevel"});
 
-	if(this.prefs.advancedPrefs) {
-		this.choicesTimeoutSelector = [
-			{'label': defaultChoiseLabel, 'value': -1},
-			{'label': "15 " + $L("Seconds"), 'value': 15},
-			{'label': "30 " + $L("Seconds"), 'value': 30},
-			{'label': "1 " + $L("Minute"), 'value': 60},
-			{'label': "2 " + $L("Minutes"), 'value': 120},
-			{'label': "3 " + $L("Minutes"), 'value': 180},
-			{'label': "5 " + $L("Minutes"), 'value': 300},
-			{'label': $L("Never"), 'value': 10800} ];  
-	}
-	else {
-		this.choicesTimeoutSelector = [
-			{'label': defaultChoiseLabel, 'value': -1},
-			{'label': "30 " + $L("Seconds"), 'value': 30},
-			{'label': "1 " + $L("Minute"), 'value': 60},
-			{'label': "2 " + $L("Minutes"), 'value': 120},
-			{'label': "3 " + $L("Minutes"), 'value': 180} ];  
-	}
+	this.choicesTimeoutSelector = [
+		{'label': defaultChoiseLabel, 'value': -1},
+		{'label': "15 " + $L("Seconds"), 'value': 15},
+		{'label': "30 " + $L("Seconds"), 'value': 30},
+		{'label': "1 " + $L("Minute"), 'value': 60},
+		{'label': "2 " + $L("Minutes"), 'value': 120},
+		{'label': "3 " + $L("Minutes"), 'value': 180},
+		{'label': "5 " + $L("Minutes"), 'value': 300},
+		{'label': $L("Never"), 'value': 10800} ];  
 		
 	this.controller.setupWidget("ScreenTimeoutSelector",	{'label': $L("Turn Off After"), 
 		'labelPlacement': "left", 'modelProperty': "screenTurnOffTimeout",
@@ -155,6 +151,15 @@ ScreenSettings.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+ScreenSettings.prototype.export = function(extensionPreferences) {
+}
+
+ScreenSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

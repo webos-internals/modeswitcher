@@ -1,7 +1,11 @@
-function LocationTriggers(controller, prefs) {
+function LocationTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+LocationTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ LocationTriggers.prototype.label = function() {
 
 //
 
-LocationTriggers.prototype.setup = function() {
+LocationTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesActiveSelector = [
 		{'label': $L("When In Location"), 'value': 0},
 		{'label': $L("When Not In Location"), 'value': 1}];  

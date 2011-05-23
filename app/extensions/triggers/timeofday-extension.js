@@ -1,7 +1,11 @@
-function TimeofdayTriggers(controller, prefs) {
+function TimeofdayTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+TimeofdayTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ TimeofdayTriggers.prototype.label = function() {
 
 //
 
-TimeofdayTriggers.prototype.setup = function() {
+TimeofdayTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesTimeSelector = [
 		{'label': $L("Every Day"), 'value': 0},
 		{'label': $L("Weekdays"), 'value': 1},

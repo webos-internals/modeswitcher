@@ -1,22 +1,31 @@
-function EmailSettings(controller, prefs) {
+function EmailSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
-	
-	this.accountSelectorChoices = [
-		{'label': $L("No email accounts"), 'value': -1} ];
+}
+
+//
+
+EmailSettings.prototype.basic = function() {
+	return false;
 }
 
 //
 
 EmailSettings.prototype.label = function() {
-	if(this.prefs.advancedPrefs)
-		return $L("Email Settings");
+	return $L("Email Settings");
 }
 
 //
 
-EmailSettings.prototype.setup = function(defaultChoiseLabel) {
+EmailSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+
+	this.defaultAccountId = 0;
+
+	if(!this.accountSelectorChoices) {
+		this.accountSelectorChoices = [
+			{'label': $L("No email accounts"), 'value': -1} ];
+	}
+
 	this.choicesEmailAccountSelector = this.accountSelectorChoices;
 
 	this.controller.setupWidget("EmailAccountSelector", { 
@@ -80,6 +89,11 @@ EmailSettings.prototype.setup = function(defaultChoiseLabel) {
 //
 
 EmailSettings.prototype.config = function() {
+	if(!this.accountSelectorChoices) {
+		this.accountSelectorChoices = [
+			{'label': $L("No email accounts"), 'value': -1} ];
+	}
+	
 	var extensionConfig = {
 		'emailTitle': $L("Email"),
 		'emailAccountRow': "single",
@@ -120,18 +134,28 @@ EmailSettings.prototype.load = function(extensionPreferences) {
 
 	if(extensionPreferences.accounts != undefined) {
 		for(var accId in extensionPreferences.accounts) {
-			extensionConfig.emailAccountsCfg.push({
-				accountId: accId,
-				databaseId: extensionPreferences.accounts[accId].databaseId,
-				identifier: extensionPreferences.accounts[accId].identifier });
+			if(extensionPreferences.accounts[accId].isDefault == true) {
+				extensionConfig.emailAccountsCfg.unshift({
+					accountId: accId,
+					isDefault: extensionPreferences.accounts[accId].isDefault,
+					databaseId: extensionPreferences.accounts[accId].databaseId,
+					identifier: extensionPreferences.accounts[accId].identifier });
+			}
+			else {
+				extensionConfig.emailAccountsCfg.push({
+					accountId: accId,
+					isDefault: extensionPreferences.accounts[accId].isDefault,
+					databaseId: extensionPreferences.accounts[accId].databaseId,
+					identifier: extensionPreferences.accounts[accId].identifier });
+			}
 		}
 
-		this.accountSelectorChoices.clear();
-	
 		for(var i = 0; i < extensionConfig.emailAccountsCfg.length; i++) {
 			var accId = extensionConfig.emailAccountsCfg[i].accountId;
 		
 			if(i == 0) {
+				this.accountSelectorChoices.clear();
+
 				extensionConfig.emailAccountId = accId;
 				extensionConfig.emailCurrentId = accId;				
 			}
@@ -216,6 +240,7 @@ EmailSettings.prototype.save = function(extensionConfig) {
 			var accId = extensionConfig.emailAccountsCfg[i].accountId;
 			
 			extensionPreferences.accounts[accId] = {
+				isDefault: extensionConfig.emailAccountsCfg[i].isDefault,
 				databaseId: extensionConfig.emailAccountsCfg[i].databaseId,
 				identifier: extensionConfig.emailAccountsCfg[i].identifier };
 		}
@@ -263,6 +288,68 @@ EmailSettings.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+EmailSettings.prototype.export = function(extensionPreferences) {
+	if(extensionPreferences.accounts) {
+		var isFirstAccount = true;
+	
+		for(var accId in extensionPreferences.accounts) {
+			if((isFirstAccount == true) || 
+				(extensionPreferences.accounts[accId].isDefault == true))
+			{
+				isFirstAccount = false;
+			
+				if(extensionPreferences.blinkNotify[accId] != undefined)
+					extensionPreferences.blinkNotify = {'default': extensionPreferences.blinkNotify[accId]};
+
+				if(extensionPreferences.notifyAlert[accId] != undefined)
+					extensionPreferences.notifyAlert = {'default': extensionPreferences.notifyAlert[accId]};
+
+				if(extensionPreferences.ringtoneName[accId] != undefined)
+					extensionPreferences.ringtoneName = {'default': extensionPreferences.ringtoneName[accId]};
+
+				if(extensionPreferences.ringtonePath[accId] != undefined)
+					extensionPreferences.ringtonePath = {'default': extensionPreferences.ringtonePath[accId]};
+
+				if(extensionPreferences.syncInterval[accId] != undefined)
+					extensionPreferences.syncInterval = {'default': extensionPreferences.syncInterval[accId]};
+			}
+
+			if(extensionPreferences.blinkNotify[accId] != undefined)			
+				delete extensionPreferences.blinkNotify[accId];
+			
+			if(extensionPreferences.notifyAlert[accId] != undefined)			
+				delete extensionPreferences.notifyAlert[accId];
+
+			if(extensionPreferences.ringtoneName[accId] != undefined)			
+				delete extensionPreferences.ringtoneName[accId];
+
+			if(extensionPreferences.ringtonePath[accId] != undefined)			
+				delete extensionPreferences.ringtonePath[accId];
+
+			if(extensionPreferences.syncInterval[accId] != undefined)			
+				delete extensionPreferences.syncInterval[accId];
+		}
+	
+		delete extensionPreferences.accounts;
+		
+		extensionPreferences.accounts = {};
+	}	
+}
+
+EmailSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	if(extensionPreferences.accounts) {
+		var extensionConfig = this.config();
+	
+		var callback = this.gotSystemSettings.bind(this, extensionPreferences, doneCallback);
+	
+		this.getSystemSettings(0, extensionConfig, callback);
+	}
+	else
+		doneCallback();
 }
 
 //
@@ -370,15 +457,22 @@ EmailSettings.prototype.executeRingtoneSelect = function(eventModel) {
 
 EmailSettings.prototype.getSystemSettings = function(requestID, extensionConfig, doneCallback) {
 	var requestCallback = this.handleGetResponse.bind(this, requestID, extensionConfig, doneCallback);
-	
+
 	if(requestID == 0) {
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
+			'parameters': {
+				'id': "com.palm.app.email", 'service': "com.palm.db", 
+				'method': "find", 'params': {'query': {'from': "com.palm.app.email.prefs:1"}}}, 
+			'onComplete': requestCallback});	
+	}
+	else if(requestID == 1) {
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.email", 'service': "com.palm.db", 
 				'method': "find", 'params': {'query': {'from': "com.palm.account:1"}}}, 
 			'onComplete': requestCallback});	
 	}
-	else if(requestID == 1) {
+	else if(requestID == 2) {
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",
 			'parameters': {
 				'id': "com.palm.app.email", 'service': "com.palm.db", 
@@ -392,6 +486,13 @@ EmailSettings.prototype.getSystemSettings = function(requestID, extensionConfig,
 EmailSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
+			if((serviceResponse.results) && (serviceResponse.results.length > 0) && 
+				(serviceResponse.results[0].defaultAccountId != undefined))
+			{
+				this.defaultAccountId = serviceResponse.results[0].defaultAccountId;
+			}
+		} 
+		else if(requestID == 1) {
 			for(var i = 0; i < serviceResponse.results.length; i++) {
 				for(var j = 0; j < serviceResponse.results[i].capabilityProviders.length; j++) {
 					if(serviceResponse.results[i].capabilityProviders[j].capability == "MAIL")
@@ -399,10 +500,10 @@ EmailSettings.prototype.handleGetResponse = function(requestID, extensionConfig,
 				}
 			}			
 		}
-		else if(requestID == 1) {
+		else if(requestID == 2) {
 			for(var i = 0; i < serviceResponse.results.length; i++) {
 				var accId = serviceResponse.results[i].accountId;
-
+				
 				extensionConfig.emailBlinkNotifyCfg[accId] = 0;
 				extensionConfig.emailNotifyAlertCfg[accId] = 0;
 				extensionConfig.emailRingtoneNameCfg[accId] = "";
@@ -434,42 +535,106 @@ EmailSettings.prototype.handleGetResponse = function(requestID, extensionConfig,
 				else
 					extensionConfig.emailSyncIntervalCfg[accId] = serviceResponse.results[i].syncFrequencyMins;
 
-				if(i == 0) {
-					extensionConfig.emailAccountsCfg.clear();
-					
-					extensionConfig.emailAccountId = accId;
-					extensionConfig.emailCurrentId = accId;
-
+				if((i == 0) && (this.accountSelectorChoices))
 					this.accountSelectorChoices.clear();
 
-					extensionConfig.emailAccountRow = "first";				
-					extensionConfig.emailBlinkDisplay = "block";
-					extensionConfig.emailSyncDisplay = "block";
-										
-					extensionConfig.emailBlinkNotify = extensionConfig.emailBlinkNotifyCfg[accId];
-					extensionConfig.emailNotifyAlert = extensionConfig.emailNotifyAlertCfg[accId];					
-					extensionConfig.emailRingtoneName = extensionConfig.emailRingtoneNameCfg[accId];					
-					extensionConfig.emailRingtonePath = extensionConfig.emailRingtonePathCfg[accId];					
-					extensionConfig.emailSyncInterval = extensionConfig.emailSyncIntervalCfg[accId];					
-					
-					extensionConfig.emailAlertDisplay = "block";				
+				if(accId == this.defaultAccountId) {
+					extensionConfig.emailAccountsCfg.unshift({
+						'databaseId': serviceResponse.results[i]._id,
+						'isDefault' : true,
+						'accountId': serviceResponse.results[i].accountId,
+						'identifier': extensionConfig.emailAccounts[accId] + " - " + serviceResponse.results[i].username });
 
-					if((extensionConfig.emailNotifyAlert == -1) || (extensionConfig.emailNotifyAlert == 2))
-						extensionConfig.emailRingtoneDisplay = "block";
+					if(this.accountSelectorChoices) {
+						this.accountSelectorChoices.unshift({
+							'label': extensionConfig.emailAccounts[accId] + " - " + serviceResponse.results[i].username, 
+							'value': serviceResponse.results[i].accountId });
+					}
 				}
+				else {
+					extensionConfig.emailAccountsCfg.push({
+						'databaseId': serviceResponse.results[i]._id,
+						'isDefault' : false,
+						'accountId': serviceResponse.results[i].accountId,
+						'identifier': extensionConfig.emailAccounts[accId] + " - " + serviceResponse.results[i].username });
 
-				extensionConfig.emailAccountsCfg.push({
-					'databaseId': serviceResponse.results[i]._id,
-					'accountId': serviceResponse.results[i].accountId,
-					'identifier': extensionConfig.emailAccounts[accId] + " - " + serviceResponse.results[i].username });
+					if(this.accountSelectorChoices) {
+						this.accountSelectorChoices.push({
+							'label': extensionConfig.emailAccounts[accId] + " - " + serviceResponse.results[i].username, 
+							'value': serviceResponse.results[i].accountId });
+					}
+				}
+			}
+			
+			if(extensionConfig.emailAccountsCfg.length > 0) {
+				var accId = extensionConfig.emailAccountsCfg[0].accountId;
+			
+				extensionConfig.emailAccountId = accId;
+				extensionConfig.emailCurrentId = accId;
+
+				extensionConfig.emailAccountRow = "first";				
+				extensionConfig.emailBlinkDisplay = "block";
+				extensionConfig.emailSyncDisplay = "block";
+									
+				extensionConfig.emailBlinkNotify = extensionConfig.emailBlinkNotifyCfg[accId];
+				extensionConfig.emailNotifyAlert = extensionConfig.emailNotifyAlertCfg[accId];					
+				extensionConfig.emailRingtoneName = extensionConfig.emailRingtoneNameCfg[accId];					
+				extensionConfig.emailRingtonePath = extensionConfig.emailRingtonePathCfg[accId];					
+				extensionConfig.emailSyncInterval = extensionConfig.emailSyncIntervalCfg[accId];					
 				
-				this.accountSelectorChoices.push({
-					'label': extensionConfig.emailAccounts[accId] + " - " + serviceResponse.results[i].username, 
-					'value': serviceResponse.results[i].accountId });
+				extensionConfig.emailAlertDisplay = "block";				
+
+				if((extensionConfig.emailNotifyAlert == -1) || (extensionConfig.emailNotifyAlert == 2))
+					extensionConfig.emailRingtoneDisplay = "block";
 			}
 		}
 	}
 
 	this.getSystemSettings(++requestID, extensionConfig, doneCallback);
+}
+
+//
+
+EmailSettings.prototype.gotSystemSettings = function(extensionPreferences, doneCallback, extensionConfig) {
+	for(var i = 0; i < extensionConfig.emailAccountsCfg.length; i++) {
+		var accId = extensionConfig.emailAccountsCfg[i].accountId;
+		
+		extensionPreferences.accounts[accId] = {
+			isDefault: extensionConfig.emailAccountsCfg[i].isDefault,
+			databaseId: extensionConfig.emailAccountsCfg[i].databaseId,
+			identifier: extensionConfig.emailAccountsCfg[i].identifier };
+		
+		if(extensionPreferences.blinkNotify["default"] != undefined)
+			extensionPreferences.blinkNotify[accId] = extensionPreferences.blinkNotify["default"];
+
+		if(extensionPreferences.notifyAlert["default"] != undefined)
+			extensionPreferences.notifyAlert[accId] = extensionPreferences.notifyAlert["default"];
+
+		if(extensionPreferences.ringtoneName["default"] != undefined)
+			extensionPreferences.ringtoneName[accId] = extensionPreferences.ringtoneName["default"];
+
+		if(extensionPreferences.ringtonePath["default"] != undefined)
+			extensionPreferences.ringtonePath[accId] = extensionPreferences.ringtonePath["default"];
+
+		if(extensionPreferences.syncInterval["default"] != undefined)
+			extensionPreferences.syncInterval[accId] = extensionPreferences.syncInterval["default"];
+	}
+
+	if(extensionPreferences.blinkNotify["default"] != undefined)
+		delete extensionPreferences.blinkNotify["default"];
+
+	if(extensionPreferences.notifyAlert["default"] != undefined)
+		delete extensionPreferences.notifyAlert["default"];
+
+	if(extensionPreferences.ringtoneName["default"] != undefined)
+		delete extensionPreferences.ringtoneName["default"];
+
+	if(extensionPreferences.ringtonePath["default"] != undefined)
+		delete extensionPreferences.ringtonePath["default"];
+
+	if(extensionPreferences.syncInterval["default"] != undefined)
+		delete extensionPreferences.syncInterval["default"];
+
+	doneCallback();
 }
 

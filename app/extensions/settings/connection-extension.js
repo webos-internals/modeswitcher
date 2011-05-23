@@ -1,7 +1,11 @@
-function ConnectionSettings(controller, prefs) {
+function ConnectionSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+ConnectionSettings.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ ConnectionSettings.prototype.label = function() {
 
 //
 
-ConnectionSettings.prototype.setup = function(defaultChoiseLabel) {
+ConnectionSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesPhoneSelector = [
 		{'label': defaultChoiseLabel, value: -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -166,6 +172,15 @@ ConnectionSettings.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+ConnectionSettings.prototype.export = function(extensionPreferences) {
+}
+
+ConnectionSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

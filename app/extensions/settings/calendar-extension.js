@@ -1,19 +1,24 @@
-function CalendarSettings(controller, prefs) {
+function CalendarSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+CalendarSettings.prototype.basic = function() {
+	return false;
 }
 
 //
 
 CalendarSettings.prototype.label = function() {
-	if(this.prefs.advancedPrefs)
-		return $L("Calendar Settings");
+	return $L("Calendar Settings");
 }
 
 //
 
-CalendarSettings.prototype.setup = function(defaultChoiseLabel) {
+CalendarSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesCalendarBlinkSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -132,6 +137,15 @@ CalendarSettings.prototype.save = function(extensionConfig) {
 		extensionPreferences.blinkNotify = false;	
 	
 	return extensionPreferences;
+}
+
+//
+
+CalendarSettings.prototype.export = function(extensionPreferences) {
+}
+
+CalendarSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

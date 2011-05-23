@@ -1,7 +1,11 @@
-function IntervalTriggers(controller, prefs) {
+function IntervalTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+IntervalTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ IntervalTriggers.prototype.label = function() {
 
 //
 
-IntervalTriggers.prototype.setup = function() {
+IntervalTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.controller.setupWidget("IntervalIntervalHours",
 	 	{label: ' ', modelProperty: 'intervalIntervalHours', min: 0, max: 24 }); 
 

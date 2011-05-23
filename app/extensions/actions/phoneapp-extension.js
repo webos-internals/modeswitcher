@@ -1,7 +1,5 @@
-function PhoneappActions(controller, prefs) {
+function PhoneappActions(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
 }
 
 //
@@ -13,7 +11,9 @@ PhoneappActions.prototype.appid = function(type) {
 
 //
 
-PhoneappActions.prototype.setup = function() {
+PhoneappActions.prototype.setup = function(controller) {
+	this.controller = controller;
+	
 	this.choicesPhoneappLaunchSelector = [
 		{'label': $L("On Mode Start"), value: "start"},
 		{'label': $L("On Mode Close"), value: "close"} ];  

@@ -1,7 +1,11 @@
-function SilentswTriggers(controller, prefs) {
+function SilentswTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+SilentswTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ SilentswTriggers.prototype.label = function() {
 
 //
 
-SilentswTriggers.prototype.setup = function() {
+SilentswTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesSwitchStateSelector = [
 		{'label': $L("Switch On"), 'value': 1},
 		{'label': $L("Switch Off"), 'value': 0} ];  

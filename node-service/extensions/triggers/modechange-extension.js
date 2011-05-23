@@ -5,29 +5,29 @@
 	mode:							string
 	
 	Modechange Status Object:
-
+	
 	activity:					integer,
 	modes:						[strings]
 */
 
 var modechangeTriggers = (function() {
 	var that = {};
-
+	
 	var Foundations = IMPORTS.foundations;
-
+	
 	var PalmCall = Foundations.Comms.PalmCall;
-
+	
 	var Future = Foundations.Control.Future;
-
+	
 //
-
+	
 	var initExtension = function(config) {
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "status", {}); 
+		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "status", {});
 		
 		future.then(this, function(future) {
 			for(var i = 0; i < future.result.activeModes.length; i++)
 				config.modes.push(future.result.activeModes[i].name);
-		
+			
 			future.result = { returnValue: true };
 		});
 		
@@ -35,7 +35,7 @@ var modechangeTriggers = (function() {
 	};
 	
 //
-
+	
 	var addActivity = function(config) {
 		var newActivity = {
 			"start" : true,
@@ -51,15 +51,15 @@ var modechangeTriggers = (function() {
 				"callback" : {
 					"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
 					"params" : {"extension": "modechange"}
-				}                                                                                           
+				}
 			}
 		};
-
-		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity); 
-	
+		
+		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity);
+		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
-		
+			
 			future.result = { returnValue: true };
 		});
 			
@@ -70,30 +70,30 @@ var modechangeTriggers = (function() {
 		var oldActivity = {
 			"activityId": config.activity
 		};
-	
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity); 
-
+		
+		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		
 		future.then(this, function(future) {
 			config.activity = null;
-
+			
 			future.result = { returnValue: true };
 		});
 		
 		return future; 
 	};
-
+	
 //
-
+	
 	var checkState = function(config, trigger) {
 		if((trigger.state == "on") && (config.modes.indexOf(trigger.mode) != -1))
 			return true
-
+		
 		if((trigger.state == "off") && (config.modes.indexOf(trigger.mode) == -1))
 			return true
-
+		
 		return false;
 	};
-
+	
 	var triggerState = function(config, trigger, args) {
 		if((args.$activity) && (args.$activity.trigger) && 
 			(args.$activity.trigger.activeModes))
@@ -108,18 +108,18 @@ var modechangeTriggers = (function() {
 			if(config.modes.indexOf(trigger.mode) != -1)
 				return true;
 		}
-					
+		
 		return false;
 	};
-
+	
 // Asynchronous public functions
-
+	
 	that.initialize = function(config, triggers) {
 		config.activity = null;
 		config.modes = [];
-
+		
 		var future = new Future();
-	
+		
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
@@ -133,36 +133,36 @@ var modechangeTriggers = (function() {
 				});
 			});
 		}
-
+		
 		return future;
 	};
-
+	
 	that.shutdown = function(config) {
 		config.modes = [];
 		
 		var future = new Future();
-
+		
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
 			future.nest(delActivity(config));
-
+			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
 		}
-					
+		
 		return future;
 	};
-
+	
 //
-
+	
 	that.reload = function(config, triggers, args) {
 		config.activity = null;
 		config.modes = [];
-
+		
 		var future = new Future();
-
+		
 		if((!triggers) || (triggers.length == 0) ||
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
@@ -174,9 +174,9 @@ var modechangeTriggers = (function() {
 				for(var i = 0; i < args.$activity.trigger.activeModes.length; i++)
 					config.modes.push(args.$activity.trigger.activeModes[i].name);
 			}
-
+			
 			future.nest(addActivity(config));
-
+			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
@@ -184,17 +184,16 @@ var modechangeTriggers = (function() {
 		
 		return future;
 	};
-
+	
 // Synchronous public functions
-
+	
 	that.check = function(config, trigger) {
 		return checkState(config, trigger);
 	};
-
+	
 	that.trigger = function(config, trigger, args) {
 		return triggerState(config, trigger, args);
 	};
-
+	
 	return that;
 }());
-

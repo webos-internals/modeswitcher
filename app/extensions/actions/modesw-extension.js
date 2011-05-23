@@ -1,13 +1,5 @@
-function ModeswActions(controller, prefs) {
+function ModeswActions(controller) {
 	this.controller = controller;
-
-	this.prefs = prefs;
-	
-	this.modesList = [];
-
-	this.choicesModeswStartSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
-	this.choicesModeswCloseSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
-	this.choicesModeswTriggerSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
 }
 
 //
@@ -19,7 +11,18 @@ ModeswActions.prototype.appid = function(type) {
 
 //
 
-ModeswActions.prototype.setup = function() {
+ModeswActions.prototype.setup = function(controller, modeName, modeType) {
+	this.controller = controller;
+
+	this.modeName = modeName;
+	this.modeType = modeType;
+
+	this.modesList = [];
+
+	this.choicesModeswStartSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
+	this.choicesModeswCloseSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
+	this.choicesModeswTriggerSelector = [{'label': $L("Previous Mode"), 'value': "Previous Mode"}];
+
 	this.choicesModeswProcessSelector = [
 		{'label': $L("Before Mode Start"), value: "start"},
 		{'label': $L("Before Mode Close"), value: "close"},
@@ -69,16 +72,40 @@ ModeswActions.prototype.setup = function() {
 //
 
 ModeswActions.prototype.config = function(launchPoint) {
-	var extensionConfig = {
-		'name': launchPoint.title,
-		'modeProcess': "start", 
-		'modeAction': "start", 
-		'modeName': "Previous Mode",
-		'modeActionRow': "",
-		'modeStartDisplay': "block",
-		'modeCloseDisplay': "none",
-		'modeTriggerDisplay': "none" };
-	
+	if(this.modeType == "default") {
+		var extensionConfig = {
+			'name': launchPoint.title,
+			'modeProcess': "start", 
+			'modeAction': "close", 
+			'modeName': "All Modifier Modes",
+			'modeActionRow': "",
+			'modeStartDisplay': "none",
+			'modeCloseDisplay': "block",
+			'modeTriggerDisplay': "none" };
+	}
+	else if(this.modeType == "normal") {
+		var extensionConfig = {
+			'name': launchPoint.title,
+			'modeProcess': "close", 
+			'modeAction': "start", 
+			'modeName': "Previous Mode",
+			'modeActionRow': "",
+			'modeStartDisplay': "block",
+			'modeCloseDisplay': "none",
+			'modeTriggerDisplay': "none" };
+	}
+	else if(this.modeType == "modifier") {
+		var extensionConfig = {
+			'name': launchPoint.title,
+			'modeProcess': "start", 
+			'modeAction': "trigger", 
+			'modeName': "All Modifier Modes",
+			'modeActionRow': "",
+			'modeStartDisplay': "none",
+			'modeCloseDisplay': "none",
+			'modeTriggerDisplay': "block" };
+	}
+
 	return extensionConfig;
 }
 
@@ -113,18 +140,12 @@ ModeswActions.prototype.load = function(extensionPreferences) {
 }
 
 ModeswActions.prototype.save = function(extensionConfig) {
-	var force = "no";
-
-	if((extensionConfig.modeProcess == "switch") || (extensionConfig.modeProcess == "switched"))
-		force = "yes";
-	
 	var extensionPreferences = {
 		'type': "ms",
 		'name': extensionConfig.name,
 		'event': extensionConfig.modeProcess,
 		'action': extensionConfig.modeAction,
-		'mode': extensionConfig.modeName, 
-		'force': force };
+		'mode': extensionConfig.modeName };
 	
 	return extensionPreferences;
 }
@@ -190,19 +211,31 @@ ModeswActions.prototype.handleModeData = function(serviceResponse) {
 		if((this.modesList[i].type != "current") && (this.modesList[i].type != "default") &&
 			(this.modesList[i].type != "alln")) 
 		{
-			if(this.controller.get("NameText").mojo.getValue() != this.modesList[i].value)
+			if(((this.modesList[i].type != "previous") || (this.modeType == "default") || 
+				(this.modeType == "normal")) && (this.modeName != this.modesList[i].value))
+			{
 				this.choicesModeswStartSelector.push(this.modesList[i]);
+			}
 		}
 
-		if((this.modesList[i].type == "current") || (this.modesList[i].type == "modifier") ||
-			(this.modesList[i].type == "allm"))
+		if((this.modesList[i].type == "current") || (this.modesList[i].type == "normal") ||
+			(this.modesList[i].type == "modifier") || (this.modesList[i].type == "allm"))
 		{
-			this.choicesModeswCloseSelector.push(this.modesList[i]);
+			if(((this.modeType == "modifier") || (this.modesList[i].type != "current")) &&
+				(((this.modeType == "default") && (this.modesList[i].type != "normal")) ||
+				((this.modeType != "default") && ((this.modesList[i].type != "normal") || 
+				(this.modeName == this.modesList[i].value)))))
+			{
+				this.choicesModeswCloseSelector.push(this.modesList[i]);
+			}
 		}
 
 		if((this.modesList[i].type != "current") && (this.modesList[i].type != "default")) {
-			if(this.controller.get("NameText").mojo.getValue() != this.modesList[i].value)
+			if(((this.modeType != "modifier") || (this.modesList[i].type != "previous")) && 
+				(this.modeName != this.modesList[i].value))
+			{
 				this.choicesModeswTriggerSelector.push(this.modesList[i]);
+			}
 		}
 	}		
 }
@@ -225,15 +258,27 @@ ModeswActions.prototype.handleListChange = function(changeEvent) {
 
 			if(changeEvent.value == "start") {
 				changeEvent.model.modeStartDisplay = "block";
-				changeEvent.model.modeName = "Previous Mode";
+				
+				if(this.modeType == "modifier")
+					changeEvent.model.modeName = "All Modifier Modes";
+				else
+					changeEvent.model.modeName = "Previous Mode";				
 			}
 			else if(changeEvent.value == "close") {
 				changeEvent.model.modeCloseDisplay = "block";
-				changeEvent.model.modeName = "Current Mode";
+
+				if(this.modeType == "default")
+					changeEvent.model.modeName = "All Modifier Modes";
+				else
+					changeEvent.model.modeName = "Current Mode";					
 			}
 			else if(changeEvent.value == "trigger") {
 				changeEvent.model.modeTriggerDisplay = "block";
-				changeEvent.model.modeName = "Previous Mode";
+				
+				if(this.modeType == "modifier")
+					changeEvent.model.modeName = "All Modifier Modes";
+				else
+					changeEvent.model.modeName = "Previous Mode";
 			}
 		}
 		

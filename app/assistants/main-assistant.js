@@ -14,19 +14,19 @@ function MainAssistant(params) {
 
 	this.params = params;
 
+	this.toggling = false;
+	this.modeLocked = false;
+
 	this.apiVersion = "";
 	this.cfgVersion = "";
 
-	this.extensions = {appsrvs: [], settings: [], triggers: []};
-
-	this.preferences = {appsrvs: [], settings: [], triggers: []};
-
 	this.activeModes = [];
 	this.customModes = [];
-	
-	this.modeLocked = false;
-	
-	this.toggling = false;
+
+	this.extensions = {actions: [], settings: [], triggers: []};
+	this.preferences = {actions: [], settings: [], triggers: []};	
+
+	this.extensionModules = {actions: {}, settings: [], triggers: {}};
 }    
 
 MainAssistant.prototype.setup = function() {
@@ -54,7 +54,7 @@ MainAssistant.prototype.setup = function() {
 	
 	// Activated toggle button
 
-	this.modelActivatedButton = { value: false, disabled: true };
+	this.modelActivatedButton = { value: false, disabled: false };
 
 	this.controller.setupWidget('ActivatedButton', 
 		{falseValue: false, falseLabel: $L("Off"), trueValue: true, trueLabel: $L("On")},
@@ -76,7 +76,7 @@ MainAssistant.prototype.setup = function() {
 		{label: "25 " + $L("Seconds"), value: 25},
 		{label: "30 " + $L("Seconds"), value: 30}];
 
-	this.modelStartSelector = {value: 10, disabled: true};
+	this.modelStartSelector = {value: 10, disabled: false};
 	   
 	this.controller.setupWidget("StartSelector", {
 		label: $L("Start Timer"),
@@ -92,7 +92,7 @@ MainAssistant.prototype.setup = function() {
 		{label: "25 " + $L("Seconds"), value: 25},
 		{label: "30 " + $L("Seconds"), value: 30}];
 		
-	this.modelCloseSelector = {value: 10, disabled: true};
+	this.modelCloseSelector = {value: 10, disabled: false};
 	   
 	this.controller.setupWidget("CloseSelector", {
 		label: $L("Close Timer"),
@@ -108,7 +108,7 @@ MainAssistant.prototype.setup = function() {
 
 	// Modes List
 	
-	this.modelModesList = {items: [], disabled: true};
+	this.modelModesList = {items: [], disabled: false};
 	
 	this.controller.setupWidget("ModesList", {
 		itemTemplate: 'templates/modes-item',
@@ -130,7 +130,7 @@ MainAssistant.prototype.setup = function() {
 
 	// Add custom mode button
 
-	this.modelAddModeButton = {buttonClass: '', disabled: true};
+	this.modelAddModeButton = {buttonClass: '', disabled: false};
 
 	this.controller.setupWidget('AddModeButton', 
 		{label: $L("Add Custom Mode")}, this.modelAddModeButton);
@@ -140,13 +140,17 @@ MainAssistant.prototype.setup = function() {
 
 	// Edit default mode button
 
-	this.modelDefModeButton = {buttonClass: '', disabled: true};
+	this.modelDefModeButton = {buttonClass: '', disabled: false};
 
 	this.controller.setupWidget('DefModeButton', 
 		{label: $L("Edit Default Mode")}, this.modelDefModeButton);
 	
 	Mojo.Event.listen(this.controller.get('DefModeButton'), Mojo.Event.tap, 
 		this.handleDefModeButtonPress.bind(this));
+
+	this.modelWaitSpinner = { spinning: false };
+
+	this.controller.setupWidget('waitSpinner', {spinnerSize: Mojo.Widget.spinnerLarge}, this.modelWaitSpinner);
 }
 
 //
@@ -183,6 +187,48 @@ MainAssistant.prototype.updatePreferences = function(response) {
 	this.extensions = response.extensions;
 	this.preferences = response.preferences;
 
+	// Load extensions
+
+	delete this.extensionModules;
+	this.extensionModules = {actions: {}, settings: {}, triggers: {}};
+	
+	for(var i = 0; i < this.extensions.actions.length; i++) {
+		var className = this.extensions.actions[i].charAt(0).toUpperCase() + this.extensions.actions[i].slice(1);
+
+		this.extensionModules.actions[this.extensions.actions[i]] = eval("new " + className + "Actions(this.controller);");
+	}
+
+	for(var i = 0; i < this.extensions.settings.length; i++) {
+		var className = this.extensions.settings[i].charAt(0).toUpperCase() + this.extensions.settings[i].slice(1);
+
+		this.extensionModules.settings[this.extensions.settings[i]] = eval("new " + className + "Settings(this.controller);");
+	}
+ 
+	for(var i = 0; i < this.extensions.triggers.length; i++) {
+		var className = this.extensions.triggers[i].charAt(0).toUpperCase() + this.extensions.triggers[i].slice(1);
+
+		this.extensionModules.triggers[this.extensions.triggers[i]] = eval("new " + className + "Triggers(this.controller);");
+	}
+
+	if((this.params) && (this.params.name != undefined)) {
+		for(var i = 0; i < this.customModes.length; i++) {
+			if(this.customModes[i].name == this.params.name) {
+				this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, 
+					this.extensions, this.extensionModules, this.customModes, i);
+
+				this.params = null;
+				
+				break;
+			}
+		}
+	}
+
+	this.modelWaitSpinner.spinning = false;
+	
+	this.controller.modelChanged(this.modelWaitSpinner, this);
+
+	this.controller.get("overlay-scrim").hide();
+
 	// Check for need of initial default mode setup
 	
 	if((this.appAssistant.isNewOrFirstStart == 1) || (this.customModes.length == 0)) {
@@ -196,8 +242,7 @@ MainAssistant.prototype.updatePreferences = function(response) {
 
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 			method: 'prefs', parameters: {extensions: this.extensions},
-			onComplete: function() {
-
+			onSuccess: function() {
 				this.controller.showAlertDialog({
 					title: $L("Enable Advanced Features?"),
 					message: "<div align='justify'>" + 
@@ -211,55 +256,94 @@ MainAssistant.prototype.updatePreferences = function(response) {
 						var cookie = new Mojo.Model.Cookie('preferences');
 
 						cookie.put({ 'advancedPrefs': value });
+
+						this.appAssistant.isNewOrFirstStart = 0;
 						
-						this.controller.showAlertDialog({
-							title: $L("Initial setup of Mode Switcher!"),
-							message: "<div align='justify'>" + 
-								$L("<i>Mode Switcher</i> needs to retrieve your current system settings for <i>Default Mode</i>. " +
-								"This operation should only take few seconds to finish. You can modify the <i>Default Mode</i> " +
-								"afterwards by clicking the <i>Edit Default Mode</i> button.") + "</div>",
-							choices:[{label:$L("Continue"), value:"ok", type:'default'}],
-							preventCancel: true,
-							allowHTMLMessage: true,
-							onChoose: function(value) {
-								this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, this.extensions, this.customModes, 0);
-							}.bind(this)}); 
+						if(this.customModes.length == 0) {
+							this.customModes.push({ 
+								'name': "Default Mode", 'type': "default", 'startup': 0, 'start': 1, 'notify': 2, 
+								'actions': {'start': 0, 'close': 0, 'list': []}, 'settings': [], 'triggers': [] });
+					
+							this.controller.showAlertDialog({
+								title: $L("Initial setup of Mode Switcher!"),
+								message: "<div align='justify'>" + 
+									$L("<i>Mode Switcher</i> needs to retrieve your current system settings for <i>Default Mode</i>. " +
+									"This operation should only take few seconds to finish. You can modify the <i>Default Mode</i> " +
+									"afterwards by clicking the <i>Edit Default Mode</i> button.") + "</div>",
+								choices:[{label:$L("Continue"), value:"ok", type:'default'}],
+								preventCancel: true,
+								allowHTMLMessage: true,
+								onChoose: function(advancedPrefs, value) {
+									this.retrieveCurrentSettings(0, "everything", advancedPrefs);
+								}.bind(this, value)}); 
+						}
 					}.bind(this)}); 
-			}.bind(this)});					
+			}.bind(this),
+			onFailure: this.unknownServiceError.bind(this)});					
+	}
+}
+
+//
+
+MainAssistant.prototype.retrieveCurrentSettings = function(index, target, advancedPrefs) {
+	if(index == 0) {
+		Mojo.Log.info("Retrieving current system settings");
+
+		this.controller.get("overlay-scrim").show();
+
+		this.modelWaitSpinner.spinning = true;
+		
+		this.controller.modelChanged(this.modelWaitSpinner, this);
+
+		this.appControl.showBanner($L("Retrieving current system settings"), {});
+	}
+
+	if(index < this.extensions.settings.length) {
+		if((advancedPrefs == true) || 
+			(this.extensionModules.settings[this.extensions.settings[index]].basic() == true))
+		{
+			Mojo.Log.info("Retrieving " + this.extensions.settings[index] + " settings");
+
+			var callback = this.retrievedCurrentSettings.bind(this, index, target, advancedPrefs);
+
+			this.extensionModules.settings[this.extensions.settings[index]].fetch(callback);
+		}
+		else {
+			this.retrieveCurrentSettings(++index, target, advancedPrefs);
+		}		
 	}
 	else {
-		this.appAssistant.isNewOrFirstStart = 0;	
-		
-		this.modelActivatedButton.disabled = false;
-		this.controller.modelChanged(this.modelActivatedButton, this);
-		
-		this.modelStartSelector.disabled = false;
-		this.controller.modelChanged(this.modelStartSelector, this);
+		this.customModes[0].settings.sort(this.sortAlphabeticallyFunction);
 
-		this.modelCloseSelector.disabled = false;
-		this.controller.modelChanged(this.modelCloseSelector, this);
-		
-		this.modelModesList.disabled = false;
-		this.controller.modelChanged(this.modelModesList, this);
-		
-		this.modelAddModeButton.disabled = false;
-		this.controller.modelChanged(this.modelAddModeButton, this);
-		
-		this.modelDefModeButton.disabled = false;
-		this.controller.modelChanged(this.modelDefModeButton, this);
-		
-		if((this.params) && (this.params.name != undefined)) {
-			for(var i = 0; i < this.customModes.length; i++) {
-				if(this.customModes[i].name == this.params.name) {
-					this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, this.extensions, this.customModes, i);
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+			method: 'prefs', parameters: {customModes: this.customModes},
+			onSuccess: function() {
+				Mojo.Log.info("Retrieving system settings finished");
 
-					this.params = null;
-					
-					break;
-				}
-			}
-		}
+				this.modelWaitSpinner.spinning = false;
+		
+				this.controller.modelChanged(this.modelWaitSpinner, this);
+
+				this.controller.get("overlay-scrim").hide();
+
+				this.appControl.showBanner($L("Retrieving system settings finished"), {});
+			}.bind(this),
+			onFailure: this.unknownServiceError.bind(this)});
 	}
+}
+
+MainAssistant.prototype.retrievedCurrentSettings = function(index, target, advancedPrefs, settings) {
+	if(settings != undefined) {
+		var data = this.extensionModules.settings[this.extensions.settings[index]].save(settings);	
+	
+		data.extension = this.extensions.settings[index];
+
+		this.customModes[0].settings.push(data);
+
+		this.customModes[0].settings.sort(this.sortAlphabeticallyFunction);
+	}
+
+	this.retrieveCurrentSettings(++index, target, advancedPrefs);
 }
 
 //
@@ -278,7 +362,8 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 		
 		 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "unlock"},
-				onComplete: function() { this.toggling = false; }.bind(this)});
+				onSuccess: function() { this.toggling = false; }.bind(this),
+				onFailure: this.unknownServiceError.bind(this)});
 		}
 		else {
 			this.modeLocked = true;
@@ -287,7 +372,8 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 
 		 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "lock"},
-				onComplete: function() { this.toggling = false; }.bind(this)});
+				onSuccess: function() { this.toggling = false; }.bind(this),
+				onFailure: this.unknownServiceError.bind(this)});
 		}
 	}
 	else {
@@ -309,20 +395,22 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 		if(this.modelActivatedButton.value) {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "enable"},
-				onComplete: function() {
+				onSuccess: function() {
 					this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 						method: 'execute', parameters: {action: "start", name: "Default Mode"},
 						onComplete: function() {
 							this.toggling = false;
 						}.bind(this)});
-				}.bind(this)});
+				}.bind(this),
+				onFailure: this.unknownServiceError.bind(this)});
 		}
 		else {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "disable"},
-				onComplete: function() {
+				onSuccess: function() {
 					this.toggling = false;
-				}.bind(this)});					
+				}.bind(this),
+				onFailure: this.unknownServiceError.bind(this)});					
 		}		
 	}
 }
@@ -333,7 +421,8 @@ MainAssistant.prototype.setTimerPreferences = function(event) {
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 			method: 'prefs', parameters: {
 				startTimer: this.modelStartSelector.value * 1000,
-				closeTimer: this.modelCloseSelector.value * 1000}});
+				closeTimer: this.modelCloseSelector.value * 1000},
+			onFailure: this.unknownServiceError.bind(this)});
 }
 
 //
@@ -343,10 +432,12 @@ MainAssistant.prototype.handleModesListTap = function(event) {
 	
 	if((event.originalEvent.up) && (event.originalEvent.up.altKey)) {
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", { 
-			'method': "execute", 'parameters': {'action': "toggle", 'name': this.customModes[index + 1].name}});
+			'method': "execute", 'parameters': {'action': "toggle", 'name': this.customModes[index + 1].name},
+			onFailure: this.unknownServiceError.bind(this)});
 	}
 	else if (index >= 0)
-		this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, this.extensions, this.customModes, index + 1);
+		this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, 
+			this.extensions, this.extensionModules, this.customModes, index + 1);
 }
 
 MainAssistant.prototype.handleModesListReorder = function(event) {
@@ -370,10 +461,12 @@ MainAssistant.prototype.handleRemoveModeFromList = function(event) {
 	this.modelModesList.items.splice(event.index, 1);
 
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-		method: 'prefs', parameters: {customModes: this.customModes}});
+		method: 'prefs', parameters: {customModes: this.customModes},
+		method: 'prefs', parameters: {customModes: this.customModes},
+		onFailure: this.unknownServiceError.bind(this)});
 }
 
-MainAssistant.prototype.handleAddModeButtonPress = function() {
+MainAssistant.prototype.handleAddModeButtonPress = function(event) {
 	if((event.up) && (event.up.altKey)) {
 		if(this.customModes.length > 1)
 			this.customModes.splice(1, this.customModes.length - 1);		
@@ -383,13 +476,16 @@ MainAssistant.prototype.handleAddModeButtonPress = function() {
 		this.controller.modelChanged(this.modelModesList, this);
 
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-			method: 'prefs', parameters: {customModes: this.customModes}});
+			method: 'prefs', parameters: {customModes: this.customModes},
+			onFailure: this.unknownServiceError.bind(this)});
 	}
-	else
-		this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, this.extensions, this.customModes);
+	else {
+		this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, 
+			this.extensions, this.extensionModules, this.customModes);
+	}
 }
 
-MainAssistant.prototype.handleDefModeButtonPress = function() {
+MainAssistant.prototype.handleDefModeButtonPress = function(event) {
 	if((event.up) && (event.up.altKey)) {
 		var id = this.customModes[0]._id;
 	
@@ -399,10 +495,28 @@ MainAssistant.prototype.handleDefModeButtonPress = function() {
 		};
 			
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-			method: 'prefs', parameters: {customModes: this.customModes}});
+			method: 'prefs', parameters: {customModes: this.customModes},
+			onFailure: this.unknownServiceError.bind(this)});
 	}
-	else
-		this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, this.extensions, this.customModes, 0);
+	else {
+		this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, 
+			this.extensions, this.extensionModules, this.customModes, 0);
+	}
+}
+
+MainAssistant.prototype.unknownServiceError = function(response) {
+	this.modelWaitSpinner.spinning = false;
+	
+	this.controller.modelChanged(this.modelWaitSpinner, this);
+
+	this.controller.get("overlay-scrim").hide();
+
+	this.controller.showAlertDialog({
+		title: $L("Unknown Service Error!"),
+		message: "<div align='justify'>" + $L("<i>Mode Switcher</i> service not responding.") + "</div>",
+		choices:[{label:$L("Continue"), value:"ok", type:'default'}],
+		preventCancel: true,
+		allowHTMLMessage: true}); 
 }
 
 MainAssistant.prototype.handleCommand = function(event) {
@@ -414,17 +528,51 @@ MainAssistant.prototype.handleCommand = function(event) {
 			this.controller.stageController.pushScene("prefs", this.extensions, this.preferences);
 		}
 		else if(event.command == "export") {
-			this.controller.stageController.pushScene("gdm", "exportGDoc", "All Modes", "[MSCFG] *", 
-				{title: "Mode Switcher v" + this.cfgVersion + " - All Modes", body: this.customModes}, null);
+			this.controller.get("overlay-scrim").show();
+
+			this.modelWaitSpinner.spinning = true;
+		
+			this.controller.modelChanged(this.modelWaitSpinner, this);
+
+			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+				method: 'prefs', parameters: {keys: ["cfgVersion", "customModes"]}, 
+				onSuccess: function(response) {
+					if((response) && (response.cfgVersion) && (response.customModes)) {
+						var document = {version: response.cfgVersion, modes: response.customModes}
+						
+						for(var i = 0; i < document.modes.length; i++){
+							for(var j = 0; j < document.modes[i].settings.length; j++) {
+								var ext = document.modes[i].settings[j].extension;
+								
+								var module = this.extensionModules.settings[ext];
+
+								if(module != undefined)
+									module.export(document.modes[i].settings[j]);
+								else
+									document.modes[i].settings.splice(j, 1);
+							}
+						}
+						
+						this.modelWaitSpinner.spinning = false;
+		
+						this.controller.modelChanged(this.modelWaitSpinner, this);
+
+						this.controller.get("overlay-scrim").hide();
+
+						this.controller.stageController.pushScene("gdm", "exportGDoc", "All Modes", 
+							"[MSCFG] *", {'title': "Mode Switcher - All Modes", 'body': document}, null);
+					}
+				}.bind(this),
+				onFailure: this.unknownServiceError.bind(this)});
 		}
 		else if(event.command == "import") {
-			this.controller.stageController.pushScene("gdm", "importGDoc", "All Modes", "[MSCFG] *", 
-				{title: "Mode Switcher v"}, this.importAllModes.bind(this));
+			this.controller.stageController.pushScene("gdm", "importGDoc", "All Modes", 
+				"[MSCFG] *", null, this.importAllModes.bind(this));
 		}
 		else if(event.command == "status") {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'status', parameters: {},
-				onComplete: function(response) {
+				onSuccess: function(response) {
 					if((response) && (response.activeModes)) {
 						var text = "";
 			
@@ -458,7 +606,8 @@ MainAssistant.prototype.handleCommand = function(event) {
 							}.bind(this)}); 
 
 					}
-				}.bind(this)});
+				}.bind(this),
+				onFailure: this.unknownServiceError.bind(this)});
 		}		
 		else if(event.command == "help") {
 			this.controller.stageController.pushScene("support", this.customModes);
@@ -467,9 +616,7 @@ MainAssistant.prototype.handleCommand = function(event) {
 }
 
 MainAssistant.prototype.importAllModes = function(data) {
-	var version = data.title.slice(15, 18);
-
-	if(version != this.cfgVersion) {
+	if((data.body.version != this.cfgVersion) || (data.body.modes == undefined)) {
 		this.controller.showAlertDialog({
 			title: $L("Configuration Version Error"),
 			message: "The version of the modes configuration that you are trying to import is not supported.",
@@ -481,95 +628,55 @@ MainAssistant.prototype.importAllModes = function(data) {
 			}.bind(this)}); 
 	}
 	else {
-		var modes = data.body;
-
 		this.controller.showAlertDialog({
 			title: $L("Select Modes for Importing"),
-		/*	message: "<div align='justify'>" + $L("What modes should be imported?") + "</div>",*/
 			choices:[
 				{label:$L("Import All Modes"), value:"all", type:'default'},
 				{label:$L("Only Import Default Mode"), value:"default", type:'default'},
 				{label:$L("Only Import Custom Modes"), value:"custom", type:'default'}],
-			preventCancel: true,
+			preventCancel: false,
 			allowHTMLMessage: true,
 			onChoose: function(modes, value) {
-				var importError = false;
+				if(value == "custom")
+					modes.splice(0, 1);
+				else if(value == "default")
+					modes.splice(1, modes.length - 1);					
 			
-				for(var i = 0; i < modes.length; i++) {
-					var mode = modes[i];
+				if(value) {
+					this.controller.get("overlay-scrim").show();
 
-					if((mode.actions != undefined) && (mode.actions.list != undefined) && 
-						(mode.actions.start != undefined) && (mode.actions.close != undefined) && 
-						(mode.settings != undefined) && (mode.triggers != undefined))
-					{
-						if((mode.name == undefined) || (mode.name.length == 0) || 
-							(mode.name == "Current Mode") || (mode.name == "Previous Mode") ||
-							(mode.name == "All Modes") || (mode.name == "All Normal Modes") ||
-							(mode.name == "All Modifier Modes"))
-						{
-							importError = true;
-						}
-						else if((mode.name == "Default Mode") && (mode.type == "default") &&
-							(mode.startup != undefined) && (mode.start != undefined) && (mode.notify != undefined))
-						{
-							if((value == "all") || (value == "default")) {
-								if(this.customModes[0]._id != undefined)
-									var id = this.customModes[0]._id;
-						
-								this.customModes.splice(0, 1, mode);
-							
-								if(id != undefined)
-									this.customModes[0]._id = id;
-							}
-						}
-						else if(((mode.type == "normal") || (mode.type == "modifier")) &&
-							(mode.start != undefined) && (mode.close != undefined) && (mode.notify != undefined))
-						{
-							if((value == "all") || (value == "custom")) {
-								var index = this.customModes.search("name", mode.name);
+					this.modelWaitSpinner.spinning = true;
+
+					this.controller.modelChanged(this.modelWaitSpinner, this);
 				
-								if(index != -1) {
-									mode.name = mode.name + " (I)";
-
-									var index = this.customModes.search("name", mode.name);
-								
-									if(index != -1) {
-										if(this.customModes[index]._id != undefined)
-											var id = this.customModes[index]._id;
-						
-										this.customModes.splice(index, 1, mode);
-							
-										if(id != undefined)
-											this.customModes[index]._id = id;
-									}
-									else
-										this.customModes.push(mode);								
-								}
-								else
-									this.customModes.push(mode);
-							}
-						}
-						else
-							importError = true;
-					}
-					else
-						importError = true;
+					this.importModeConfig(modes, 0, 0);
 				}
+			}.bind(this, data.body.modes)});
+	}
+}
 
-				this.modelModesList.items.clear();
+MainAssistant.prototype.importModeConfig = function(modes, modeIdx, settingsIdx, error) {
+	if((modeIdx == modes.length) || (error)) {
+		this.modelModesList.items.clear();
 
-				for(var i = 1; i < this.customModes.length; i++)
-					this.modelModesList.items.push(this.customModes[i]);
+		for(var i = 1; i < this.customModes.length; i++)
+			this.modelModesList.items.push(this.customModes[i]);
 
-				this.controller.modelChanged(this.modelModesList, this);
-		
-				this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-					method: 'prefs', parameters: {customModes: this.customModes}});
+		this.controller.modelChanged(this.modelModesList, this);
 
-				if(importError) {
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+			method: 'prefs', parameters: {'customModes': this.customModes},
+			onSuccess: function(error, response) {
+				this.modelWaitSpinner.spinning = false;
+
+				this.controller.modelChanged(this.modelWaitSpinner, this);
+
+				this.controller.get("overlay-scrim").hide();
+				
+				if(error) {
 					this.controller.showAlertDialog({
 						title: $L("Configuration Import Error"),
-						message: "There was error while importing modes configuration, most likely the configuration you tried to import was malformed.",
+						message: "<div align='justify'>There was error while importing mode configuration, most likely the configuration you tried to import was malformed.</div>",
 						choices:[
 							{label:$L("Close"), value:"close", type:'default'}],
 						preventCancel: true,
@@ -577,8 +684,109 @@ MainAssistant.prototype.importAllModes = function(data) {
 						onChoose: function(value) {
 						}.bind(this)}); 
 				}
-			}.bind(this, modes)});
+			}.bind(this, error),
+			onFailure: this.unknownServiceError.bind(this)});
 	}
+	else {
+		if((settingsIdx == 0) && (!this.importModeCheck(modes, modeIdx))) {
+			this.importModeConfig(modes, modes.length, 0, "Malformed configuration.");		
+		}
+		else {
+			if(modes[modeIdx].settings.length == settingsIdx) {
+				if(modes[modeIdx].type == "default") {
+					if(this.customModes[0]._id != undefined)
+						var id = this.customModes[0]._id;
+		
+					this.customModes.splice(0, 1, modes[modeIdx]);
+			
+					if(id != undefined)
+						this.customModes[0]._id = id;
+				}
+				else {
+					var index = this.customModes.search("name", modes[modeIdx].name);
+				
+					if(index != -1) {
+						if(this.customModes[index]._id != undefined)
+							var id = this.customModes[index]._id;
+		
+						this.customModes.splice(index, 1, modes[modeIdx]);
+			
+						if(id != undefined)
+							this.customModes[index]._id = id;
+					}
+					else
+						this.customModes.push(modes[modeIdx]);								
+				}
+
+				this.importModeConfig(modes, ++modeIdx, 0);
+			}
+			else {
+				var ext = modes[modeIdx].settings[settingsIdx].extension;
+			
+				var module = this.extensionModules.settings[ext];
+
+				if(module != undefined) {
+					module.import(modes[modeIdx].settings[settingsIdx], 
+						this.importModeConfig.bind(this, modes, modeIdx, ++settingsIdx));
+				}
+				else {
+					modes[modeIdx].settings.splice(settingsIdx, 1);
+				
+					this.importModeConfig(modes, modeIdx, ++settingsIdx);
+				}
+			}
+		}
+	}
+}
+
+MainAssistant.prototype.importModeCheck = function(modes, modeIdx) {
+	if((modes[modeIdx].name == undefined) || (modes[modeIdx].type == undefined) ||
+		(modes[modeIdx].name.length == 0) || (modes[modeIdx].name == "Current Mode") ||
+		((modes[modeIdx].name == "Default Mode") && (modes[modeIdx].type != "default")) ||
+		(modes[modeIdx].name == "Previous Mode") || (modes[modeIdx].name == "All Modes") || 
+		(modes[modeIdx].name == "Any Normal Mode") || (modes[modeIdx].name == "Any Modifier Mode") ||
+		(modes[modeIdx].name == "All Normal Modes") || (modes[modeIdx].name == "All Modifier Modes"))
+	{
+		return false;
+	}
+
+	if((modes[modeIdx].actions == undefined) || (modes[modeIdx].actions.list == undefined) || 
+		(modes[modeIdx].actions.start == undefined) || (modes[modeIdx].actions.close == undefined) || 
+		(modes[modeIdx].settings == undefined) || (modes[modeIdx].triggers == undefined))
+	{
+		return false;
+	}
+
+	if((modes[modeIdx].type == "default") && (modes[modeIdx].startup != undefined) && 
+		(modes[modeIdx].start != undefined) && (modes[modeIdx].notify != undefined))
+	{
+		modes[modeIdx].name = "Default Mode";
+		
+		return true;
+	}
+
+	if(((modes[modeIdx].type == "normal") || (modes[modeIdx].type == "modifier")) && 
+		(modes[modeIdx].start != undefined) && (modes[modeIdx].close != undefined) && 
+		(modes[modeIdx].notify != undefined))
+	{
+		if(this.customModes.search("name", modes[modeIdx].name) != -1)
+			modes[modeIdx].name = modes[modeIdx].name + " (I)";
+		
+		return true;
+	}
+
+	return false;
+}
+
+//
+
+MainAssistant.prototype.sortAlphabeticallyFunction = function(a,b){
+	if(a.extension != undefined) {
+		var c = a.extension.toLowerCase();
+		var d = b.extension.toLowerCase();
+	}
+
+	return ((c < d) ? -1 : ((c > d) ? 1 : 0));
 }
 
 //
@@ -588,25 +796,19 @@ MainAssistant.prototype.activate = function(event) {
 	 *	For  example, key handlers that are observing the document. 
 	 */
 
-	if((event != undefined) && (event.customModes != undefined) && (event.modeIndex != undefined)) {
-		this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, this.extensions, event.customModes, event.modeIndex);
-	}
-	else {
-		// Check status and setup preference subscriptions for Mode Switcher service.
+	// Check status and setup preference subscriptions for Mode Switcher service.
+
+	this.controller.get("overlay-scrim").show();
+
+	this.modelWaitSpinner.spinning = true;
 	
-		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-			method: 'prefs', parameters: {keys: ["activated", "modeLocked", "apiVersion", "cfgVersion",  
-				"startTimer", "closeTimer", "activeModes", "customModes", "extensions", "preferences"]}, 
-			onSuccess: this.updatePreferences.bind(this),
-			onFailure: function(response) {
-				this.controller.showAlertDialog({
-					title: $L("Unknown Service Error!"),
-					message: "<div align='justify'>" + $L("<i>Mode Switcher</i> service not responding.") + "</div>",
-					choices:[{label:$L("Continue"), value:"ok", type:'default'}],
-					preventCancel: true,
-					allowHTMLMessage: true}); 
-			}.bind(this)});
-	}
+	this.controller.modelChanged(this.modelWaitSpinner, this);
+
+	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+		method: 'prefs', parameters: {keys: ["activated", "modeLocked", "apiVersion", "cfgVersion",  
+			"startTimer", "closeTimer", "activeModes", "customModes", "extensions", "preferences"]}, 
+		onSuccess: this.updatePreferences.bind(this),
+		onFailure: this.unknownServiceError.bind(this)});
 }
 	
 MainAssistant.prototype.deactivate = function(event) {

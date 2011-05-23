@@ -1,7 +1,11 @@
-function AirplaneSettings(controller, prefs) {
+function AirplaneSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+AirplaneSettings.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ AirplaneSettings.prototype.label = function() {
 
 //
 
-AirplaneSettings.prototype.setup = function(defaultChoiseLabel) {
+AirplaneSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesAirplaneModeSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
 		{'label': $L("Enabled"), 'value': 1},
@@ -70,6 +76,15 @@ AirplaneSettings.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+AirplaneSettings.prototype.export = function(extensionPreferences) {
+}
+
+AirplaneSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

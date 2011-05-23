@@ -1,9 +1,11 @@
-function ApplicationTriggers(controller, prefs) {
+function ApplicationTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
 
-	this.choicesApplicationSelector = [];  
+ApplicationTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -14,7 +16,11 @@ ApplicationTriggers.prototype.label = function() {
 
 //
 
-ApplicationTriggers.prototype.setup = function() {
+ApplicationTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
+	this.choicesApplicationSelector = [];  
+
 	this.choicesStateSelector = [
 		{'label': $L("On Foreground"), 'value': 0},
 		{'label': $L("On Background"), 'value': 1} ];  

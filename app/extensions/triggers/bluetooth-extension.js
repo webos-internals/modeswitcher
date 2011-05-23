@@ -1,7 +1,11 @@
-function BluetoothTriggers(controller, prefs) {
+function BluetoothTriggers(controller) {
 	this.controller = controller;
+}
 
-	this.prefs = prefs;
+//
+
+BluetoothTriggers.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ BluetoothTriggers.prototype.label = function() {
 
 //
 
-BluetoothTriggers.prototype.setup = function() {
+BluetoothTriggers.prototype.setup = function(controller) {
+	this.controller = controller;
+
 	this.choicesProfileStateSelector = [
 		{'label': $L("Connected"), 'value': 0},
 		{'label': $L("Disconnected"), 'value': 1},

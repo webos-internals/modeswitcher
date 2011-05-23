@@ -1,7 +1,11 @@
-function RingerSettings(controller, prefs) {
+function RingerSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
+
+//
+
+RingerSettings.prototype.basic = function() {
+	return true;
 }
 
 //
@@ -12,7 +16,9 @@ RingerSettings.prototype.label = function() {
 
 //
 
-RingerSettings.prototype.setup = function(defaultChoiseLabel) {
+RingerSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+	
 	this.choicesRingerOnSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},		
 		{'label': $L("Sound & Vibrate"), 'value': 1},
@@ -119,6 +125,15 @@ RingerSettings.prototype.save = function(extensionConfig) {
 	}
 
 	return extensionPreferences;
+}
+
+//
+
+RingerSettings.prototype.export = function(extensionPreferences) {
+}
+
+RingerSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	doneCallback();
 }
 
 //

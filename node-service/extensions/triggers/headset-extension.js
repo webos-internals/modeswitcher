@@ -5,36 +5,36 @@
 	scenario:					integer
 	
 	Headset Status Object:
-
+	
 	activity:					integer,
 	scenario:					string
 */
 
 var headsetTriggers = (function() {
 	var that = {};
-
+	
 	var Foundations = IMPORTS.foundations;
-
+	
 	var PalmCall = Foundations.Comms.PalmCall;
-
+	
 	var Future = Foundations.Control.Future;
-
+	
 //
-
+	
 	var initExtension = function(config) {
-		var future = PalmCall.call("palm://com.palm.audio/media", "status", {}); 
+		var future = PalmCall.call("palm://com.palm.audio/media", "status", {});
 		
 		future.then(this, function(future) {
 			config.scenario = future.result.scenario;
-		
+			
 			future.result = { returnValue: true };
 		});
 		
 		return future;
 	};
-
+	
 //
-
+	
 	var addActivity = function(config) {
 		var newActivity = {
 			"start" : true,
@@ -50,18 +50,18 @@ var headsetTriggers = (function() {
 				"callback" : {
 					"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
 					"params" : {"extension": "headset"}
-				}                                                                                           
+				}
 			}
 		};
-
-		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity);					
+		
+		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity);
 		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
-
+			
 			future.result = { returnValue: true };
 		});
-			
+		
 		return future;
 	};
 	
@@ -69,20 +69,20 @@ var headsetTriggers = (function() {
 		var oldActivity = {
 			"activityId": config.activity
 		};
-	
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);					
-
+		
+		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		
 		future.then(this, function(future) {
 			config.activity = null;
-
+			
 			future.result = { returnValue: true };
 		});
 		
 		return future; 
 	};
-
+	
 //
-
+	
 	var checkState = function(config, trigger) {
 		if((trigger.state == 0) && (trigger.scenario == 0) && 
 			((config.scenario == "media_headset") ||
@@ -119,7 +119,7 @@ var headsetTriggers = (function() {
 		
 		return false;
 	};
-
+	
 	var triggerState = function(config, trigger, args) {
 		if((args.$activity) && (args.$activity.trigger) &&
 			(args.$activity.trigger.scenario != undefined) &&
@@ -130,15 +130,15 @@ var headsetTriggers = (function() {
 				
 		return false;
 	};
-
+	
 // Asynchronous public functions
-
+	
 	that.initialize = function(config, triggers) {
 		config.activity = null;
 		config.scenario = "unknown";
-
+		
 		var future = new Future();
-	
+		
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
@@ -152,36 +152,36 @@ var headsetTriggers = (function() {
 				});
 			});
 		}
-
+		
 		return future;
 	};
-
+	
 	that.shutdown = function(config) {
 		config.scenario = "unknown";
 		
 		var future = new Future();
-
+		
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
 			future.nest(delActivity(config));
-
+			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
 		}
-					
+		
 		return future;
 	};
-
+	
 //
-
+	
 	that.reload = function(config, triggers, args) {
 		config.activity = null;
-		config.scenario = "unknown";			
-
+		config.scenario = "unknown";
+		
 		var future = new Future();
-
+		
 		if((!triggers) || (triggers.length == 0) ||
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
@@ -193,26 +193,26 @@ var headsetTriggers = (function() {
 				config.scenario = args.$activity.trigger.scenario;
 			else
 				config.scenario = "unknown";
-
+			
 			future.nest(addActivity(config));
-
+			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
 		}
-			
+		
 		return future;
 	};
-
+	
 // Synchronous public functions
-
+	
 	that.check = function(config, trigger) {
 		return checkState(config, trigger);
 	};
-
+	
 	that.trigger = function(config, trigger, args) {
 		return triggerState(config, trigger, args);
 	};
-
+	
 	return that;
 }());

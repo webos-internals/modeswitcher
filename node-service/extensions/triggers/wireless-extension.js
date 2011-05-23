@@ -5,7 +5,7 @@
 	ssid:						string
 	
 	Wireless Status Object:
-
+	
 	activity:				integer,
 	state:					string,
 	ssid:						string
@@ -13,25 +13,25 @@
 
 var wirelessTriggers = (function() {
 	var that = {};
-
+	
 	var Foundations = IMPORTS.foundations;
-
+	
 	var PalmCall = Foundations.Comms.PalmCall;
-
+	
 	var Future = Foundations.Control.Future;
-
+	
 //
-
+	
 	var initExtension = function(config) {
 		var future = PalmCall.call("palm://com.palm.connectionmanager", "getstatus", {}); 
-	
+		
 		future.then(this, function(future) {
 			if(future.result.wifi) {
 				if(future.result.wifi.state == "connected")
 					config.state = "connected";
 				else
 					config.state = "disconnected";
-
+				
 				if(future.result.wifi.ssid)
 					config.ssid = future.result.wifi.ssid.toLowerCase();
 				else
@@ -45,7 +45,7 @@ var wirelessTriggers = (function() {
 	};
 	
 //
-
+	
 	var addActivity = function(config) {
 		var newActivity = {
 			"start" : true,
@@ -61,18 +61,18 @@ var wirelessTriggers = (function() {
 				"callback" : {
 					"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
 					"params" : {"extension": "wireless"}
-				}                                                                                           
+				}
 			}
 		};
-
-		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity); 
-	
+		
+		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity);
+		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
-		
+			
 			future.result = { returnValue: true };
 		});
-			
+		
 		return future;
 	};
 	
@@ -80,30 +80,30 @@ var wirelessTriggers = (function() {
 		var oldActivity = {
 			"activityId": config.activity
 		};
-	
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity); 
-
+		
+		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		
 		future.then(this, function(future) {
 			config.activity = null;
-
+			
 			future.result = { returnValue: true };
 		});
 		
 		return future; 
 	};
-
+	
 //
-
+	
 	var checkState = function(config, trigger) {
 		if(config.state == "unknown")
 			return false;
 		else if(config.state == "connected") {
 			if(trigger.state == 0)
 				return true;
-
+			
 			if((trigger.state == 2) && (config.ssid == trigger.ssid.toLowerCase()))
 				return true;
-
+			
 			if((trigger.state == 3) && (config.ssid != trigger.ssid.toLowerCase()))
 				return true;
 		}
@@ -114,7 +114,7 @@ var wirelessTriggers = (function() {
 		
 		return false;
 	};
-
+	
 	var triggerState = function(config, trigger, args) {
 		if((args.$activity) && (args.$activity.trigger) &&
 			(args.$activity.trigger.wifi) && 
@@ -126,16 +126,16 @@ var wirelessTriggers = (function() {
 		
 		return false;
 	};
-
+	
 // Asynchronous public functions
-
+	
 	that.initialize = function(config, triggers) {
 		config.activity = null;
 		config.state = "unknown";
 		config.ssid = "unknown";
-
+		
 		var future = new Future();
-	
+		
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
@@ -149,38 +149,38 @@ var wirelessTriggers = (function() {
 				});
 			});
 		}
-
+		
 		return future;
 	};
-
+	
 	that.shutdown = function(config) {
 		config.state = "unknown";
 		config.ssid = "unknown";
 		
 		var future = new Future();
-
+		
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
 			future.nest(delActivity(config));
-
+			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
 		}
-					
+		
 		return future;
 	};
-
+	
 //
-
+	
 	that.reload = function(config, triggers, args) {
 		config.activity = null;
 		config.state = "unknown";
 		config.ssid = "unknown";
-
+		
 		var future = new Future();
-
+		
 		if((!triggers) || (triggers.length == 0) ||
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
@@ -192,8 +192,8 @@ var wirelessTriggers = (function() {
 				if(args.$activity.trigger.wifi.state == "connected")
 					config.state = "connected";
 				else
-					config.state = "disconnected";				
-
+					config.state = "disconnected";
+				
 				if(args.$activity.trigger.wifi.ssid)
 					config.ssid = args.$activity.trigger.wifi.ssid.toLowerCase();
 				else
@@ -201,25 +201,24 @@ var wirelessTriggers = (function() {
 			}
 			
 			future.nest(addActivity(config));
-
+			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
 		}
-			
+		
 		return future;
 	};
-
+	
 // Synchronous public functions
-
+	
 	that.check = function(config, trigger) {
 		return checkState(config, trigger);
 	};
-
+	
 	that.trigger = function(config, trigger, args) {
 		return triggerState(config, trigger, args);
 	};
-
+	
 	return that;
 }());
-

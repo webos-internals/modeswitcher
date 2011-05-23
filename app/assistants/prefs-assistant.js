@@ -59,7 +59,7 @@ PrefsAssistant.prototype.setup = function() {
 	this.controller.setupWidget('ActionsPrefsButton', 
 		{label: $L("Action Extensions")}, this.modelActionsButton);
 
-	this.modelTriggersButton = {buttonClass: '', disabled: false};
+	this.modelTriggersButton = {buttonClass: '', disabled: true};
 
 	this.controller.setupWidget('TriggersPrefsButton', 
 		{label: $L("Trigger Extensions")}, this.modelTriggersButton);

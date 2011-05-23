@@ -1,22 +1,29 @@
-function MessagingSettings(controller, prefs) {
+function MessagingSettings(controller) {
 	this.controller = controller;
-	
-	this.prefs = prefs;
+}
 
-	this.accountSelectorChoices = [
-		{'label': $L("No messaging accounts"), 'value': -1} ];
+//
+
+MessagingSettings.prototype.basic = function() {
+	return false;
 }
 
 //
 
 MessagingSettings.prototype.label = function() {
-	if(this.prefs.advancedPrefs)
-		return $L("Messaging Settings");
+	return $L("Messaging Settings");
 }
 
 //
 
-MessagingSettings.prototype.setup = function(defaultChoiseLabel) {
+MessagingSettings.prototype.setup = function(controller, defaultChoiseLabel) {
+	this.controller = controller;
+
+	if(!this.accountSelectorChoices) {
+		this.accountSelectorChoices = [
+			{'label': $L("No messaging accounts"), 'value': -1} ];
+	}
+	
 	this.choicesMsgAccountSelector = this.accountSelectorChoices;
 
 	this.controller.setupWidget("MessagingAccountSelector", { 
@@ -74,6 +81,11 @@ MessagingSettings.prototype.setup = function(defaultChoiseLabel) {
 //
 
 MessagingSettings.prototype.config = function() {
+	if(!this.accountSelectorChoices) {
+		this.accountSelectorChoices = [
+			{'label': $L("No messaging accounts"), 'value': -1} ];
+	}
+
 	var extensionConfig = {
 		'messagingTitle': $L("Messaging"),
 		'messagingAccountRow': "single",
@@ -132,8 +144,9 @@ MessagingSettings.prototype.load = function(extensionPreferences) {
 					identifier: extensionPreferences.accounts[accId].identifier });
 			}
 		}
-				
-		this.accountSelectorChoices.clear();
+		
+		if(this.accountSelectorChoices)
+			this.accountSelectorChoices.clear();
 	
 		for(var i = 0; i < extensionConfig.messagingAccountsCfg.length; i++) {
 			var accId = extensionConfig.messagingAccountsCfg[i].accountId;
@@ -175,9 +188,11 @@ MessagingSettings.prototype.load = function(extensionPreferences) {
 			if(extensionPreferences.availability[accId] != undefined)
 				extensionConfig.messagingAvailabilityCfg[accId] = extensionPreferences.availability[accId];
 		
-			this.accountSelectorChoices.push({
-				'label': extensionConfig.messagingAccountsCfg[i].identifier, 
-				'value': extensionConfig.messagingAccountsCfg[i].accountId });
+			if(this.accountSelectorChoices) {
+				this.accountSelectorChoices.push({
+					'label': extensionConfig.messagingAccountsCfg[i].identifier, 
+					'value': extensionConfig.messagingAccountsCfg[i].accountId });
+			}
 		}
 
 		extensionConfig.messagingBlinkNotify = extensionConfig.messagingBlinkNotifyCfg[extensionConfig.messagingCurrentId];
@@ -275,6 +290,67 @@ MessagingSettings.prototype.save = function(extensionConfig) {
 	}
 	
 	return extensionPreferences;
+}
+
+//
+
+MessagingSettings.prototype.export = function(extensionPreferences) {
+	if(extensionPreferences.accounts) {
+		var isFirstAccount = true;
+	
+		for(var accId in extensionPreferences.accounts) {
+			if(accId != "sms") {
+				if(isFirstAccount) {
+					isFirstAccount = false;
+
+					if(extensionPreferences.blinkNotify[accId] != undefined)
+						extensionPreferences.blinkNotify["im"] = extensionPreferences.blinkNotify[accId];
+
+					if(extensionPreferences.notifyAlert[accId] != undefined)
+						extensionPreferences.notifyAlert["im"] = extensionPreferences.notifyAlert[accId];
+
+					if(extensionPreferences.ringtoneName[accId] != undefined)
+						extensionPreferences.ringtoneName["im"] = extensionPreferences.ringtoneName[accId];
+
+					if(extensionPreferences.ringtonePath[accId] != undefined)
+						extensionPreferences.ringtonePath["im"] = extensionPreferences.ringtonePath[accId];
+
+					if(extensionPreferences.availability[accId] != undefined)
+						extensionPreferences.availability["im"] = extensionPreferences.availability[accId];
+				}
+				if(extensionPreferences.blinkNotify[accId] != undefined)			
+					delete extensionPreferences.blinkNotify[accId];
+			
+				if(extensionPreferences.notifyAlert[accId] != undefined)			
+					delete extensionPreferences.notifyAlert[accId];
+
+				if(extensionPreferences.ringtoneName[accId] != undefined)			
+					delete extensionPreferences.ringtoneName[accId];
+
+				if(extensionPreferences.ringtonePath[accId] != undefined)			
+					delete extensionPreferences.ringtonePath[accId];
+
+				if(extensionPreferences.availability[accId] != undefined)			
+					delete extensionPreferences.availability[accId];
+			}
+		}
+	
+		delete extensionPreferences.accounts;
+		
+		extensionPreferences.accounts = {};
+	}
+}
+
+MessagingSettings.prototype.import = function(extensionPreferences, doneCallback) {
+	if(extensionPreferences.accounts) {
+		var extensionConfig = this.config();
+	
+		var callback = this.gotSystemSettings.bind(this, extensionPreferences, doneCallback);
+	
+		this.getSystemSettings(0, extensionConfig, callback);
+	}
+	else
+		doneCallback();
 }
 
 //
@@ -555,5 +631,65 @@ MessagingSettings.prototype.handleGetResponse = function(requestID, extensionCon
 	}
 
 	this.getSystemSettings(++requestID, extensionConfig, doneCallback);
+}
+
+//
+
+MessagingSettings.prototype.gotSystemSettings = function(extensionPreferences, doneCallback, extensionConfig) {
+	for(var i = 0; i < extensionConfig.messagingAccountsCfg.length; i++) {
+		var accId = extensionConfig.messagingAccountsCfg[i].accountId;
+		
+		extensionPreferences.accounts[accId] = {
+			serviceName: extensionConfig.messagingAccountsCfg[i].serviceName,
+			databaseId: extensionConfig.messagingAccountsCfg[i].databaseId,
+			identifier: extensionConfig.messagingAccountsCfg[i].identifier };
+		
+		if(accId == "sms") {
+			if(extensionPreferences.blinkNotify["sms"] != undefined)
+				extensionPreferences.blinkNotify[accId] = extensionPreferences.blinkNotify["sms"];
+
+			if(extensionPreferences.notifyAlert["sms"] != undefined)
+				extensionPreferences.notifyAlert[accId] = extensionPreferences.notifyAlert["sms"];
+
+			if(extensionPreferences.ringtoneName["sms"] != undefined)
+				extensionPreferences.ringtoneName[accId] = extensionPreferences.ringtoneName["sms"];
+
+			if(extensionPreferences.ringtonePath["sms"] != undefined)
+				extensionPreferences.ringtonePath[accId] = extensionPreferences.ringtonePath["sms"];
+		}
+		else {
+			if(extensionPreferences.blinkNotify["im"] != undefined)
+				extensionPreferences.blinkNotify[accId] = extensionPreferences.blinkNotify["im"];
+
+			if(extensionPreferences.notifyAlert["im"] != undefined)
+				extensionPreferences.notifyAlert[accId] = extensionPreferences.notifyAlert["im"];
+
+			if(extensionPreferences.ringtoneName["im"] != undefined)
+				extensionPreferences.ringtoneName[accId] = extensionPreferences.ringtoneName["im"];
+
+			if(extensionPreferences.ringtonePath["im"] != undefined)
+				extensionPreferences.ringtonePath[accId] = extensionPreferences.ringtonePath["im"];
+
+			if(extensionPreferences.availability["im"] != undefined)
+				extensionPreferences.availability[accId] = extensionPreferences.availability["im"];
+		}
+	}
+
+	if(extensionPreferences.blinkNotify["im"] != undefined)
+		delete extensionPreferences.blinkNotify["im"];
+
+	if(extensionPreferences.notifyAlert["im"] != undefined)
+		delete extensionPreferences.notifyAlert["im"];
+
+	if(extensionPreferences.ringtoneName["im"] != undefined)
+		delete extensionPreferences.ringtoneName["im"];
+
+	if(extensionPreferences.ringtonePath["im"] != undefined)
+		delete extensionPreferences.ringtonePath["im"];
+
+	if(extensionPreferences.availability["im"] != undefined)
+		delete extensionPreferences.availability["im"];
+
+	doneCallback();
 }
 
