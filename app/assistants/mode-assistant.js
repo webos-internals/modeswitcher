@@ -422,7 +422,7 @@ ModeAssistant.prototype.setup = function() {
 // TRIGGERS
 //
 
-	this.modelRequiredSelector = {'value': 0, 'disabled': false};
+	this.modelRequiredSelector = {'value': this.mode.require, 'disabled': false};
 
 	this.choicesTriggerSelector = [
 		{'label': $L("All Unique"), 'value': 0},
@@ -511,6 +511,7 @@ ModeAssistant.prototype.getModeData = function(config) {
 	if(!config) {
 		if((this.modeIndex == undefined) || (this.customModes.length == 0)){
 			mode.require = 0;
+			
 			this.loaded.triggers = [{require: 0, list: []}];
 		
 			return mode;
@@ -677,6 +678,8 @@ ModeAssistant.prototype.setModeData = function(refresh) {
 			mode.settings.push(data);
 		}
 	}
+
+	this.loaded.triggers[this.groupidx].require = this.modelRequiredSelector.value;
 
 	for(var i = 0; i < this.loaded.triggers.length; i++) {
 		var trigger = {require: this.loaded.triggers[i].require, list: []};
@@ -1344,9 +1347,7 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'status', parameters: {mode: this.mode.name},
 				onComplete: function(response) {
-					if((response) && (response.groups) && (response.triggers)) {
 						this.showStatusInfo(response, 0);
-					}
 				}.bind(this)});					
 		}
 		else if(event.command == "help") {
@@ -1356,12 +1357,20 @@ ModeAssistant.prototype.handleCommand = function(event) {
 }
 
 ModeAssistant.prototype.showStatusInfo = function(status, group) {
-	if(group == status.groups.length)
-		group = 0;
-
-	if(this.mode.triggers.length == 0)
+	if((!status.groups) || (!status.triggers)) {
+		var text = "Could not get mode status info from the service.";
+		
+		var choices = [{label:$L("Close"), value:"close", type:'default'}];
+	}
+	else if(this.mode.triggers.length == 0) {
 		var text = "Status info not available since this mode has no triggers.";
+
+		var choices = [{label:$L("Close"), value:"close", type:'default'}];
+	}
 	else {
+		if(group == status.groups.length)
+			group = 0;
+
 		if(status.groups[group])
 			var state = "Valid";
 		else
@@ -1769,7 +1778,7 @@ ModeAssistant.prototype.importModeConfig = function(mode, settingsIdx) {
 				if(mode.triggers.length == 0)
 					this.modelRequiredSelector.value = 0;			
 				else
-					this.modelRequiredSelector.value = mode.notify;			
+					this.modelRequiredSelector.value = mode.require;			
 				
 				this.controller.modelChanged(this.modelRequiredSelector, this);		
 

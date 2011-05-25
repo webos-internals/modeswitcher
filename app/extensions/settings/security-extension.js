@@ -49,14 +49,14 @@ SecuritySettings.prototype.setup = function(controller, defaultChoiseLabel) {
 
 	this.choicesSecurityTimeoutSelector = [
 		{'label': defaultChoiseLabel, 'value': -1},
-		{'label': $L("Screen turns off"), 'value': 0},
-		{'label': $L("30 seconds"), 'value': 30},
-		{'label': $L("1 minute"), 'value': 60},
-		{'label': $L("2 minutes"), 'value': 120},
-		{'label': $L("3 minutes"), 'value': 180},
-		{'label': $L("5 minutes"), 'value': 300},
-		{'label': $L("10 minutes"), 'value': 600},
-		{'label': $L("30 minutes"), 'value': 1800} ];  
+		{'label': $L("Screen Turns Off"), 'value': 0},
+		{'label': $L("30 Seconds"), 'value': 30},
+		{'label': $L("1 Minute"), 'value': 60},
+		{'label': $L("2 Minutes"), 'value': 120},
+		{'label': $L("3 Minutes"), 'value': 180},
+		{'label': $L("5 Minutes"), 'value': 300},
+		{'label': $L("10 Minutes"), 'value': 600},
+		{'label': $L("30 Minutes"), 'value': 1800} ];  
 
 	this.controller.setupWidget("SecurityTimeoutSelector", {'label': $L("Lock After"), 
 		'labelPlacement': "left", 'modelProperty': "securityLockTimeout",

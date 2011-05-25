@@ -14,7 +14,8 @@ function MainAssistant(params) {
 
 	this.params = params;
 
-	this.toggling = false;
+	this.loading = true;
+
 	this.modeLocked = false;
 
 	this.apiVersion = "";
@@ -223,11 +224,7 @@ MainAssistant.prototype.updatePreferences = function(response) {
 		}
 	}
 
-	this.modelWaitSpinner.spinning = false;
-	
-	this.controller.modelChanged(this.modelWaitSpinner, this);
-
-	this.controller.get("overlay-scrim").hide();
+	this.loading = false;
 
 	// Check for need of initial default mode setup
 	
@@ -349,11 +346,22 @@ MainAssistant.prototype.retrievedCurrentSettings = function(index, target, advan
 //
 
 MainAssistant.prototype.toggleModeSwitcher = function(event) {
+	if(this.loading) {
+		if(this.modelActivatedButton.value)
+			this.modelActivatedButton.value = false;
+		else
+			this.modelActivatedButton.value = true;
+
+		this.controller.modelChanged(this.modelActivatedButton, this);
+
+		return;
+	}
+
 	if((event.up) && (event.up.altKey)) {
 		if((this.toggling) || (!this.modelActivatedButton.value))
 			return;
 
-		this.toggling = true;
+		this.loading = true;
 
 		if(this.modeLocked) {
 			this.modeLocked = false;
@@ -362,7 +370,7 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 		
 		 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "unlock"},
-				onSuccess: function() { this.toggling = false; }.bind(this),
+				onSuccess: function() { this.loading = false; }.bind(this),
 				onFailure: this.unknownServiceError.bind(this)});
 		}
 		else {
@@ -372,23 +380,12 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 
 		 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "lock"},
-				onSuccess: function() { this.toggling = false; }.bind(this),
+				onSuccess: function() { this.loading = false; }.bind(this),
 				onFailure: this.unknownServiceError.bind(this)});
 		}
 	}
 	else {
-		if(this.toggling) {
-			if(this.modelActivatedButton.value)
-				this.modelActivatedButton.value = false;
-			else
-				this.modelActivatedButton.value = true;
-	
-			this.controller.modelChanged(this.modelActivatedButton, this);
-	
-			return;
-		}
-
-		this.toggling = true;
+		this.loading = true;
 
 		this.controller.get("StatusText").innerHTML = "Activated";
 
@@ -399,7 +396,7 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 					this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 						method: 'execute', parameters: {action: "start", name: "Default Mode"},
 						onComplete: function() {
-							this.toggling = false;
+							this.loading = false;
 						}.bind(this)});
 				}.bind(this),
 				onFailure: this.unknownServiceError.bind(this)});
@@ -408,7 +405,7 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "disable"},
 				onSuccess: function() {
-					this.toggling = false;
+					this.loading = false;
 				}.bind(this),
 				onFailure: this.unknownServiceError.bind(this)});					
 		}		
@@ -428,6 +425,9 @@ MainAssistant.prototype.setTimerPreferences = function(event) {
 //
 
 MainAssistant.prototype.handleModesListTap = function(event) {
+	if(this.loading)
+		return;
+
 	var index = event.model.items.indexOf(event.item);
 	
 	if((event.originalEvent.up) && (event.originalEvent.up.altKey)) {
@@ -441,6 +441,12 @@ MainAssistant.prototype.handleModesListTap = function(event) {
 }
 
 MainAssistant.prototype.handleModesListReorder = function(event) {
+	if(this.loading) {
+		this.controller.modelChanged(this.modelModesList, this);
+	
+		return;
+	}
+
 	var tempMode = this.customModes[event.fromIndex + 1];
 	
 	this.customModes.splice(event.fromIndex + 1, 1);
@@ -456,6 +462,12 @@ MainAssistant.prototype.handleModesListReorder = function(event) {
 }
 
 MainAssistant.prototype.handleRemoveModeFromList = function(event) {
+	if(this.loading) {
+		this.controller.modelChanged(this.modelModesList, this);
+	
+		return;
+	}
+	
 	this.customModes.splice(event.index + 1, 1);
 
 	this.modelModesList.items.splice(event.index, 1);
@@ -467,6 +479,9 @@ MainAssistant.prototype.handleRemoveModeFromList = function(event) {
 }
 
 MainAssistant.prototype.handleAddModeButtonPress = function(event) {
+	if(this.loading)
+		return;
+
 	if((event.up) && (event.up.altKey)) {
 		if(this.customModes.length > 1)
 			this.customModes.splice(1, this.customModes.length - 1);		
@@ -486,6 +501,9 @@ MainAssistant.prototype.handleAddModeButtonPress = function(event) {
 }
 
 MainAssistant.prototype.handleDefModeButtonPress = function(event) {
+	if(this.loading)
+		return;
+
 	if((event.up) && (event.up.altKey)) {
 		var id = this.customModes[0]._id;
 	
@@ -505,6 +523,8 @@ MainAssistant.prototype.handleDefModeButtonPress = function(event) {
 }
 
 MainAssistant.prototype.unknownServiceError = function(response) {
+	this.loading = false;
+
 	this.modelWaitSpinner.spinning = false;
 	
 	this.controller.modelChanged(this.modelWaitSpinner, this);
@@ -797,12 +817,8 @@ MainAssistant.prototype.activate = function(event) {
 	 */
 
 	// Check status and setup preference subscriptions for Mode Switcher service.
-
-	this.controller.get("overlay-scrim").show();
-
-	this.modelWaitSpinner.spinning = true;
 	
-	this.controller.modelChanged(this.modelWaitSpinner, this);
+	this.loading = true;
 
 	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 		method: 'prefs', parameters: {keys: ["activated", "modeLocked", "apiVersion", "cfgVersion",  

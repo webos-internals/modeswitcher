@@ -315,7 +315,7 @@ var timeofdayTriggers = (function() {
 				addActivity.bind(this, future, config, true),
 				function(future) {
 					future.result = { returnValue: true };
-				});
+				}.bind(this, future));
 		}
 		
 		return future;
@@ -333,7 +333,7 @@ var timeofdayTriggers = (function() {
 					config.activities = [];
 				
 					future.result = { returnValue: true };
-				});
+				}.bind(this, future));
 		}
 		
 		return future;
@@ -356,7 +356,7 @@ var timeofdayTriggers = (function() {
 				addActivity.bind(this, future, config, false),
 				function(future) {
 					future.result = { returnValue: true };
-				});
+				}.bind(this, future));
 		}
 		
 		return future;

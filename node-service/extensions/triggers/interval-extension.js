@@ -229,7 +229,7 @@ var intervalTriggers = (function() {
 				addActivity.bind(this, future, config), 
 				function(future) { 
 					future.result = { returnValue: true }; 
-				});
+				}.bind(this, future));
 		}
 		
 		return future;	
@@ -243,12 +243,12 @@ var intervalTriggers = (function() {
 		else {
 			utils.asyncForEach(config.activities, 
 				delActivity.bind(this, future), 
-				function(config, future) {
+				function(future, config) {
 					config.activities = [];
 					config.activeModes = [];
 					
 					future.result = { returnValue: true };
-				}.bind(this, config));
+				}.bind(this, future, config));
 		}
 		
 		return future;
@@ -274,7 +274,7 @@ var intervalTriggers = (function() {
 				addActivity.bind(this, future, config), 
 				function(future) { 
 					future.result = { returnValue: true };
-				});
+				}.bind(this, future));
 		}
 		
 		return future;

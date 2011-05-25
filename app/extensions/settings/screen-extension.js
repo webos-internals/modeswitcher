@@ -116,11 +116,19 @@ ScreenSettings.prototype.load = function(extensionPreferences) {
 	if(extensionPreferences.turnOffTimeout != undefined)
 		extensionConfig.screenTurnOffTimeout = extensionPreferences.turnOffTimeout;
 
-	if(extensionPreferences.blinkNotify != undefined)
-		extensionConfig.screenBlinkNotify = extensionPreferences.blinkNotify;
+	if(extensionPreferences.blinkNotify != undefined) {
+		if(extensionPreferences.blinkNotify == true)
+			extensionConfig.screenBlinkNotify = 1;
+		else
+			extensionConfig.screenBlinkNotify = 0;
+	}		
 
-	if(extensionPreferences.lockedNotify != undefined)
-		extensionConfig.screenLockedNotify = extensionPreferences.lockedNotify; 
+	if(extensionPreferences.lockedNotify != undefined) {
+		if(extensionPreferences.lockedNotify == true)
+			extensionConfig.screenLockedNotify = 1;
+		else
+			extensionConfig.screenLockedNotify = 0;
+	}	
 
 	if(extensionPreferences.wallpaperPath != undefined) {
 		extensionConfig.screenWallpaperName = extensionPreferences.wallpaperName;
@@ -139,11 +147,19 @@ ScreenSettings.prototype.save = function(extensionConfig) {
 	if(extensionConfig.screenTurnOffTimeout != -1)
 		extensionPreferences.turnOffTimeout = parseInt(extensionConfig.screenTurnOffTimeout);
 	
-	if(extensionConfig.screenBlinkNotify != -1)
-		extensionPreferences.blinkNotify = extensionConfig.screenBlinkNotify;
-		
-	if(extensionConfig.screenLockedNotify != -1)
-		extensionPreferences.lockedNotify = extensionConfig.screenLockedNotify;
+	if(extensionConfig.screenBlinkNotify != -1) {
+		if(extensionConfig.screenBlinkNotify == 1)
+			extensionPreferences.blinkNotify = true;
+		else
+			extensionPreferences.blinkNotify = false;
+	}
+	
+	if(extensionConfig.screenLockedNotify != -1) {
+		if(extensionConfig.screenLockedNotify == 1)
+			extensionPreferences.lockedNotify = true;
+		else
+			extensionPreferences.lockedNotify = false;
+	}
 			
 	if(extensionConfig.screenWallpaperPath.length != 0) {
 		extensionPreferences.wallpaperName = extensionConfig.screenWallpaperName;
@@ -298,9 +314,15 @@ ScreenSettings.prototype.handleGetResponse = function(requestID, extensionConfig
 			extensionConfig.screenTurnOffTimeout = serviceResponse.timeout;
 		}
 		else if(requestID == 1) {
-			extensionConfig.screenBlinkNotify = serviceResponse.BlinkNotifications;
+			if(serviceResponse.BlinkNotifications == true)
+				extensionConfig.screenBlinkNotify = 1;
+			else
+				extensionConfig.screenBlinkNotify = 0;
 
-			extensionConfig.screenLockedNotify = serviceResponse.showAlertsWhenLocked;
+			if(serviceResponse.showAlertsWhenLocked == true)
+				extensionConfig.screenLockedNotify = 1;
+			else
+				extensionConfig.screenLockedNotify = 0;
 
 			if(serviceResponse.wallpaper.wallpaperName.length != 0) {
 				extensionConfig.screenWallpaperName = serviceResponse.wallpaper.wallpaperName;

@@ -526,7 +526,7 @@ var caleventTriggers = (function() {
 							addActivity.bind(this, future, config, parentIds), 
 							function(future) { 
 								future.result = { returnValue: true };
-							});
+							}.bind(this, future));
 					}
 				});
 			});
@@ -549,11 +549,11 @@ var caleventTriggers = (function() {
 		else {
 			utils.asyncForEach(config.activities, 
 				delActivity.bind(this, future, config, skipFirst), 
-				function(config, future) { 
+				function(future, config) { 
 					config.activities = [];
 				
 					future.result = { returnValue: true };
-				}.bind(this, config));
+				}.bind(this, future, config));
 		}
 		
 		return future;

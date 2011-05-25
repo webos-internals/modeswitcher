@@ -355,11 +355,13 @@ ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, m
 	// Loop through triggers in all groups and test are they valid or not.
 	
 	for(var group = 0; group < mode.triggers.length; group++) {
-		var triggerState = false;
+		var groupState = "unknown";
 		
-		for(var i = 0; i < config.extensions.triggers.length; i++) {
-			triggerState = "unknown";
+		var require = mode.triggers[group].require;
 			
+		for(var i = 0; i < config.extensions.triggers.length; i++) {
+			var triggerState = "unknown";
+
 			for(var j = 0; j < mode.triggers[group].list.length; j++) {
 				var extension = mode.triggers[group].list[j].extension;
 				
@@ -368,11 +370,12 @@ ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, m
 					
 					var triggerData = mode.triggers[group].list[j];
 					
-					eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
-					
-					if(((triggerState == true) && (mode.triggers[group].require == 0)) ||
-						((triggerState == true) && (mode.triggers[group].require == 1)) ||
-						((triggerState == false) && (mode.triggers[group].require == 2)))
+					eval("groupState = triggerState = " + extension + 
+						"Triggers.check(configData, triggerData);");
+
+					if(((triggerState == true) && (require == 0)) ||
+						((triggerState == true) && (require == 1)) ||
+						((triggerState == false) && (require == 2)))
 					{
 						break;
 					}
@@ -381,18 +384,18 @@ ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, m
 			
 			// Check the global state for triggers with same extension
 			
-			if(((triggerState == false) && (mode.triggers[group].require == 0)) ||
-				((triggerState == true) && (mode.triggers[group].require == 1)) ||
-				((triggerState == false) && (mode.triggers[group].require == 2)))
+			if(((triggerState == false) && (require == 0)) ||
+				((triggerState == true) && (require == 1)) ||
+				((triggerState == false) && (require == 2)))
 			{
 				break;
 			}
 		}
-		
-		if(triggerState == true)
+
+		if(groupState == true)
 			return true;
 	}
-
+	
 	return false;
 }
 

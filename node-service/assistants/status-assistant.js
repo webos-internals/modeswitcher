@@ -17,18 +17,18 @@ StatusCommandAssistant.prototype.run = function(future, factory) {
 			var mode = null;
 			
 			for(var i = 0; i < config.customModes.length; i++) {
-				if(config.customModes[i].name == modeName) {
+				if(config.customModes[i].name == this.controller.args.mode) {
 					mode = config.customModes[i];
 					
 					break;
 				}
 			}
 			
-			if((!mode) || (mode.triggers.length == 0)) {
+			if(!mode) {
 				future.result = { returnValue: false };
 			}
 			else {
-				var status = this.checkModeStatus(config, this.controller.args.mode);
+				var status = this.checkModeStatus(config, mode);
 				
 				future.result = { 
 					returnValue: true,
@@ -64,14 +64,18 @@ StatusCommandAssistant.prototype.cleanup = function() {
 
 StatusCommandAssistant.prototype.checkModeStatus = function(config, mode) {
 	var status = {groups: [], triggers: []};
-	
+
 	// Loop through triggers in all groups and test are they valid or not.
 	
 	for(var group = 0; group < mode.triggers.length; group++) {
-		var triggerState = false;
+		var groupDone = false;
+		var groupState = "unknown";
+		
+		var require = mode.triggers[group].require;
 		
 		for(var i = 0; i < config.extensions.triggers.length; i++) {
-			triggerState = "unknown";
+			var triggerDone = false;
+			var triggerState = "unknown";
 			
 			for(var j = 0; j < mode.triggers[group].list.length; j++) {
 				var extension = mode.triggers[group].list[j].extension;
@@ -81,33 +85,53 @@ StatusCommandAssistant.prototype.checkModeStatus = function(config, mode) {
 					
 					var triggerData = mode.triggers[group].list[j];
 					
-					eval("triggerState = " + extension + "Triggers.check(configData, triggerData);");
-					
-					status.triggers.push({"extension": extension, 'state': triggerState, 'group': group});
-					
-					if(((triggerState == true) && (mode.triggers[group].require == 0)) ||
-						((triggerState == true) && (mode.triggers[group].require == 1)) ||
-						((triggerState == false) && (mode.triggers[group].require == 2)))
-					{
-						break;
+					if((groupDone) || (triggerDone)) {
+						eval("var tmpState = " + extension + 
+							"Triggers.check(configData, triggerData);");
+
+						status.triggers.push({"extension": extension, 
+							'state': tmpState, 'group': group});
+					}
+					else {
+						eval("groupState = triggerState = " + extension + 
+							"Triggers.check(configData, triggerData);");
+
+						status.triggers.push({"extension": extension, 
+							'state': triggerState, 'group': group});
+
+						if(((triggerState == true) && (require == 0)) ||
+							((triggerState == true) && (require == 1)) ||
+							((triggerState == false) && (require == 2)))
+						{
+							triggerDone = true;
+						}
 					}
 				}
 			}
 			
 			// Check the global state for triggers with same extension
 			
-			if(((triggerState == false) && (mode.triggers[group].require == 0)) ||
-				((triggerState == true) && (mode.triggers[group].require == 1)) ||
-				((triggerState == false) && (mode.triggers[group].require == 2)))
-			{
-				break;
+			if(!groupDone) {
+				if(((triggerState == false) && (require == 0)) ||
+					((triggerState == true) && (require == 1)) ||
+					((triggerState == false) && (require == 2)))
+				{
+					groupDone = true;
+					
+					if(groupState == true)
+						status.groups[group] = true;
+					else
+						status.groups[group] = false;
+				}
 			}
 		}
 		
-		if(triggerState == true)
-			status.groups[group] = true;
-		else
-			status.groups[group] = false;
+		if(!groupDone) {
+			if(groupState == true)
+				status.groups[group] = true;
+			else
+				status.groups[group] = false;
+		}
 	}
 	
 	return status;
