@@ -157,6 +157,8 @@ MainAssistant.prototype.setup = function() {
 //
 
 MainAssistant.prototype.updatePreferences = function(response) {
+Mojo.Log.error("WWWWWWWWW " + JSON.stringify(response));
+
 	this.modelActivatedButton.value = response.activated;
 
 	this.controller.modelChanged(this.modelActivatedButton, this);
