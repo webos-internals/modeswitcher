@@ -104,9 +104,14 @@ var modechangeTriggers = (function() {
 						return true;
 				}
 			}
-			
-			if(config.modes.indexOf(trigger.mode) != -1)
+			else {
+				for(var i = 0; i < args.$activity.trigger.activeModes.length; i++) {
+					if(args.$activity.trigger.activeModes[i].name == trigger.mode)
+						return false;
+				}
+				
 				return true;
+			}
 		}
 		
 		return false;

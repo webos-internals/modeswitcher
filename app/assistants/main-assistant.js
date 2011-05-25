@@ -226,18 +226,7 @@ MainAssistant.prototype.updatePreferences = function(response) {
 		this.extensionModules.triggers[this.extensions.triggers[i]] = eval("new " + className + "Triggers(this.controller);");
 	}
 
-	if((this.params) && (this.params.name != undefined)) {
-		for(var i = 0; i < this.customModes.length; i++) {
-			if(this.customModes[i].name == this.params.name) {
-				this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, 
-					this.extensions, this.extensionModules, this.customModes, i);
-
-				this.params = null;
-				
-				return;
-			}
-		}
-	}
+	// Loading of prefs is now done
 
 	this.loading = false;
 
@@ -285,6 +274,20 @@ MainAssistant.prototype.updatePreferences = function(response) {
 			}.bind(this),
 			onFailure: this.unknownServiceError.bind(this)});					
 	}
+	else {
+		if((this.params) && (this.params.name != undefined)) {
+			for(var i = 0; i < this.customModes.length; i++) {
+				if(this.customModes[i].name == this.params.name) {
+					this.controller.stageController.pushScene("mode", this.apiVersion, this.cfgVersion, 
+						this.extensions, this.extensionModules, this.customModes, i);
+
+					this.params = null;
+				
+					break;
+				}
+			}
+		}
+	}	
 }
 
 //

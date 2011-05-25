@@ -23,14 +23,19 @@ var securitySettings = (function() {
 		if(item == "security") {
 			var params = {};
 			
-			if((settingsNew.lockMode != undefined) && (settingsOld.lockMode != settingsNew.lockMode))
-				params.lockMode = settingsNew.lockMode;
-			
-			if((settingsNew.lockSecret != undefined) && (settingsOld.lockSecret != settingsNew.lockSecret)) {
-				if(settingsNew.lockMode)
+			if((settingsNew.lockMode != undefined) && (settingsOld.lockMode != settingsNew.lockMode)) {
+				if((settingsNew.lockSecret != undefined) && (settingsNew.lockSecret.length > 0)) {
+					params.lockMode = settingsNew.lockMode;
+					
+					params.passCode = settingsNew.lockSecret;
+				}
+			}
+			else if((settingsNew.lockSecret != undefined) && (settingsOld.lockSecret != settingsNew.lockSecret)) {
+				if((settingsNew.lockMode != undefined) && (settingsNew.lockMode != "none")) {
 					params.lockMode = settingsNew.lockMode;
 				
-				params.passCode = settingsNew.lockSecret;
+					params.passCode = settingsNew.lockSecret;
+				}
 			}
 			
 			if(params.lockMode != undefined) {

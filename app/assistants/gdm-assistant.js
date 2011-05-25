@@ -56,7 +56,7 @@ GdmAssistant.prototype.setup = function() {
 		{'label': $L("Title"), 'value': "title"},
 		{'label': $L("Last Modified"), 'value': "last-modified"}];  
 		
-	this.controller.setupWidget("ImportGDOrdering", {'label': $L("Order By"), 
+	this.controller.setupWidget("ImportGDOrdering", {'label': $L("Order by"), 
 		'labelPlacement': "left", 'choices': this.defaultChoicesImportGDOrdering}, 
 		this.modelImportGDOrdering);
 
@@ -304,7 +304,7 @@ GdmAssistant.prototype.helpItemTapped = function(target) {
 		var helpText = "Description for the document.";
 	}
 	else if(target == "ExportShareHelp") {
-		var helpTitle = "Share With MS Group";
+		var helpTitle = "Share With Group";
 
 		var helpText = "Determines if the document should be private or shared. When shared the document will be viewable by everyone. To complete the sharing for the group you need to send the email which will be opened for you automatically.";
 	}
@@ -345,6 +345,16 @@ GdmAssistant.prototype.toggleSharedOptions = function(event) {
 //
 
 GdmAssistant.prototype.listGoogleDocuments = function(event) {
+	this.modelImportGDButton.disabled = true;
+
+	this.controller.modelChanged(this.modelImportGDButton, this);
+
+	this.controller.get("overlay-scrim").show();
+
+	this.modelWaitSpinner.spinning = true;
+	
+	this.controller.modelChanged(this.modelWaitSpinner, this);
+
 	if(this.modelImportGDShare.value)
 		this.listGoogleShared(event);
 	else
@@ -353,8 +363,12 @@ GdmAssistant.prototype.listGoogleDocuments = function(event) {
 
 GdmAssistant.prototype.listGoogleShared = function(event) {
 	var limit = this.modelImportGDLimit.value;
-
+	
 	if(this.modelImportGDManual.value != "") {
+		this.modelImportGDButton.disabled = false;
+
+		this.controller.modelChanged(this.modelImportGDButton, this);
+
 		var url = this.modelImportGDManual.value.replace("document/d/", "feeds/download/documents/Export?docID=").replace("/edit?hl=en", "");
 
 		this.importDocumentData({item: {value: url}});
@@ -370,56 +384,73 @@ GdmAssistant.prototype.listGoogleShared = function(event) {
 					this.modelImportGDList.items.clear();
 
 					var data = response.responseText;
-
-					var index = 0;
 			
-					while(index != -1) {
-						index = data.indexOf("<item>");
-					
+					for(var index = data.indexOf("<item>"); index != -1; index = data.indexOf("<item>")) {
+						data = data.substr(index + 6);
+
+						index = data.indexOf("</item>");
+
 						if(index != -1) {
+							var item = data.substr(0,index);
+
 							data = data.substr(index + 6);
-					
-							index = data.indexOf("</item>");
+
+							var btIndex = item.indexOf("<title>");
+							var etIndex = item.indexOf("</title>");
+							var bdIndex = item.indexOf("<description>");
+							var edIndex = item.indexOf("</description>");
 						
-							if(index != -1) {
-								var item = data.substr(0,index);
-							
-								data = data.substr(index + 6);
-							
-								var btIndex = item.indexOf("<title>");
-								var etIndex = item.indexOf("</title>");
-								var bdIndex = item.indexOf("<description>");
-								var edIndex = item.indexOf("</description>");
-							
-								if((btIndex != -1) && (etIndex != -1) && (bdIndex != -1) && (edIndex != -1)) {
-									var title = item.substring(btIndex + 7, etIndex);
-									var desc = item.substring(bdIndex + 13, edIndex);
+							if((btIndex != -1) && (etIndex != -1) && (bdIndex != -1) && (edIndex != -1)) {
+								var title = item.substring(btIndex + 7, etIndex);
+								var desc = item.substring(bdIndex + 13, edIndex);
 
-									var sIndex = title.indexOf(" - ");
-									var msIndex = desc.indexOf(this.filter);
+								var sIndex = title.indexOf(" - ");
+								var msIndex = desc.indexOf(this.filter);
 
-									var buIndex = desc.indexOf("http://");
-									var euIndex = desc.indexOf("/edit?hl=en");
+								var buIndex = desc.indexOf("http://");
+								var euIndex = desc.indexOf("/edit?hl=en");
 
-									if((msIndex != -1) && (sIndex != -1) && (buIndex != -1) && (euIndex != -1) && (buIndex < euIndex)) {
-										url = desc.substring(buIndex, euIndex);
+								if((msIndex != -1) && (sIndex != -1) && (buIndex != -1) && (euIndex != -1) && (buIndex < euIndex)) {
+									var url = desc.substring(buIndex, euIndex);
 
-										title = title.substring(sIndex + 3);
-										desc = desc.substring(0, msIndex);
+									title = title.substring(sIndex + 3);
+									desc = desc.substring(0, msIndex);
 
-					 					var regexp = new RegExp("/*" + this.modelImportGDMatch.value + "*", "i");
+									if(this.modelImportGDMatch.value.length > 0) {
+										var matchArray = this.modelImportGDMatch.value.split(" ");
+										
+										for(var i = 0; i < matchArray.length; i++) {
+											if(matchArray[i].length > 0) {
+							 					var regexp = new RegExp("/*" + matchArray[i] + "*", "i");
 
-										if((this.modelImportGDMatch.value == "") || (title.match(regexp) != null))
-											this.modelImportGDList.items.push({'label': title, 'desc': desc, 'value': url});
-									}								
-								}
+												if(title.match(regexp) != null) {
+													this.modelImportGDList.items.push({'label': title, 'desc': desc, 'value': url});
+												
+													break;
+												}
+											}
+										}
+									}
+									else
+										this.modelImportGDList.items.push({'label': title, 'desc': desc, 'value': url});									
+								}								
 							}
-						}				
+						}
 					}
 
 					if(this.modelImportGDOrdering.value == "title") {
 						this.modelImportGDList.items.sort(this.sortAlphabeticallyFunction);
 					}
+
+					this.modelImportGDButton.disabled = false;
+
+					this.controller.modelChanged(this.modelImportGDButton, this);
+
+					this.modelWaitSpinner.spinning = false;
+	
+					this.controller.modelChanged(this.modelWaitSpinner, this);
+
+					this.controller.get("overlay-scrim").hide();
 
 					this.viewLevel = 1;
 
@@ -429,6 +460,16 @@ GdmAssistant.prototype.listGoogleShared = function(event) {
 					this.controller.modelChanged(this.modelImportGDList, this);
 				}.bind(this),
 				onFailure: function(response) {
+					this.modelImportGDButton.disabled = false;
+
+					this.controller.modelChanged(this.modelImportGDButton, this);
+
+					this.modelWaitSpinner.spinning = false;
+	
+					this.controller.modelChanged(this.modelWaitSpinner, this);
+
+					this.controller.get("overlay-scrim").hide();
+				
 					this.controller.showAlertDialog({
 						title: $L("Unable to read the feed!"),
 						message: "<div align='justify'>" + $L("Unable to read the Google Groups feed. Try again later.") + "</div>",
@@ -450,16 +491,6 @@ GdmAssistant.prototype.listGooglePrivate = function(event) {
 	
 	var order = "orderby=" + this.modelImportGDOrdering.value;
 	
-	this.modelImportGDButton.disabled = true;
-
-	this.controller.modelChanged(this.modelImportGDButton, this);
-
-	this.controller.get("overlay-scrim").show();
-
-	this.modelWaitSpinner.spinning = true;
-	
-	this.controller.modelChanged(this.modelWaitSpinner, this);
-
 	new Ajax.Request("https://www.google.com/accounts/ClientLogin?accountType=HOSTED_OR_GOOGLE&Email=" + this.modelImportGDUsername.value + "&Passwd=" + encodeURIComponent(this.modelImportGDPassword.value) + "&service=writely&source=ModeSwitcher", {
 		method: "post",
 		onSuccess: function(response) { 

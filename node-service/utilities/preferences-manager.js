@@ -156,10 +156,18 @@ var prefs = (function() {
 						curPrefs.customModes[i].triggers.list[j].group = 0;
 				}
 					
-				if(curPrefs.customModes[i].triggers.require == 0) 
-					curPrefs.customModes[i].triggers = [{require: 0, list: curPrefs.customModes[i].triggers.list}];
-				else if(curPrefs.customModes[i].triggers.require == 1)
-					curPrefs.customModes[i].triggers = [{require: 1, list: curPrefs.customModes[i].triggers.list}];
+				if(curPrefs.customModes[i].triggers.require == 0) {
+					if(curPrefs.customModes[i].triggers.list.length == 0)
+						curPrefs.customModes[i].triggers = [];
+					else
+						curPrefs.customModes[i].triggers = [{require: 0, list: curPrefs.customModes[i].triggers.list}];
+				}
+				else if(curPrefs.customModes[i].triggers.require == 1) {
+					if(curPrefs.customModes[i].triggers.list.length == 0)
+						curPrefs.customModes[i].triggers = [];
+					else
+						curPrefs.customModes[i].triggers = [{require: 1, list: curPrefs.customModes[i].triggers.list}];
+				}
 				else if(curPrefs.customModes[i].triggers.require == 2) {
 					var triggers = [];
 					
