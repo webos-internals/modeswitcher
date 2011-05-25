@@ -952,10 +952,6 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.controller.modelChanged(this.modelNameText, this);
 			
 			this.controller.sceneScroller.mojo.revealTop(0);
-
-			var transition = this.controller.prepareTransition(Mojo.Transition.crossFade);
-	
-			transition.run();
 		}
 		else if(event.command == "settings") {
 			this.setModeData(true);
@@ -996,10 +992,6 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			// FIXME: Bug in slider widget, it has to be visible on setup or refreshed.
 
 			this.controller.modelChanged(this.modelSettingsList, this);
-
-			var transition = this.controller.prepareTransition(Mojo.Transition.crossFade);
-
-			transition.run();
 		}
 		else if(event.command == "applications") {
 			this.currentView = "Applications";
@@ -1015,10 +1007,6 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.appsView.style.display = "block";
 			
 			this.controller.sceneScroller.mojo.revealTop(0);
-
-			var transition = this.controller.prepareTransition(Mojo.Transition.crossFade);
-	
-			transition.run();
 		}
 		else if(event.command == 'triggers') {
 			this.setModeData(true);
@@ -1066,10 +1054,6 @@ ModeAssistant.prototype.handleCommand = function(event) {
 			this.triggersView.style.display = "block";
 			
 			this.controller.sceneScroller.mojo.revealTop(0);
-
-			var transition = this.controller.prepareTransition(Mojo.Transition.crossFade);
-	
-			transition.run();
 		}
 		else if(event.command == "settings-add") {
 			var settingItems = [];

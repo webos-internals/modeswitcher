@@ -157,8 +157,6 @@ MainAssistant.prototype.setup = function() {
 //
 
 MainAssistant.prototype.updatePreferences = function(response) {
-Mojo.Log.error("WWWWWWWWW " + JSON.stringify(response));
-
 	this.modelActivatedButton.value = response.activated;
 
 	this.controller.modelChanged(this.modelActivatedButton, this);
@@ -189,6 +187,21 @@ Mojo.Log.error("WWWWWWWWW " + JSON.stringify(response));
 
 	this.extensions = response.extensions;
 	this.preferences = response.preferences;
+
+	if(this.extensions.actions.length == 0) {
+		this.extensions.actions = ["browser", "default", "govnah", "modesw", "phoneapp", "systools"];
+	}
+
+	if(this.extensions.settings.length == 0) {
+		this.extensions.settings = ["airplane", "calendar", "connection", "contacts", "email", "messaging", 
+			"network", "phone", "ringer", "screen", "security", "sound"];
+	}
+
+	if(this.extensions.triggers.length == 0) {
+		this.extensions.triggers = ["application", "battery", "bluetooth", "calevent", "charger", 
+				"display", "headset", "interval", "location", "modechange", "silentsw", 
+				"timeofday", "wireless"];
+	}
 
 	// Load extensions
 
@@ -221,7 +234,7 @@ Mojo.Log.error("WWWWWWWWW " + JSON.stringify(response));
 
 				this.params = null;
 				
-				break;
+				return;
 			}
 		}
 	}
@@ -231,14 +244,6 @@ Mojo.Log.error("WWWWWWWWW " + JSON.stringify(response));
 	// Check for need of initial default mode setup
 	
 	if((this.appAssistant.isNewOrFirstStart == 1) || (this.customModes.length == 0)) {
-		this.extensions = {
-			actions: ["browser", "default", "govnah", "modesw", "phoneapp", "systools"],
-			settings: ["airplane", "calendar", "connection", "contacts", "email", "messaging", 
-				"network", "phone", "ringer", "screen", "security", "sound"],
-			triggers: ["application", "battery", "bluetooth", "calevent", "charger", 
-				"display", "headset", "interval", "location", "modechange", "silentsw", 
-				"timeofday", "wireless"] };
-
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 			method: 'prefs', parameters: {extensions: this.extensions},
 			onSuccess: function() {
@@ -360,7 +365,7 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 	}
 
 	if((event.up) && (event.up.altKey)) {
-		if((this.toggling) || (!this.modelActivatedButton.value))
+		if(!this.modelActivatedButton.value)
 			return;
 
 		this.loading = true;
@@ -395,11 +400,10 @@ MainAssistant.prototype.toggleModeSwitcher = function(event) {
 			this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
 				method: 'control', parameters: {action: "enable"},
 				onSuccess: function() {
+					this.loading = false;
+				
 					this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-						method: 'execute', parameters: {action: "start", name: "Default Mode"},
-						onComplete: function() {
-							this.loading = false;
-						}.bind(this)});
+						method: 'execute', parameters: {action: "start", name: "Default Mode"}});
 				}.bind(this),
 				onFailure: this.unknownServiceError.bind(this)});
 		}
