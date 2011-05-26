@@ -100,12 +100,21 @@ ExecuteCommandAssistant.prototype.executeStartMode = function(future, config, ar
 			else
 				var notify = config.customModes[0].notify;
 			
-			if((requestedMode.type == "default") || (config.activeModes.length == 0))
-				utils.notify(notify, requestedMode.name, "start");
-			else if(requestedMode.type == "normal")
-				utils.notify(notify, newActiveModes[0].name, "switch");
-			else if(requestedMode.type == "modifier")
-				utils.notify(notify, requestedMode.name, "start");
+			if((requestedMode.type == "default") || (config.activeModes.length == 0)) {
+				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+					'notify': notify, 'name': requestedMode.name, 'event': "start"}});
+			}
+			else if(requestedMode.type == "normal") {
+				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+					'notify': notify, 'name': newActiveModes[0].name, 'event': "switch"}});
+			}
+			else if(requestedMode.type == "modifier") {
+				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+					'notify': notify, 'name': requestedMode.name, 'event': "start"}});
+			}
 			
 			// Initiate the actual updating of the mode.
 			
@@ -173,12 +182,21 @@ ExecuteCommandAssistant.prototype.executeCloseMode = function(future, config, ar
 			else
 				var notify = config.customModes[0].notify;
 			
-			if(requestedMode.type == "default")
-				utils.notify(notify, requestedMode.name, "close");
-			else if(requestedMode.type == "normal")
-				utils.notify(notify, newActiveModes[0].name, "switch");
-			else if(requestedMode.type == "modifier")
-				utils.notify(notify, requestedMode.name, "close");
+			if(requestedMode.type == "default") {
+				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+					'notify': notify, 'name': requestedMode.name, 'event': "close"}});
+			}
+			else if(requestedMode.type == "normal") {
+				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+					'notify': notify, 'name': newActiveModes[0].name, 'event': "switch"}});
+			}
+			else if(requestedMode.type == "modifier") {
+				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+					'notify': notify, 'name': requestedMode.name, 'event': "close"}});
+			}			
 			
 			// Initiate the actual updating of the mode.
 			
@@ -206,7 +224,9 @@ ExecuteCommandAssistant.prototype.executeToggleMode = function(future, config, a
 		else if(utils.findArray(config.customModes, "name", args.name) != -1)
 			this.executeStartMode(future, config, args);
 		else {
-			utils.notify(5, args.name, "unknown");
+			this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+				'notify': 5, 'name': args.name, 'event': "unknown"}});
 			
 			future.result = { returnValue: false, errorText: "Mode not found" };
 		}
@@ -229,8 +249,10 @@ ExecuteCommandAssistant.prototype.executeReloadMode = function(future, config, a
 			console.error("Executing reloading of: Current Mode");
 			
 			// On reload inform the user even if notifications are disabled.
-			
-			utils.notify(2, "Current Mode", "reload");
+
+			this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+				'notify': 2, 'name': "Current Mode", 'event': "reload"}});
 			
 			if((config.activeModes.length > 0) && (config.customModes.length > 0)) {
 				var curActiveModes = [config.customModes[0]];
@@ -296,8 +318,10 @@ ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, a
 			else
 				var notify = config.customModes[0].notify;
 		}
-		
-		utils.notify(notify, "Current Mode", "update");
+
+		this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+			'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
+			'notify': notify, 'name': "Current Mode", 'event': "update"}});
 		
 		this.prepareModeChange(future, config, newActiveModes, "init", 0);
 	}
@@ -342,61 +366,6 @@ ExecuteCommandAssistant.prototype.executeTriggerMode = function(future, config, 
 	
 		future.result = { returnValue: false, errorText: "No name given" };
 	}
-}
-
-//
-
-ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, mode) {
-	// If mode does not have triggers then always return true.
-	
-	if(mode.triggers.length == 0)
-		return true;
-	
-	// Loop through triggers in all groups and test are they valid or not.
-	
-	for(var group = 0; group < mode.triggers.length; group++) {
-		var groupState = "unknown";
-		
-		var require = mode.triggers[group].require;
-			
-		for(var i = 0; i < config.extensions.triggers.length; i++) {
-			var triggerState = "unknown";
-
-			for(var j = 0; j < mode.triggers[group].list.length; j++) {
-				var extension = mode.triggers[group].list[j].extension;
-				
-				if(config.extensions.triggers[i] == extension) {
-					var configData = config.statusData.triggers[extension];
-					
-					var triggerData = mode.triggers[group].list[j];
-					
-					eval("groupState = triggerState = " + extension + 
-						"Triggers.check(configData, triggerData);");
-
-					if(((triggerState == true) && (require == 0)) ||
-						((triggerState == true) && (require == 1)) ||
-						((triggerState == false) && (require == 2)))
-					{
-						break;
-					}
-				}
-			}
-			
-			// Check the global state for triggers with same extension
-			
-			if(((triggerState == false) && (require == 0)) ||
-				((triggerState == true) && (require == 1)) ||
-				((triggerState == false) && (require == 2)))
-			{
-				break;
-			}
-		}
-
-		if(groupState == true)
-			return true;
-	}
-	
-	return false;
 }
 
 //
@@ -592,17 +561,17 @@ ExecuteCommandAssistant.prototype.executeModeChange = function(future, config, n
 	console.error("Executing mode updating: exec " + roundCount);
 	
 	this.executeSettingsUpdate(future, config, config.activeModes, newActiveModes, 
-		function(future, config, newActiveModes, roundPhase, roundCount) {
+		function(config, newActiveModes, roundPhase, roundCount, future) {
 			// When done updating the system settings then call apps update.
 			
-			this.executeActionsUpdate(future, config, config.activeModes, newActiveModes, 
-				function(future, config, newActiveModes, roundPhase, roundCount) {
+			this.executeActionsUpdate(config, config.activeModes, newActiveModes, 
+				function(config, newActiveModes, roundPhase, roundCount, future) {
 					// When done updating apps and srvs then call mode update.
 					
 					this.prepareModeChange(future, config, newActiveModes, roundPhase, roundCount);
-				}.bind(this, future, config, newActiveModes, roundPhase, roundCount)
+				}.bind(this, config, newActiveModes, roundPhase, roundCount)
 			);
-		}.bind(this, future, config, newActiveModes, roundPhase, roundCount)
+		}.bind(this, config, newActiveModes, roundPhase, roundCount)
 	);
 }
 
@@ -611,8 +580,8 @@ ExecuteCommandAssistant.prototype.executeModeChange = function(future, config, n
 ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, config, oldActiveModes, newActiveModes, doneCallback) {
 	console.error("Applying current system settings");
 	
-	utils.asyncForEach(config.extensions.settings, 
-		function(future, config, oldActiveModes, newActiveModes, item, next) {
+	utils.futureLoop(future, config.extensions.settings, 
+		function(config, oldActiveModes, newActiveModes, item, next, future) {
 			var oldModeSettings = {'extension': item};
 			var newModeSettings = {'extension': item};
 			
@@ -643,8 +612,8 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 			
 			eval("future.nest(" + item + "Settings.update(oldModeSettings, newModeSettings));");
 			
-			future.then(this, function(future) { next(); });
-		}.bind(this, future, config, oldActiveModes, newActiveModes), doneCallback
+			future.then(this, function(future) { next(future); });
+		}.bind(this, config, oldActiveModes, newActiveModes), doneCallback
 	);
 }
 
@@ -737,7 +706,7 @@ ExecuteCommandAssistant.prototype.executeActionsUpdate = function(future, config
 	
 	future.nest(apps.update(closeAppsSrvs, startAppsSrvs));
 	
-	future.then(this, function(future) { doneCallback(); });
+	future.then(this, function(future) { doneCallback(future); });
 }
 
 //
@@ -769,4 +738,59 @@ ExecuteCommandAssistant.prototype.updateHistoryList = function(future, config, n
 	}
 	
 	return config.historyList;
+}
+
+//
+
+ExecuteCommandAssistant.prototype.checkModeTriggers = function(future, config, mode) {
+	// If mode does not have triggers then always return true.
+	
+	if(mode.triggers.length == 0)
+		return true;
+	
+	// Loop through triggers in all groups and test are they valid or not.
+	
+	for(var group = 0; group < mode.triggers.length; group++) {
+		var groupState = "unknown";
+		
+		var require = mode.triggers[group].require;
+			
+		for(var i = 0; i < config.extensions.triggers.length; i++) {
+			var triggerState = "unknown";
+
+			for(var j = 0; j < mode.triggers[group].list.length; j++) {
+				var extension = mode.triggers[group].list[j].extension;
+				
+				if(config.extensions.triggers[i] == extension) {
+					var configData = config.statusData.triggers[extension];
+					
+					var triggerData = mode.triggers[group].list[j];
+					
+					eval("groupState = triggerState = " + extension + 
+						"Triggers.check(configData, triggerData);");
+
+					if(((triggerState == true) && (require == 0)) ||
+						((triggerState == true) && (require == 1)) ||
+						((triggerState == false) && (require == 2)))
+					{
+						break;
+					}
+				}
+			}
+			
+			// Check the global state for triggers with same extension
+			
+			if(((triggerState == false) && (require == 0)) ||
+				((triggerState == true) && (require == 1)) ||
+				((triggerState == false) && (require == 2)))
+			{
+				break;
+			}
+		}
+
+		if(groupState == true)
+			return true;
+	}
+	
+	return false;
 }

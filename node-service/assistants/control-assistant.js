@@ -60,8 +60,8 @@ ControlCommandAssistant.prototype.cleanup = function() {
 ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config) {
 	console.error("MS - Control - Startup - " + config.customModes[0].startup);
 	
-	utils.asyncForEach(config.extensions.triggers, 
-		function(future, config, item, next) {
+	utils.futureLoop(future, config.extensions.triggers, 
+		function(item, next, future) {
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -87,10 +87,10 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 			future.then(this, function(future) {
 				eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			});
-		}.bind(this, future, config),
-		function(future, config) {
+		}.bind(this),
+		function(future) {
 			var newConfig = { modeLocked: false, historyList: [], statusData: config.statusData };
 			
 			future.nest(prefs.save(newConfig));
@@ -106,15 +106,15 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 				
 				future.then(this, function(future) { future.result = { returnValue: true }; });
 			});
-		}.bind(this, future, config)
+		}.bind(this)
 	);
 }
 
 ControlCommandAssistant.prototype.enableModeSwitcher = function(future, config) {  
 	console.error("MS - Control - Enable");
 	
-	utils.asyncForEach(config.extensions.triggers, 
-		function(future, config, item, next) {
+	utils.futureLoop(future, config.extensions.triggers, 
+		function(item, next, future) {
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -135,24 +135,24 @@ ControlCommandAssistant.prototype.enableModeSwitcher = function(future, config) 
 			
 			eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
 			
-			future.then(this, function(future) { next(); });
-		}.bind(this, future, config),
-		function(future, config) {
+			future.then(this, function(future) { next(future); });
+		}.bind(this),
+		function(future) {
 			var newConfig = { activated: true, modeLocked: false, activeModes: [], historyList: [], 
 				statusData: config.statusData };
 			
 			future.nest(prefs.save(newConfig));
 			
 			future.then(this, function(future) { future.result = { returnValue: true }; });
-		}.bind(this, future, config)
+		}.bind(this)
 	);
 }
 
 ControlCommandAssistant.prototype.disableModeSwitcher = function(future, config) {
 	console.error("MS - Control - Disable");
 	
-	utils.asyncForEach(config.extensions.triggers, 
-		function(future, config, item, next) {
+	utils.futureLoop(future, config.extensions.triggers, 
+		function(item, next, future) {
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -162,24 +162,24 @@ ControlCommandAssistant.prototype.disableModeSwitcher = function(future, config)
 			
 			eval("future.nest(" + item + "Triggers.shutdown(configData));");
 			
-			future.then(this, function(future) { next(); });
-		}.bind(this, future, config),
-		function(future, config) {
+			future.then(this, function(future) { next(future); });
+		}.bind(this),
+		function(future) {
 			var newConfig = { activated: false, modeLocked: false, activeModes: [], historyList: [],
 				statusData: config.statusData };
 			
 			future.nest(prefs.save(newConfig));
 			
 			future.then(this, function(future) { future.result = { returnValue: true }; });
-		}.bind(this, future, config)
+		}.bind(this)
 	);
 }
 
 ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) {
 	console.error("MS - Control - Reload");
 	
-	utils.asyncForEach(config.extensions.triggers, 
-		function(future, config, item, next) {
+	utils.futureLoop(future, config.extensions.triggers, 
+		function(item, next, future) {
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -203,10 +203,10 @@ ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) 
 			future.then(this, function(future) {
 				eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			});
-		}.bind(this, future, config),
-		function(future, config) {
+		}.bind(this),
+		function(future) {
 			var newConfig = { statusData: config.statusData }
 			
 			future.nest(prefs.save(newConfig));
@@ -217,7 +217,7 @@ ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) 
 				
 				future.then(this, function(future) { future.result = { returnValue: true }; });
 			});
-		}.bind(this, future, config));
+		}.bind(this));
 }
 
 ControlCommandAssistant.prototype.lockModeSwitcher = function(future, config) {

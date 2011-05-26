@@ -19,7 +19,7 @@ var contactsSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(future, settingsOld, settingsNew, item, next) {
+	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
 		if(item == "contacts") {
 			var params = {};
 			
@@ -38,10 +38,10 @@ var contactsSettings = (function() {
 					'id': "com.palm.app.contacts", 'service': "com.palm.db", 
 					'method': "merge", 'params': {'objects': [params]}}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 	}
 	
@@ -50,9 +50,8 @@ var contactsSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.asyncForEach(configCalls, 
-			settingsUpdate.bind(this, future, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this, future));
+		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
+			function(future) { future.result = { returnValue: true }; }.bind(this));
 		
 		return future;
 	};

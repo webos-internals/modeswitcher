@@ -21,7 +21,7 @@ var connectionSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(future, settingsOld, settingsNew, item, next) {
+	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
 		if(item == "telephony") {
 			var params = {};
 			
@@ -33,10 +33,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "powerSet", 'params': params}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 		else if(item == "wan") {
 			var params = {};
@@ -49,10 +49,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
 					'method': "set", 'params': params}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 		else if(item == "wifi") {
 			var params = {};
@@ -65,10 +65,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.wifi", 'service': "com.palm.wifi", 
 					'method': "setstate", 'params': params}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 		else if(item == "btmonitor") {
 			var params = {};
@@ -88,10 +88,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.wifi", 'service': "com.palm.btmonitor/monitor", 
 					'method': method, 'params': params}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 		else if(item == "location") {
 			var params = {};
@@ -102,10 +102,10 @@ var connectionSettings = (function() {
 			if(params.useGps != undefined) {
 				future.nest(PalmCall.call("palm://com.palm.location/", "setUseGps", params));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 	}
 	
@@ -114,9 +114,8 @@ var connectionSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.asyncForEach(configCalls, 
-			settingsUpdate.bind(this, future, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this, future));
+		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
+			function(future) { future.result = { returnValue: true }; }.bind(this));
 		
 		return future;
 	};

@@ -21,7 +21,7 @@ var networkSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(future, settingsOld, settingsNew, item, next) {
+	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
 		if(item == "telephony1") {
 			var params = {};
 			
@@ -33,10 +33,10 @@ var networkSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "ratSet", 'params': params}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 		else if(item == "wan") {
 			var params = {};
@@ -49,10 +49,10 @@ var networkSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
 					'method': "set", 'params': params}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 		else if(item == "telephony2") {
 			var params = {'client': "ModeSwitcher"};
@@ -65,10 +65,10 @@ var networkSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "roamModeSet", 'params': params}));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 	}
 	
@@ -77,9 +77,8 @@ var networkSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.asyncForEach(configCalls, 
-			settingsUpdate.bind(this, future, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this, future));
+		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
+			function(future) { future.result = { returnValue: true }; }.bind(this));
 		
 		return future;
 	};

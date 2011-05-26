@@ -17,7 +17,7 @@ var airplaneSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(future, settingsOld, settingsNew, item, next) {
+	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
 		if(item == "airplane") {
 			var params = {};
 			
@@ -27,10 +27,10 @@ var airplaneSettings = (function() {
 			if(params.airplaneMode != undefined) {
 				future.nest(PalmCall.call("palm://com.palm.systemservice/", "setPreferences", params));
 				
-				future.then(this, function(future) { next(); });
+				future.then(this, function(future) { next(future); });
 			}
 			else
-				next();
+				next(future);
 		}
 	}
 	
@@ -39,9 +39,8 @@ var airplaneSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.asyncForEach(configCalls, 
-			settingsUpdate.bind(this, future, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this, future));
+		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
+			function(future) { future.result = { returnValue: true }; }.bind(this));
 		
 		return future;
 	};

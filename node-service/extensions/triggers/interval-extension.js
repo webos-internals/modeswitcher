@@ -23,7 +23,7 @@ var intervalTriggers = (function() {
 	
 //
 	
-	var addActivity = function(future, config, item, next) {
+	var addActivity = function(config, item, next, future) {
 		if(((item.intervalHours != 0) || (item.intervalMinutes != 0)) &&
 			((item.activeHours != 0) && (item.activeMinutes != 0)) &&
 			((item.intervalHours != item.activeHours) || (item.intervalMinutes != item.activeMinutes)))
@@ -108,15 +108,15 @@ var intervalTriggers = (function() {
 				future.then(this, function(future) {
 					config.activities.push(future.result.activityId);
 					
-					next();
+					next(future);
 				});
 			});
 		}
 		else
-			next();
+			next(future);
 	};
 	
-	var delActivity = function(future, item, next) {
+	var delActivity = function(item, next, future) {
 		var oldActivity = {
 			"activityId": item 
 		};
@@ -124,7 +124,7 @@ var intervalTriggers = (function() {
 		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		
 		future.then(this, function(future) {
-			next();
+			next(future);
 		}); 
 	};
 	
@@ -225,11 +225,11 @@ var intervalTriggers = (function() {
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.asyncForEach(triggers, 
-				addActivity.bind(this, future, config), 
+			utils.futureLoop(future, triggers, 
+				addActivity.bind(this, config), 
 				function(future) { 
 					future.result = { returnValue: true }; 
-				}.bind(this, future));
+				}.bind(this));
 		}
 		
 		return future;	
@@ -241,14 +241,14 @@ var intervalTriggers = (function() {
 		if((!config.activities) || (config.activities.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.asyncForEach(config.activities, 
-				delActivity.bind(this, future), 
-				function(future, config) {
+			utils.futureLoop(future, config.activities, 
+				delActivity.bind(this), 
+				function(future) {
 					config.activities = [];
 					config.activeModes = [];
 					
 					future.result = { returnValue: true };
-				}.bind(this, future, config));
+				}.bind(this));
 		}
 		
 		return future;
@@ -270,11 +270,11 @@ var intervalTriggers = (function() {
 			if(index != -1)
 				config.activities.splice(index, 1);
 			
-			utils.asyncForEach(triggers, 
-				addActivity.bind(this, future, config), 
+			utils.futureLoop(future, triggers, 
+				addActivity.bind(this, config), 
 				function(future) { 
 					future.result = { returnValue: true };
-				}.bind(this, future));
+				}.bind(this));
 		}
 		
 		return future;

@@ -172,7 +172,7 @@ var caleventTriggers = (function() {
 	
 //
 	
-	var addActivity = function(future, config, parentIds, item, next) {
+	var addActivity = function(config, parentIds, item, next, future) {
 		if(parentIds.indexOf(item.eventId) == -1) {
 			var date = new Date(item.timestamp);
 			
@@ -205,14 +205,14 @@ var caleventTriggers = (function() {
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				next();
+				next(future);
 			});
 		}
 		else
-			next();
+			next(future);
 	};
 	
-	var delActivity = function(future, config, skip, item, next) {
+	var delActivity = function(config, skip, item, next, future) {
 		var oldActivity = {
 			"activityId": item
 		};
@@ -226,9 +226,7 @@ var caleventTriggers = (function() {
 			future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity)); 
 		}
 		
-		future.then(this, function(future) {
-			next();
-		});
+		future.then(this, function(future) { next(future); });
 	};
 	
 //
@@ -522,11 +520,11 @@ var caleventTriggers = (function() {
 					if(events.length == 0)
 						future.result = { returnValue: true };
 					else {
-						utils.asyncForEach(events, 
-							addActivity.bind(this, future, config, parentIds), 
+						utils.futureLoop(future, events, 
+							addActivity.bind(this, config, parentIds), 
 							function(future) { 
 								future.result = { returnValue: true };
-							}.bind(this, future));
+							}.bind(this));
 					}
 				});
 			});
@@ -547,13 +545,13 @@ var caleventTriggers = (function() {
 		if((!config.activities) || (config.activities.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.asyncForEach(config.activities, 
-				delActivity.bind(this, future, config, skipFirst), 
-				function(future, config) { 
+			utils.futureLoop(future, config.activities, 
+				delActivity.bind(this, config, skipFirst), 
+				function(future) { 
 					config.activities = [];
 				
 					future.result = { returnValue: true };
-				}.bind(this, future, config));
+				}.bind(this));
 		}
 		
 		return future;

@@ -5,12 +5,6 @@ var utils = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	that.notify = function(notify, mode, event) {
-		PalmCall.call("palm://com.palm.applicationManager/", "launch", {
-			'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
-				'notify': notify, 'name': mode, 'event': event}});
-	};
-	
 	that.extend = function(targetObject, sourceObject) {
 		for(key in sourceObject) {
 			if(typeof(sourceObject[key]) == 'object') {
@@ -38,21 +32,22 @@ var utils = (function() {
 		return -1;    
 	};
 	
-	that.asyncForEach = function(array, iterator, done) {
-		function loop(i, data) {
+	that.futureLoop = function(future, array, iterator, done) {
+		function loop(i, future) {
 			if (i < array.length) {
-				iterator(array[i], function(data) {
-					loop(i + 1, data);
-				}, data);
+				iterator(array[i], function(future) {
+					loop(i + 1, future);
+				}, future);
 			}
 			else {
-				done(data);
+				done(future);
 			}
 		}
+		
 		if(!array)
-			done();
+			done(future);
 		else
-			loop(0);
+			loop(0, future);
 	};
 	
 	return that;

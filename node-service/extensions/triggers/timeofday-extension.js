@@ -22,7 +22,7 @@ var timeofdayTriggers = (function() {
 	
 //
 	
-	var addActivity = function(future, config, current, item, next) {
+	var addActivity = function(config, current, item, next, future) {
 		var limits = getTimeOfDayLimits(item, current);
 		
 		var startTime = convertDateToUtfStr(limits.startTime);
@@ -81,12 +81,12 @@ var timeofdayTriggers = (function() {
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				next();
+				next(future);
 			});
 		});
 	};
 	
-	var delActivity = function(future, config, item, next) {
+	var delActivity = function(config, item, next, future) {
 		var oldActivity = {
 			"activityId": item
 		};
@@ -94,7 +94,7 @@ var timeofdayTriggers = (function() {
 		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		
 		future.then(this, function(future) {
-			next();
+			next(future);
 		});
 	};
 	
@@ -311,11 +311,11 @@ var timeofdayTriggers = (function() {
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.asyncForEach(triggers, 
-				addActivity.bind(this, future, config, true),
+			utils.futureLoop(future, triggers, 
+				addActivity.bind(this, config, true),
 				function(future) {
 					future.result = { returnValue: true };
-				}.bind(this, future));
+				}.bind(this));
 		}
 		
 		return future;
@@ -327,13 +327,13 @@ var timeofdayTriggers = (function() {
 		if((!config.activities) || (config.activities.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.asyncForEach(config.activities, 
-				delActivity.bind(this, future, config),
+			utils.futureLoop(future, config.activities, 
+				delActivity.bind(this, config),
 				function(future) {
 					config.activities = [];
 				
 					future.result = { returnValue: true };
-				}.bind(this, future));
+				}.bind(this));
 		}
 		
 		return future;
@@ -352,11 +352,11 @@ var timeofdayTriggers = (function() {
 			future.result = { returnValue: true };
 		}
 		else {
-			utils.asyncForEach(triggers, 
-				addActivity.bind(this, future, config, false),
+			utils.futureLoop(future, triggers, 
+				addActivity.bind(this, config, false),
 				function(future) {
 					future.result = { returnValue: true };
-				}.bind(this, future));
+				}.bind(this));
 		}
 		
 		return future;

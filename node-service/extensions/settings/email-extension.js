@@ -38,14 +38,14 @@ var emailSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(future, settingsOld, settingsNew, item, next) {
+	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
 		if(item == "email-get") {
 			if(settingsNew.accounts) {
 					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 						'id': "com.palm.app.email", 'service': "com.palm.db", 
 						'method': "find", 'params': {'query': {'from': "com.palm.mail.account:1"}}}));
 					
-					future.then(this, function(settingsNew, future) { 
+					future.then(this, function(future) { 
 						var result = future.result;
 						
 						var accounts = [];
@@ -58,11 +58,11 @@ var emailSettings = (function() {
 								delete settingsNew.accounts[accId];
 						}
 						
-						next(); 
-					}.bind(this, settingsNew));
+						next(future); 
+					}.bind(this));
 			}
 			else
-				next();
+				next(future);
 		}
 		else if(item == "email-set") {
 			if(settingsNew.accounts) {
@@ -108,13 +108,13 @@ var emailSettings = (function() {
 						'id': "com.palm.app.email", 'service': "com.palm.db", 
 						'method': "merge", 'params': {'objects': objects}}));
 					
-					future.then(this, function(future) { next(); });
+					future.then(this, function(future) { next(future); });
 				}
 				else
-					next();
+					next(future);
 			}
 			else
-				next();
+				next(future);
 		}
 	};
 	
@@ -123,9 +123,8 @@ var emailSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.asyncForEach(configCalls, 
-			settingsUpdate.bind(this, future, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this, future));
+		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
+			function(future) { future.result = { returnValue: true }; }.bind(this));
 		
 		return future;
 	};
