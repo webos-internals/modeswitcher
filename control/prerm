@@ -32,15 +32,15 @@ rm -f /var/palm/ls2/roles/pub/${PID}.json
 /usr/bin/killall -9 ${PID} || true
 
 #
-# Cleanup the JS service due to WebOS bugs
+# Cleanup the JS service here due to WebOS bugs
 #
 
 /usr/bin/pkill switcher.srv.js || true
 
-rm -f /var/cache/configurator/*modeswitcher*
+rm -f /var/cache/configurator/*webosinternals.modeswitcher*
 
-rm -f /var/palm/ls2/roles/*/*modeswitcher*
+rm -f /var/palm/ls2/roles/*/*webosinternals.modeswitcher*
 
-rm -f /var/palm/ls2/services/*/*modeswitcher*
+rm -f /var/palm/ls2/services/*/*webosinternals.modeswitcher*
 
 exit 0
