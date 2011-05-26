@@ -3,7 +3,11 @@ var utils = (function() {
 	
 	var Foundations = IMPORTS.foundations;
 	
+	var Future = Foundations.Control.Future;
+	
 	var PalmCall = Foundations.Comms.PalmCall;
+	
+//
 	
 	that.extend = function(targetObject, sourceObject) {
 		for(key in sourceObject) {
@@ -31,23 +35,29 @@ var utils = (function() {
 		
 		return -1;    
 	};
-	
-	that.futureLoop = function(future, array, iterator, done) {
-		function loop(i, future) {
+
+	that.futureLoop = function(array, iterator) {
+		function loop(i) {
 			if (i < array.length) {
-				iterator(array[i], function(future) {
-					loop(i + 1, future);
-				}, future);
+				future.nest(iterator(array[i]));
+				
+				future.then(this, function(future) {
+					loop(i + 1);
+				});
 			}
 			else {
-				done(future);
+				future.result = { returnValue: true };
 			}
 		}
 		
-		if(!array)
-			done(future);
+		var future = new Future();
+		
+		if(array)
+			loop(0);
 		else
-			loop(0, future);
+			future.result = { returnValue: true };
+		
+		return future;
 	};
 	
 	return that;

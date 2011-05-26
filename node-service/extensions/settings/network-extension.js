@@ -17,11 +17,11 @@ var networkSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["telephony1", "wan", "telephony2"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "telephony1") {
 			var params = {};
 			
@@ -33,10 +33,10 @@ var networkSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "ratSet", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "wan") {
 			var params = {};
@@ -49,10 +49,10 @@ var networkSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
 					'method': "set", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "telephony2") {
 			var params = {'client': "ModeSwitcher"};
@@ -65,21 +65,27 @@ var networkSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "roamModeSet", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
-	}
+		
+		return future;
+	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
+		future.nest(utils.futureLoop(["telephony1", "wan", "telephony2"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
 		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

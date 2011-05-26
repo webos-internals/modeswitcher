@@ -22,7 +22,7 @@ var wirelessTriggers = (function() {
 	
 //
 	
-	var initExtension = function(config) {
+	var initExtension = function(future, config) {
 		var future = PalmCall.call("palm://com.palm.connectionmanager", "getstatus", {}); 
 		
 		future.then(this, function(future) {

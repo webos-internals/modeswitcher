@@ -172,7 +172,9 @@ var caleventTriggers = (function() {
 	
 //
 	
-	var addActivity = function(config, parentIds, item, next, future) {
+	var addActivity = function(config, parentIds, item) {
+		var future = new Future();
+	
 		if(parentIds.indexOf(item.eventId) == -1) {
 			var date = new Date(item.timestamp);
 			
@@ -205,28 +207,32 @@ var caleventTriggers = (function() {
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				next(future);
+				future.result = { returnValue: true };
 			});
 		}
 		else
-			next(future);
+			future.result = { returnValue: true };
+		
+		return future;
 	};
 	
-	var delActivity = function(config, skip, item, next, future) {
+	var delActivity = function(config, skip, item) {
 		var oldActivity = {
 			"activityId": item
 		};
 		
 		if((config.activities[0] == item) && (!skip)) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+			var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.activitymanager", 
-				'method': "cancel", 'params': oldActivity})); 
+				'method': "cancel", 'params': oldActivity}); 
 		}
 		else {
-			future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity)); 
+			var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
 		}
 		
-		future.then(this, function(future) { next(future); });
+		future.then(this, function(future) { future.result = { returnValue: true }; });
+		
+		return future;
 	};
 	
 //
@@ -520,11 +526,12 @@ var caleventTriggers = (function() {
 					if(events.length == 0)
 						future.result = { returnValue: true };
 					else {
-						utils.futureLoop(future, events, 
-							addActivity.bind(this, config, parentIds), 
-							function(future) { 
-								future.result = { returnValue: true };
-							}.bind(this));
+						future.nest(utils.futureLoop(events, 
+							addActivity.bind(this, config, parentIds)));
+						
+						future.then(this, function(future) { 
+							future.result = { returnValue: true };
+						});
 					}
 				});
 			});
@@ -545,13 +552,14 @@ var caleventTriggers = (function() {
 		if((!config.activities) || (config.activities.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.futureLoop(future, config.activities, 
-				delActivity.bind(this, config, skipFirst), 
-				function(future) { 
-					config.activities = [];
+			future.nest(utils.futureLoop(config.activities, 
+				delActivity.bind(this, config, skipFirst)));
+			
+			future.then(this, function(future) { 
+				config.activities = [];
 				
-					future.result = { returnValue: true };
-				}.bind(this));
+				future.result = { returnValue: true };
+			});
 		}
 		
 		return future;

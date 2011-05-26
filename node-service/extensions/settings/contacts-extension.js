@@ -15,11 +15,11 @@ var contactsSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["contacts"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "contacts") {
 			var params = {};
 			
@@ -38,21 +38,27 @@ var contactsSettings = (function() {
 					'id': "com.palm.app.contacts", 'service': "com.palm.db", 
 					'method': "merge", 'params': {'objects': [params]}}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
-	}
+		
+		return future;
+	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
+		future.nest(utils.futureLoop(["contacts"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
 		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

@@ -18,11 +18,11 @@ var screenSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["display", "screen"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "display") {
 			var params = {};
 			
@@ -37,10 +37,10 @@ var screenSettings = (function() {
 					'id': "com.palm.app.screenandlock", 'service': "com.palm.display/control", 
 					'method': "setProperty", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "screen") {
 			var params = {};
@@ -62,21 +62,27 @@ var screenSettings = (function() {
 			{
 				future.nest(PalmCall.call("palm://com.palm.systemservice/", "setPreferences", params));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
-	}
+		
+		return future;
+	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
+		future.nest(utils.futureLoop(["display", "screen"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
 		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

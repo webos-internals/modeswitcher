@@ -1,6 +1,8 @@
 var ControlCommandAssistant = function() {
 	this.Foundations = IMPORTS.foundations;
 
+	this.Future = this.Foundations.Control.Future;
+
 	this.PalmCall = this.Foundations.Comms.PalmCall;
 }
 
@@ -60,8 +62,10 @@ ControlCommandAssistant.prototype.cleanup = function() {
 ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config) {
 	console.error("MS - Control - Startup - " + config.customModes[0].startup);
 	
-	utils.futureLoop(future, config.extensions.triggers, 
-		function(item, next, future) {
+	future.nest(utils.futureLoop(config.extensions.triggers, 
+		function(item) {
+			var future = new this.Future();
+		
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -87,34 +91,38 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 			future.then(this, function(future) {
 				eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
 				
-				future.then(this, function(future) { next(future); });
-			});
-		}.bind(this),
-		function(future) {
-			var newConfig = { modeLocked: false, historyList: [], statusData: config.statusData };
-			
-			future.nest(prefs.save(newConfig));
-			
-			future.then(this, function(future) {
-				var mode = "Current Mode";
-			
-				if(config.customModes[0].startup == 1)
-					mode = "Default Mode";
-				
-				future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
-					'action': "reload", 'name': mode, 'startup': true}));
-				
 				future.then(this, function(future) { future.result = { returnValue: true }; });
 			});
-		}.bind(this)
-	);
+			
+			return future;
+		}.bind(this)));
+	
+	future.then(this, function(future) {
+		var newConfig = { modeLocked: false, historyList: [], statusData: config.statusData };
+		
+		future.nest(prefs.save(newConfig));
+		
+		future.then(this, function(future) {
+			var mode = "Current Mode";
+		
+			if(config.customModes[0].startup == 1)
+				mode = "Default Mode";
+			
+			future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
+				'action': "reload", 'name': mode, 'startup': true}));
+			
+			future.then(this, function(future) { future.result = { returnValue: true }; });
+		});
+	});
 }
 
 ControlCommandAssistant.prototype.enableModeSwitcher = function(future, config) {  
 	console.error("MS - Control - Enable");
 	
-	utils.futureLoop(future, config.extensions.triggers, 
-		function(item, next, future) {
+	future.nest(utils.futureLoop(config.extensions.triggers, 
+		function(item) {
+			var future = new this.Future();
+
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -135,24 +143,28 @@ ControlCommandAssistant.prototype.enableModeSwitcher = function(future, config) 
 			
 			eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
 			
-			future.then(this, function(future) { next(future); });
-		}.bind(this),
-		function(future) {
-			var newConfig = { activated: true, modeLocked: false, activeModes: [], historyList: [], 
-				statusData: config.statusData };
-			
-			future.nest(prefs.save(newConfig));
-			
 			future.then(this, function(future) { future.result = { returnValue: true }; });
-		}.bind(this)
-	);
+
+			return future;
+		}.bind(this)));
+	
+	future.then(this, function(future) {
+		var newConfig = { activated: true, modeLocked: false, activeModes: [], historyList: [], 
+			statusData: config.statusData };
+		
+		future.nest(prefs.save(newConfig));
+		
+		future.then(this, function(future) { future.result = { returnValue: true }; });
+	});
 }
 
 ControlCommandAssistant.prototype.disableModeSwitcher = function(future, config) {
 	console.error("MS - Control - Disable");
 	
-	utils.futureLoop(future, config.extensions.triggers, 
-		function(item, next, future) {
+	future.nest(utils.futureLoop(config.extensions.triggers, 
+		function(item) {
+			var future = new this.Future();
+			
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -162,24 +174,28 @@ ControlCommandAssistant.prototype.disableModeSwitcher = function(future, config)
 			
 			eval("future.nest(" + item + "Triggers.shutdown(configData));");
 			
-			future.then(this, function(future) { next(future); });
-		}.bind(this),
-		function(future) {
-			var newConfig = { activated: false, modeLocked: false, activeModes: [], historyList: [],
-				statusData: config.statusData };
-			
-			future.nest(prefs.save(newConfig));
-			
 			future.then(this, function(future) { future.result = { returnValue: true }; });
-		}.bind(this)
-	);
+
+			return future;
+		}.bind(this)));
+	
+	future.then(this, function(future) {
+		var newConfig = { activated: false, modeLocked: false, activeModes: [], historyList: [],
+			statusData: config.statusData };
+		
+		future.nest(prefs.save(newConfig));
+		
+		future.then(this, function(future) { future.result = { returnValue: true }; });
+	});
 }
 
 ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) {
 	console.error("MS - Control - Reload");
 	
-	utils.futureLoop(future, config.extensions.triggers, 
-		function(item, next, future) {
+	future.nest(utils.futureLoop(config.extensions.triggers, 
+		function(item) {
+			var future = new this.Future();
+			
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
 			
@@ -203,21 +219,24 @@ ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) 
 			future.then(this, function(future) {
 				eval("future.nest(" + item + "Triggers.initialize(configData, triggersData));");
 				
-				future.then(this, function(future) { next(future); });
-			});
-		}.bind(this),
-		function(future) {
-			var newConfig = { statusData: config.statusData }
-			
-			future.nest(prefs.save(newConfig));
-			
-			future.then(this, function(future) {
-				future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
-					'action': "reload", 'name': "Current Mode"}));
-				
 				future.then(this, function(future) { future.result = { returnValue: true }; });
 			});
-		}.bind(this));
+	
+			return future;
+		}.bind(this)));
+	
+	future.then(this, function(future) {
+		var newConfig = { statusData: config.statusData }
+		
+		future.nest(prefs.save(newConfig));
+		
+		future.then(this, function(future) {
+			future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
+				'action': "reload", 'name': "Current Mode"}));
+			
+			future.then(this, function(future) { future.result = { returnValue: true }; });
+		});
+	});
 }
 
 ControlCommandAssistant.prototype.lockModeSwitcher = function(future, config) {

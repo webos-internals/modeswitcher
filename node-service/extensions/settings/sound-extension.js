@@ -15,11 +15,11 @@ var soundSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["ringtone", "system", "media1", "media2", "media3", "media4"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "ringtone") {
 			var params = {};
 			
@@ -31,10 +31,10 @@ var soundSettings = (function() {
 					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/ringtone", 
 					'method': "setVolume", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "system") {
 			var params = {};
@@ -47,10 +47,10 @@ var soundSettings = (function() {
 					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/system", 
 					'method': "setVolume", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if((item == "media1") || (item == "media2") || (item == "media3") || (item == "media4")) {
 			if(item == "media1")
@@ -70,21 +70,28 @@ var soundSettings = (function() {
 					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/media", 
 					'method': "setVolume", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
-	}
+		
+		return future;
+	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
+		future.nest(utils.futureLoop(["ringtone", "system", 
+				"media1", "media2", "media3", "media4"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
 		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

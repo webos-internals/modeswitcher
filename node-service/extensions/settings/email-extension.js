@@ -34,13 +34,11 @@ var emailSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["email"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
-						console.error("EMAIL ITEM " + item + " " + JSON.stringify(settingsNew));
-	
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "email-get") {
 			if(settingsNew.accounts) {
 					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
@@ -60,11 +58,11 @@ var emailSettings = (function() {
 								delete settingsNew.accounts[accId];
 						}
 						
-						next(future); 
+						future.result = { returnValue: true }; 
 					}.bind(this));
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "email-set") {
 			if(settingsNew.accounts) {
@@ -110,27 +108,30 @@ var emailSettings = (function() {
 						'id': "com.palm.app.email", 'service': "com.palm.db", 
 						'method': "merge", 'params': {'objects': objects}}));
 					
-					future.then(this, function(future) { next(future); });
+					future.then(this, function(future) { future.result = { returnValue: true }; });
 				}
 				else
-					next(future);
+					future.result = { returnValue: true }; 
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
+		
+		return future;
 	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
-		console.error("EMAIL START");
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { 
-					console.error("EMAIL DONE");
-			
-			future.result = { returnValue: true }; }.bind(this));
-		console.error("EMAIL END");
+		
+		future.nest(utils.futureLoop(["email-get", "email-set"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
+		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

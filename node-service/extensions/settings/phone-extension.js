@@ -15,11 +15,11 @@ var phoneSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["phone-get", "phone-set"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "phone-get") {
 			if((settingsNew.blinkNotify != undefined) ||
 				(settingsNew.rejectAction != undefined) || (settingsNew.rejectTemplate != undefined))
@@ -55,11 +55,11 @@ var phoneSettings = (function() {
 						}
 					}
 					
-					next(future);
+					future.result = { returnValue: true }; 
 				}.bind(this, settingsNew));
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "phone-set") {
 			var params = {};
@@ -85,21 +85,27 @@ var phoneSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.systemservice", 
 					'method': "setPreferences", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
-	}
+		
+		return future;
+	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
+		future.nest(utils.futureLoop(["phone-get", "phone-set"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
 		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

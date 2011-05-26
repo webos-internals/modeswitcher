@@ -34,11 +34,11 @@ var messagingSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["msg-get", "msg-set"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "msg-get") {
 			if(settingsNew.accounts) {
 					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
@@ -58,11 +58,11 @@ var messagingSettings = (function() {
 								delete settingsNew.accounts[accId];
 						}
 						
-						next(future); 
+						future.result = { returnValue: true }; 
 					}.bind(this));
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "msg-set") {
 			if(settingsNew.accounts) {
@@ -160,14 +160,16 @@ var messagingSettings = (function() {
 						'id': "com.palm.app.messaging", 'service': "com.palm.db", 
 						'method': "merge", 'params': {'objects': objects}}));
 					
-					future.then(this, function(future) { next(future); });
+					future.then(this, function(future) { future.result = { returnValue: true }; });
 				}
 				else
-					next(future);
+					future.result = { returnValue: true }; 
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
+		
+		return future;
 	};
 	
 //
@@ -175,9 +177,13 @@ var messagingSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
+		future.nest(utils.futureLoop(["msg-get", "msg-set"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
 		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

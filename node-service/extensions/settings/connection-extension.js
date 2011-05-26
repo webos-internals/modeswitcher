@@ -17,11 +17,11 @@ var connectionSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["telephony", "wan", "wifi", "btmonitor", "location"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+	var settingsUpdate = function(settingsOld, settingsNew, item) {
+		var future = new Future();
+		
 		if(item == "telephony") {
 			var params = {};
 			
@@ -33,10 +33,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
 					'method': "powerSet", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "wan") {
 			var params = {};
@@ -49,10 +49,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
 					'method': "set", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "wifi") {
 			var params = {};
@@ -65,10 +65,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.wifi", 'service': "com.palm.wifi", 
 					'method': "setstate", 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "btmonitor") {
 			var params = {};
@@ -88,10 +88,10 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.wifi", 'service': "com.palm.btmonitor/monitor", 
 					'method': method, 'params': params}));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
 		else if(item == "location") {
 			var params = {};
@@ -102,21 +102,28 @@ var connectionSettings = (function() {
 			if(params.useGps != undefined) {
 				future.nest(PalmCall.call("palm://com.palm.location/", "setUseGps", params));
 				
-				future.then(this, function(future) { next(future); });
+				future.then(this, function(future) { future.result = { returnValue: true }; });
 			}
 			else
-				next(future);
+				future.result = { returnValue: true }; 
 		}
-	}
+		
+		return future;
+	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
+		future.nest(utils.futureLoop(["telephony", "wan", 
+				"wifi", "btmonitor", "location"], 
+			settingsUpdate.bind(this, settingsOld, settingsNew)));
 		
+		future.then(this, function(future) { 
+			future.result = { returnValue: true }; 
+		});
+				
 		return future;
 	};
 	

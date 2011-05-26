@@ -23,7 +23,9 @@ var intervalTriggers = (function() {
 	
 //
 	
-	var addActivity = function(config, item, next, future) {
+	var addActivity = function(config, item) {
+		var future = new Future();
+	
 		if(((item.intervalHours != 0) || (item.intervalMinutes != 0)) &&
 			((item.activeHours != 0) && (item.activeMinutes != 0)) &&
 			((item.intervalHours != item.activeHours) || (item.intervalMinutes != item.activeMinutes)))
@@ -108,24 +110,28 @@ var intervalTriggers = (function() {
 				future.then(this, function(future) {
 					config.activities.push(future.result.activityId);
 					
-					next(future);
+					future.result = { returnValue: true };
 				});
 			});
 		}
 		else
-			next(future);
+			future.result = { returnValue: true };
+
+		return future;
 	};
 	
-	var delActivity = function(item, next, future) {
+	var delActivity = function(item) {
 		var oldActivity = {
 			"activityId": item 
 		};
 		
-		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
+		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
 		
 		future.then(this, function(future) {
-			next(future);
-		}); 
+			future.result = { returnValue: true };
+		});
+		
+		return future; 
 	};
 	
 //
@@ -225,11 +231,12 @@ var intervalTriggers = (function() {
 		if((!triggers) || (triggers.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.futureLoop(future, triggers, 
-				addActivity.bind(this, config), 
-				function(future) { 
-					future.result = { returnValue: true }; 
-				}.bind(this));
+			future.nest(utils.futureLoop(triggers, 
+				addActivity.bind(this, config)));
+			
+			future.then(this,  function(future) { 
+				future.result = { returnValue: true }; 
+			});
 		}
 		
 		return future;	
@@ -241,14 +248,15 @@ var intervalTriggers = (function() {
 		if((!config.activities) || (config.activities.length == 0))
 			future.result = { returnValue: true };
 		else {
-			utils.futureLoop(future, config.activities, 
-				delActivity.bind(this), 
-				function(future) {
-					config.activities = [];
-					config.activeModes = [];
-					
-					future.result = { returnValue: true };
-				}.bind(this));
+			future.nest(utils.futureLoop(config.activities, 
+				delActivity.bind(this)));
+			
+			future.then(this, function(future) {
+				config.activities = [];
+				config.activeModes = [];
+				
+				future.result = { returnValue: true };
+			});
 		}
 		
 		return future;
@@ -270,11 +278,12 @@ var intervalTriggers = (function() {
 			if(index != -1)
 				config.activities.splice(index, 1);
 			
-			utils.futureLoop(future, triggers, 
-				addActivity.bind(this, config), 
-				function(future) { 
-					future.result = { returnValue: true };
-				}.bind(this));
+			future.nest(utils.futureLoop(triggers, 
+				addActivity.bind(this, config)));
+			
+			future.then(this, function(future) { 
+				future.result = { returnValue: true };
+			});
 		}
 		
 		return future;

@@ -1,6 +1,8 @@
 var ExecuteCommandAssistant = function() {
 	this.Foundations = IMPORTS.foundations;
 
+	this.Future = this.Foundations.Control.Future;
+
 	this.PalmCall = this.Foundations.Comms.PalmCall;
 }
 
@@ -561,17 +563,17 @@ ExecuteCommandAssistant.prototype.executeModeChange = function(future, config, n
 	console.error("Executing mode updating: exec " + roundCount);
 	
 	this.executeSettingsUpdate(future, config, config.activeModes, newActiveModes, 
-		function(config, newActiveModes, roundPhase, roundCount, future) {
+		function(future, config, newActiveModes, roundPhase, roundCount) {
 			// When done updating the system settings then call apps update.
 			
 			this.executeActionsUpdate(future, config, config.activeModes, newActiveModes, 
-				function(config, newActiveModes, roundPhase, roundCount, future) {
+				function(future, config, newActiveModes, roundPhase, roundCount) {
 					// When done updating apps and srvs then call mode update.
 					
 					this.prepareModeChange(future, config, newActiveModes, roundPhase, roundCount);
-				}.bind(this, config, newActiveModes, roundPhase, roundCount)
+				}.bind(this, future, config, newActiveModes, roundPhase, roundCount)
 			);
-		}.bind(this, config, newActiveModes, roundPhase, roundCount)
+		}.bind(this, future, config, newActiveModes, roundPhase, roundCount)
 	);
 }
 
@@ -580,8 +582,10 @@ ExecuteCommandAssistant.prototype.executeModeChange = function(future, config, n
 ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, config, oldActiveModes, newActiveModes, doneCallback) {
 	console.error("Applying current system settings");
 	
-	utils.futureLoop(future, config.extensions.settings, 
-		function(config, oldActiveModes, newActiveModes, item, next, future) {
+	future.nest(utils.futureLoop(config.extensions.settings, 
+		function(item) {
+			var future = new this.Future();
+			
 			var oldModeSettings = {'extension': item};
 			var newModeSettings = {'extension': item};
 			
@@ -612,9 +616,12 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 			
 			eval("future.nest(" + item + "Settings.update(oldModeSettings, newModeSettings));");
 			
-			future.then(this, function(future) { next(future); });
-		}.bind(this, config, oldActiveModes, newActiveModes), doneCallback
-	);
+			future.then(this, function(future) { future.result = { returnValue: true }; });
+
+			return future;
+		}.bind(this)));
+	
+	future.then(this, function(future) { doneCallback(); });
 }
 
 ExecuteCommandAssistant.prototype.executeActionsUpdate = function(future, config, oldActiveModes, newActiveModes, doneCallback) {
@@ -706,7 +713,7 @@ ExecuteCommandAssistant.prototype.executeActionsUpdate = function(future, config
 	
 	future.nest(apps.update(closeAppsSrvs, startAppsSrvs));
 	
-	future.then(this, function(future) { doneCallback(future); });
+	future.then(this, function(future) { doneCallback(); });
 }
 
 //
