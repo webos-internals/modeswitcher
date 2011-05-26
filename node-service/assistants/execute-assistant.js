@@ -564,7 +564,7 @@ ExecuteCommandAssistant.prototype.executeModeChange = function(future, config, n
 		function(config, newActiveModes, roundPhase, roundCount, future) {
 			// When done updating the system settings then call apps update.
 			
-			this.executeActionsUpdate(config, config.activeModes, newActiveModes, 
+			this.executeActionsUpdate(future, config, config.activeModes, newActiveModes, 
 				function(config, newActiveModes, roundPhase, roundCount, future) {
 					// When done updating apps and srvs then call mode update.
 					
