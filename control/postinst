@@ -53,4 +53,6 @@ cp $APPS/usr/palm/services/${SID}/configuration/event.d/${SID} /var/palm/event.d
 
 /usr/bin/ls-control scan-services || true
 
+ls -la /var/palm/ls2/services/*/*modeswitcher* >/tmp/test
+
 exit 0
