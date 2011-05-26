@@ -292,12 +292,24 @@ var bluetoothTriggers = (function() {
 						config.connected.splice(i--, 1);
 				}
 			}
+			
+			//DEBUG START
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+				'id': "com.palm.app.bluetooth", 'service': "com.palm.bluetooth/prof", 
+				'method': "profgetstate", 'params': {'profile': "all"}})); 
 				
+			future.then(this, function(future) {
+				var profiles = future.result.profiles;
+				console.error("DEBUG " + JSON.stringify(profiles));
+			// DEBUG END				
 			future.nest(addActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
 			});
+			// DEBUG START
+			});
+			// DEBUG END
 		}
 		
 		return future;
