@@ -39,6 +39,8 @@ var emailSettings = (function() {
 //
 	
 	var settingsUpdate = function(settingsOld, settingsNew, item, next, future) {
+						console.error("EMAIL ITEM " + item + " " + JSON.stringify(settingsNew));
+	
 		if(item == "email-get") {
 			if(settingsNew.accounts) {
 					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
@@ -122,10 +124,13 @@ var emailSettings = (function() {
 	
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
-		
+		console.error("EMAIL START");
 		utils.futureLoop(future, configCalls, settingsUpdate.bind(this, settingsOld, settingsNew), 
-			function(future) { future.result = { returnValue: true }; }.bind(this));
-		
+			function(future) { 
+					console.error("EMAIL DONE");
+			
+			future.result = { returnValue: true }; }.bind(this));
+		console.error("EMAIL END");
 		return future;
 	};
 	
