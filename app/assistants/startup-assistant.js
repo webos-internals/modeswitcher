@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.3.1', log: [
+			'Fixed the security unsecure settings not taking effect.'
+		]
+	},
+	{
 		version: '2.3.0', log: [
 			'Many changes and additions to the core functionality, see wiki for details.'
 		]
