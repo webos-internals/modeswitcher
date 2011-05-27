@@ -24,13 +24,17 @@ var securitySettings = (function() {
 			var params = {};
 			
 			if((settingsNew.lockMode != undefined) && (settingsOld.lockMode != settingsNew.lockMode)) {
-				if((settingsNew.lockSecret != undefined) && (settingsNew.lockSecret.length > 0)) {
+				if(settingsNew.lockMode == "none")
+					params.lockMode = settingsNew.lockMode;
+				else if((settingsNew.lockSecret != undefined) && (settingsNew.lockSecret.length > 0)) {
 					params.lockMode = settingsNew.lockMode;
 					
 					params.passCode = settingsNew.lockSecret;
 				}
 			}
-			else if((settingsNew.lockSecret != undefined) && (settingsOld.lockSecret != settingsNew.lockSecret)) {
+			else if((settingsNew.lockSecret != undefined) && (settingsNew.lockSecret.length > 0) &&
+				(settingsOld.lockSecret != settingsNew.lockSecret))
+			{
 				if((settingsNew.lockMode != undefined) && (settingsNew.lockMode != "none")) {
 					params.lockMode = settingsNew.lockMode;
 				
