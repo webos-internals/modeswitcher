@@ -23,7 +23,7 @@ var intervalTriggers = (function() {
 	
 //
 	
-	var addActivity = function(future, triggers, config) {
+	var addActivity = function(future, config, triggers) {
 		var result = future.result;
 		
 		var trigger = triggers[result];

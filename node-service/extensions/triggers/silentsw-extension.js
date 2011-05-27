@@ -51,7 +51,7 @@ var silentswTriggers = (function() {
 			}
 		};
 		
-		future.then(PalmCall.call("palm://com.palm.activitymanager", "create", newActivity));
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newActivity));
 		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;

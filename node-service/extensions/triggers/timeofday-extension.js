@@ -300,9 +300,9 @@ var timeofdayTriggers = (function() {
 			}
 		}
 		
-//		console.log("From time: " + startTime.getHours() + ":" + startTime.getMinutes() + " " + startTime.getDate() + "/" + (startTime.getMonth() + 1) + "/" + startTime.getFullYear() + ", To Time: " + closeTime.getHours() + ":" + closeTime.getMinutes() + " " + closeTime.getDate() + "/" + (closeTime.getMonth() + 1) + "/" + closeTime.getFullYear());
+		console.error("From time: " + startTime.getHours() + ":" + startTime.getMinutes() + " " + startTime.getDate() + "/" + (startTime.getMonth() + 1) + "/" + startTime.getFullYear() + ", To Time: " + closeTime.getHours() + ":" + closeTime.getMinutes() + " " + closeTime.getDate() + "/" + (closeTime.getMonth() + 1) + "/" + closeTime.getFullYear());
 		
-//		console.log("From timestamp: " + startTime.getTime() + ", To timestamp: " + closeTime.getTime());
+		console.error("From timestamp: " + startTime.getTime() + ", To timestamp: " + closeTime.getTime());
 		
 		return {"curTime": curTime, "startTime": startTime, "closeTime": closeTime};
 	}
@@ -319,7 +319,7 @@ var timeofdayTriggers = (function() {
 		else {
 			future.whilst(this, function(future) { return future.result >= 0; }, 
 				function(future) {
-					addActivity(future, config, triggers, true);
+					addActivity(future, config, triggers, false);
 				});
 		
 			future.then(this, function(future) {

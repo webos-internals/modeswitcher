@@ -326,7 +326,7 @@ var prefs = (function() {
 		var future = loadPrefs();
 		
 		future.then(this, function(future) {
-			console.log("Mode Switcher preferences loaded");
+			console.error("Mode Switcher preferences loaded");
 			
 			var result = future.result;
 			
@@ -355,7 +355,7 @@ var prefs = (function() {
 			future.nest(savePrefs(result));
 			
 			future.then(this, function(future) {
-				console.log("Mode Switcher preferences saved");
+				console.error("Mode Switcher preferences saved");
 				
 				notifySubscribers(prefs);
 				

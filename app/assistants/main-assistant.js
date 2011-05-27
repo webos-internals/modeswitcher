@@ -471,20 +471,92 @@ MainAssistant.prototype.handleModesListReorder = function(event) {
 }
 
 MainAssistant.prototype.handleRemoveModeFromList = function(event) {
+	var modeName = this.customModes[event.index + 1].name;
+	
+	var modeActions = [], modeTriggers = [];
+
+	// If loading then don't allow deleting of modes and refresh the list.
+
 	if(this.loading) {
 		this.controller.modelChanged(this.modelModesList, this);
 	
 		return;
 	}
-	
-	this.customModes.splice(event.index + 1, 1);
 
-	this.modelModesList.items.splice(event.index, 1);
+	// Check if the mode exist in other mode configurations and notify user if it does.
 
-	this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
-		method: 'prefs', parameters: {customModes: this.customModes},
-		method: 'prefs', parameters: {customModes: this.customModes},
-		onFailure: this.unknownServiceError.bind(this)});
+	for(var i = 0; i < this.customModes.length; i++) {
+		if(i != (event.index + 1)) {
+			for(var j = 0; j < this.customModes[i].actions.list.length; j++) {
+				if((this.customModes[i].actions.list[j].type == "ms") &&
+					(this.customModes[i].actions.list[j].mode == modeName))
+				{
+					modeActions.push({modeIndex: i, actionIndex: j});
+				}
+			}
+			
+			for(var j = 0; j < this.customModes[i].triggers.length; j++) {
+				for(var k = 0; k < this.customModes[i].triggers[j].list.length; k++) {					
+					if((this.customModes[i].triggers[j].list[k].extension == "modechange") &&
+						(this.customModes[i].triggers[j].list[k].mode == modeName))
+					{
+						modeTriggers.push({modeIndex: i, groupIndex: j, triggerIndex: k});
+					}
+				}
+			}
+		}
+	}
+
+	if((modeActions.length == 0) && (modeTriggers.length == 0)) {
+		this.customModes.splice(event.index + 1, 1);
+
+		this.modelModesList.items.splice(event.index, 1);
+
+		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+			method: 'prefs', parameters: {customModes: this.customModes},
+			onFailure: this.unknownServiceError.bind(this)});
+	}
+	else {
+		this.controller.showAlertDialog({
+			title: $L("Mode References Exists!"),
+			message: "Other modes have actions or triggers referring this mode, are you sure you want to delete this mode?",
+			choices:[
+				{label:$L("Delete Mode & References"), value:"delete", type:'default'},
+				{label:$L("Cancel Mode Deleting"), value:"cancel", type:'default'}],
+			preventCancel: true,
+			allowHTMLMessage: true,
+			onChoose: function(value) {
+				if(value == "delete") {
+					for(var i = 0; i < modeActions.length; i++) {
+						var modeIdx = modeActions[i].modeIndex;
+						var actionIdx = modeActions[i].actionIndex;
+						
+						this.customModes[modeIdx].actions.list.splice(actionIdx, 1);
+					}
+
+					for(var i = 0; i < modeTriggers.length; i++) {
+						var modeIdx = modeTriggers[i].modeIndex;
+						var groupIdx = modeTriggers[i].groupIndex;
+						var triggerIdx = modeTriggers[i].triggerIndex;
+						
+						this.customModes[modeIdx].triggers[groupIdx].list.splice(triggerIdx, 1);
+						
+						if(this.customModes[modeIdx].triggers[groupIdx].list.length == 0)
+							this.customModes[modeIdx].triggers.splice(groupIdx, 1);
+					}
+				
+					this.customModes.splice(event.index + 1, 1);
+
+					this.modelModesList.items.splice(event.index, 1);
+
+					this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.srv", {
+						method: 'prefs', parameters: {customModes: this.customModes},
+						onFailure: this.unknownServiceError.bind(this)});
+				}
+				else
+					this.controller.modelChanged(this.modelModesList, this);
+			}.bind(this)}); 
+	}
 }
 
 MainAssistant.prototype.handleAddModeButtonPress = function(event) {

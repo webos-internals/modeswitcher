@@ -23,7 +23,7 @@ var wirelessTriggers = (function() {
 //
 	
 	var initExtension = function(future, config) {
-		future.then(PalmCall.call("palm://com.palm.connectionmanager", "getstatus", {})); 
+		future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getstatus", {})); 
 		
 		future.then(this, function(future) {
 			if(future.result.wifi) {

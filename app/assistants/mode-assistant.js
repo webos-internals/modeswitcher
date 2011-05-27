@@ -1592,7 +1592,7 @@ ModeAssistant.prototype.checkModeName = function() {
 
 	this.controller.modelChanged(this.modelNameText, this);
 
-	// Rename the mode also in MS app configurations if any exists
+	// Rename the mode also in MS action / trigger configurations if any exists.
 
 	if(this.modelNameText.value != this.mode.name) {
 		this.extensionModules.actions["modesw"].setup(this.controller, 
@@ -1600,11 +1600,23 @@ ModeAssistant.prototype.checkModeName = function() {
 
 		if(this.mode.name != "") {
 			for(var i = 0; i < this.customModes.length; i++) {
-				for(var j = 0; j < this.customModes[i].actions.list.length; j++) {
-					if((this.customModes[i].actions.list[j].type == "ms") &&
-						(this.customModes[i].actions.list[j].mode == this.mode.name))
-					{
-						this.customModes[i].actions.list[j].mode = this.modelNameText.value;
+				if(i != this.modeIndex) {
+					for(var j = 0; j < this.customModes[i].actions.list.length; j++) {
+						if((this.customModes[i].actions.list[j].type == "ms") &&
+							(this.customModes[i].actions.list[j].mode == this.mode.name))
+						{
+							this.customModes[i].actions.list[j].mode = this.modelNameText.value;
+						}
+					}
+					
+					for(var j = 0; j < this.customModes[i].triggers.length; j++) {
+						for(var k = 0; k < this.customModes[i].triggers[j].list.length; k++) {					
+							if((this.customModes[i].triggers[j].list[k].extension == "modechange") &&
+								(this.customModes[i].triggers[j].list[k].mode == this.mode.name))
+							{
+								this.customModes[i].triggers[j].list[k].mode = this.modelNameText.value;
+							}
+						}
 					}
 				}
 			}
