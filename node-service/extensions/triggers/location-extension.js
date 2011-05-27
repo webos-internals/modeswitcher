@@ -34,14 +34,14 @@ var locationTriggers = (function() {
 	
 //
 	
-	var initExtension = function(config, triggers, accuracy, count) {
+	var initExtension = function(future, config, triggers, accuracy, count) {
 		if(!accuracy)
 			accuracy = 0;
 		
 		if(!count)
 			count = 0;
 		
-		var future = PalmCall.call("palm://com.palm.location", "getCurrentPosition", {});
+		future.nest(PalmCall.call("palm://com.palm.location", "getCurrentPosition", {}));
 		
 		future.then(this, function(future) {
 			var result = future.result;
@@ -50,10 +50,12 @@ var locationTriggers = (function() {
 				console.log("Insufficient accuracy: " + result.horizAccuracy);
 			
 			if((count < 20) && (accuracy < result.horizAccuracy)) {
-				future.nest(initExtension(config, triggers, result.horizAccuracy, ++count));
+				future.now(this, function(future) {
+					initExtension(future, config, triggers, result.horizAccuracy, ++count);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			}
 			else {
@@ -62,16 +64,14 @@ var locationTriggers = (function() {
 					lng: result.longitude,
 					acc: result.horizAccuracy};
 				
-				future.result = { returnValue: true };
+				future.result = true;
 			}
 		});
-		
-		return future;
 	};
 	
 //
 	
-	var addActivity = function(config) {
+	var addActivity = function(future, config) {
 		var startDate = new Date();
 		
 		startDate.setMinutes(startDate.getMinutes() + config.refresh);
@@ -100,31 +100,27 @@ var locationTriggers = (function() {
 			}
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newActivity));
 		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future;
 	};
 	
-	var delActivity = function(config) {
+	var delActivity = function(future, config) {
 		var oldActivity = {
 			"activityId": config.activity 
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		
 		future.then(this, function(future) {
 			config.activity = null;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		}); 
-		
-		return future;
 	};
 	
 //
@@ -316,12 +312,14 @@ var locationTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
 			updateRequiredAccuracy(config, triggers);
 			
-			future.nest(initExtension(config, triggers));
+			future.now(this, function(future) { 
+				initExtension(future, config, triggers);
+			});
 			
 			future.then(this, function(future) {
 				if((config.location.lat != -1) && 
@@ -330,10 +328,12 @@ var locationTriggers = (function() {
 					updateLocationTracking(config, triggers);
 				}
 				
-				future.nest(addActivity(config));
+				future.now(this, function(future) { 
+					addActivity(future, config);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			});
 		}
@@ -350,12 +350,14 @@ var locationTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = { returnValue: true };
+			future.result = true;
 		else {
-			future.nest(delActivity(config));
+			future.now(this, function(future) { 
+				delActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -371,12 +373,14 @@ var locationTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
 			updateRequiredAccuracy(config, triggers);
 			
-			future.nest(initExtension(config, triggers));
+			future.now(this, function(future) { 
+				initExtension(future, config, triggers);
+			});
 			
 			future.then(this, function(future) {
 				if((config.location.lat != -1) && 
@@ -385,10 +389,12 @@ var locationTriggers = (function() {
 					updateLocationTracking(config, triggers);
 				}
 				
-				future.nest(addActivity(config));
+				future.now(this, function(future) { 
+					addActivity(future, config);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			});
 		}

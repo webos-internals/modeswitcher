@@ -17,34 +17,28 @@ var contactsSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item) {
-		var future = new Future();
+	var updateContactsSettings = function(future, settingsOld, settingsNew) {
+		var params = {};
 		
-		if(item == "contacts") {
-			var params = {};
+		if(settingsNew.databaseId != undefined) {
+			params._id = settingsNew.databaseId;
 			
-			if(settingsNew.databaseId != undefined) {
-				params._id = settingsNew.databaseId;
-				
-				if((settingsNew.blockedNumbers != undefined) && (settingsOld.blockedNumbers != settingsNew.blockedNumbers))
-					params.blockedNumbers = settingsNew.blockedNumbers;
-				
-				if((settingsNew.unknownNumbers != undefined) && (settingsOld.unknownNumbers != settingsNew.unknownNumbers))
-					params.unknownNumbers = settingsNew.unknownNumbers;
-			}
+			if((settingsNew.blockedNumbers != undefined) && (settingsOld.blockedNumbers != settingsNew.blockedNumbers))
+				params.blockedNumbers = settingsNew.blockedNumbers;
 			
-			if((params.blockedNumbers != undefined) || (params.unknownNumbers != undefined)) {
-				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-					'id': "com.palm.app.contacts", 'service': "com.palm.db", 
-					'method': "merge", 'params': {'objects': [params]}}));
-				
-				future.then(this, function(future) { future.result = { returnValue: true }; });
-			}
-			else
-				future.result = { returnValue: true }; 
+			if((settingsNew.unknownNumbers != undefined) && (settingsOld.unknownNumbers != settingsNew.unknownNumbers))
+				params.unknownNumbers = settingsNew.unknownNumbers;
 		}
 		
-		return future;
+		if((params.blockedNumbers != undefined) || (params.unknownNumbers != undefined)) {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+				'id': "com.palm.app.contacts", 'service': "com.palm.db", 
+				'method': "merge", 'params': {'objects': [params]}}));
+			
+			future.then(this, function(future) { future.result = true; });
+		}
+		else
+			future.result = true; 
 	};
 	
 //
@@ -52,13 +46,12 @@ var contactsSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		future.nest(utils.futureLoop(["contacts"], 
-			settingsUpdate.bind(this, settingsOld, settingsNew)));
-		
-		future.then(this, function(future) { 
-			future.result = { returnValue: true }; 
+		future.now(this, function(future) {
+			updateContactsSettings(future, settingsOld, settingsNew);
 		});
-				
+		
+		future.then(this, function(future) { future.result = true; });
+		
 		return future;
 	};
 	

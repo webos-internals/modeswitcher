@@ -23,15 +23,18 @@ var intervalTriggers = (function() {
 	
 //
 	
-	var addActivity = function(config, item) {
-		var future = new Future();
-	
-		if(((item.intervalHours != 0) || (item.intervalMinutes != 0)) &&
-			((item.activeHours != 0) && (item.activeMinutes != 0)) &&
-			((item.intervalHours != item.activeHours) || (item.intervalMinutes != item.activeMinutes)))
+	var addActivity = function(future, triggers, config) {
+		var result = future.result;
+		
+		var trigger = triggers[result];
+
+		if(((trigger.intervalHours != 0) || (trigger.intervalMinutes != 0)) &&
+			((trigger.activeHours != 0) && (trigger.activeMinutes != 0)) &&
+			((trigger.intervalHours != trigger.activeHours) || 
+			(trigger.intervalMinutes != trigger.activeMinutes)))
 		{
-			var hours = item.intervalHours;
-			var minutes = item.intervalMinutes;
+			var hours = trigger.intervalHours;
+			var minutes = trigger.intervalMinutes;
 			
 			if(hours < 10)
 				hours = "0" + hours;
@@ -48,14 +51,14 @@ var intervalTriggers = (function() {
 			startDate.setMilliseconds(0);
 			
 			while(startDate.getTime() <= curDate.getTime()) {
-				startDate.setHours(startDate.getHours() + item.intervalHours);
-				startDate.setMinutes(startDate.getMinutes() + item.intervalMinutes);
+				startDate.setHours(startDate.getHours() + trigger.intervalHours);
+				startDate.setMinutes(startDate.getMinutes() + trigger.intervalMinutes);
 			}
 			
 			var closeDate = new Date(startDate.getTime());
 			
-			closeDate.setHours(closeDate.getHours() + item.activeHours);
-			closeDate.setMinutes(closeDate.getMinutes() + item.activeMinutes);
+			closeDate.setHours(closeDate.getHours() + trigger.activeHours);
+			closeDate.setMinutes(closeDate.getMinutes() + trigger.activeMinutes);
 			
 			var startTime = convertDateToUtfStr(startDate);
 			var closeTime = convertDateToUtfStr(closeDate);
@@ -110,28 +113,26 @@ var intervalTriggers = (function() {
 				future.then(this, function(future) {
 					config.activities.push(future.result.activityId);
 					
-					future.result = { returnValue: true };
+					future.result = result - 1;
 				});
 			});
 		}
 		else
-			future.result = { returnValue: true };
-
-		return future;
+			future.result = result - 1;
 	};
 	
-	var delActivity = function(item) {
+	var delActivity = function(future, config) {
+		var result = future.result;
+
 		var oldActivity = {
-			"activityId": item 
+			"activityId": config.activities[result] 
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		
 		future.then(this, function(future) {
-			future.result = { returnValue: true };
+			future.result = result - 1;
 		});
-		
-		return future; 
 	};
 	
 //
@@ -226,16 +227,18 @@ var intervalTriggers = (function() {
 	that.initialize = function(config, triggers) {
 		config.activities = [];
 		
-		var future = new Future();
+		var future = new Future(triggers.length - 1);
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
-			future.nest(utils.futureLoop(triggers, 
-				addActivity.bind(this, config)));
+			future.whilst(this, function(future) { return future.result >= 0; }, 
+				function(future) {
+					addActivity(future, config, triggers);
+				});				
 			
 			future.then(this,  function(future) { 
-				future.result = { returnValue: true }; 
+				future.result = true; 
 			});
 		}
 		
@@ -243,11 +246,16 @@ var intervalTriggers = (function() {
 	};
 	
 	that.shutdown = function(config) {
-		var future = new Future();
+		var future = new Future(config.activities.length - 1);
 		
-		if((!config.activities) || (config.activities.length == 0))
-			future.result = { returnValue: true };
+		if(config.activities.length == 0)
+			future.result = true;
 		else {
+			future.whilst(this, function(future) { return future.result >= 0; }, 
+				function(future) {
+					delActivity(future, config);
+				});				
+
 			future.nest(utils.futureLoop(config.activities, 
 				delActivity.bind(this)));
 			
@@ -255,7 +263,7 @@ var intervalTriggers = (function() {
 				config.activities = [];
 				config.activeModes = [];
 				
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -265,12 +273,10 @@ var intervalTriggers = (function() {
 //
 	
 	that.reload = function(config, triggers, args) {
-		var future = new Future();
+		var future = new Future(triggers.length - 1);
 		
-		if((!triggers) || (triggers.length == 0) || 
-			(!args.timestamp) || (!args.$activity))
-		{
-			future.result = { returnValue: true };
+		if((triggers.length == 0) || (!args.timestamp) || (!args.$activity)) {
+			future.result = true;
 		}
 		else {
 			var index = config.activities.indexOf(args.$activity.activityId);
@@ -278,11 +284,13 @@ var intervalTriggers = (function() {
 			if(index != -1)
 				config.activities.splice(index, 1);
 			
-			future.nest(utils.futureLoop(triggers, 
-				addActivity.bind(this, config)));
+			future.whilst(this, function(future) { return future.result >= 0; }, 
+				function(future) {
+					addActivity(future, config, triggers);
+				});				
 			
 			future.then(this, function(future) { 
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		

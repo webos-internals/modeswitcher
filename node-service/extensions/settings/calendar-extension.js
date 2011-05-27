@@ -17,45 +17,37 @@ var calendarSettings = (function() {
 	
 	var PalmCall = Foundations.Comms.PalmCall;
 	
-	var configCalls = ["calendar"];
-	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item) {
-		var future = new Future();
+	var updateCalendarSettings = function(future, settingsOld, settingsNew) {
+		var params = {};
 		
-		if(item == "calendar") {
-			var params = {};
+		if(settingsNew.databaseId != undefined) {
+			params._id = settingsNew.databaseId;
 			
-			if(settingsNew.databaseId != undefined) {
-				params._id = settingsNew.databaseId;
-				
-				if((settingsNew.blinkNotify != undefined) && (settingsOld.blinkNotify != settingsNew.blinkNotify))
-					params.blinkNotification = settingsNew.blinkNotify;
-				
-				if((settingsNew.reminderAlert != undefined) && (settingsOld.reminderAlert != settingsNew.reminderAlert))
-					params.alarmSoundOn = settingsNew.reminderAlert;
-				
-				if((settingsNew.ringtonePath != undefined) && (settingsOld.ringtonePath != settingsNew.ringtonePath)) {
-					params.ringtoneName = settingsNew.ringtoneName;
-					params.ringtonePath = settingsNew.ringtonePath;
-				}
-			}
+			if((settingsNew.blinkNotify != undefined) && (settingsOld.blinkNotify != settingsNew.blinkNotify))
+				params.blinkNotification = settingsNew.blinkNotify;
 			
-			if((params.blinkNotification != undefined) || (params.alarmSoundOn != undefined) || 
-				(params.ringtonePath != undefined))
-			{
-				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-					'id': "com.palm.app.calendar", 'service': "com.palm.db", 
-					'method': "merge", 'params': {'objects': [params]}}));
-				
-				future.then(this, function(future) { future.result = { returnValue: true }; });
+			if((settingsNew.reminderAlert != undefined) && (settingsOld.reminderAlert != settingsNew.reminderAlert))
+				params.alarmSoundOn = settingsNew.reminderAlert;
+			
+			if((settingsNew.ringtonePath != undefined) && (settingsOld.ringtonePath != settingsNew.ringtonePath)) {
+				params.ringtoneName = settingsNew.ringtoneName;
+				params.ringtonePath = settingsNew.ringtonePath;
 			}
-			else
-				future.result = { returnValue: true }; 
 		}
 		
-		return future;
+		if((params.blinkNotification != undefined) || (params.alarmSoundOn != undefined) || 
+			(params.ringtonePath != undefined))
+		{
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+				'id': "com.palm.app.calendar", 'service': "com.palm.db", 
+				'method': "merge", 'params': {'objects': [params]}}));
+			
+			future.then(this, function(future) { future.result = true; });
+		}
+		else
+			future.result = true; 
 	};
 	
 //
@@ -63,12 +55,11 @@ var calendarSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		future.nest(utils.futureLoop(["calendar"], 
-			settingsUpdate.bind(this, settingsOld, settingsNew)));
-		
-		future.then(this, function(future) { 
-			future.result = { returnValue: true }; 
+		future.now(this, function(future) {
+			updateCalendarSettings(future, settingsOld, settingsNew);
 		});
+		
+		future.then(this, function(future) { future.result = true; });
 				
 		return future;
 	};

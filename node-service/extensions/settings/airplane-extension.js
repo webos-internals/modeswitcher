@@ -15,25 +15,19 @@ var airplaneSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item) {
-		var future = new Future();
+	var updateAirplaneSettings = function(future, settingsOld, settingsNew) {
+		var params = {};
+	
+		if((settingsNew.flightMode != undefined) && (settingsOld.flightMode != settingsNew.flightMode))
+			params.airplaneMode = settingsNew.flightMode;
+	
+		if(params.airplaneMode != undefined) {
+			future.nest(PalmCall.call("palm://com.palm.systemservice/", "setPreferences", params));
 		
-		if(item == "airplane") {
-			var params = {};
-		
-			if((settingsNew.flightMode != undefined) && (settingsOld.flightMode != settingsNew.flightMode))
-				params.airplaneMode = settingsNew.flightMode;
-		
-			if(params.airplaneMode != undefined) {
-				future.nest(PalmCall.call("palm://com.palm.systemservice/", "setPreferences", params));
-			
-				future.then(this, function(future) { future.result = { returnValue: true }; });
-			}
-			else
-				future.result = { returnValue: true }; 
+			future.then(this, function(future) { future.result = true; });
 		}
-		
-		return future;
+		else
+			future.result = true;
 	};
 	
 //
@@ -41,12 +35,11 @@ var airplaneSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		future.nest(utils.futureLoop(["airplane"], 
-			settingsUpdate.bind(this, settingsOld, settingsNew)));
-		
-		future.then(this, function(future) { 
-			future.result = { returnValue: true }; 
+		future.now(this, function(future) {
+			updateAirplaneSettings(future, settingsOld, settingsNew);
 		});
+		
+		future.then(this, function(future) { future.result = true; });
 		
 		return future;
 	};

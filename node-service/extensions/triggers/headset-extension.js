@@ -21,21 +21,19 @@ var headsetTriggers = (function() {
 	
 //
 	
-	var initExtension = function(config) {
-		var future = PalmCall.call("palm://com.palm.audio/media", "status", {});
+	var initExtension = function(future, config) {
+		future.nest(PalmCall.call("palm://com.palm.audio/media", "status", {}));
 		
 		future.then(this, function(future) {
 			config.scenario = future.result.scenario;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future;
 	};
 	
 //
 	
-	var addActivity = function(config) {
+	var addActivity = function(future, config) {
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -54,31 +52,27 @@ var headsetTriggers = (function() {
 			}
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newActivity));
 		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future;
 	};
 	
-	var delActivity = function(config) {
+	var delActivity = function(future, config) {
 		var oldActivity = {
 			"activityId": config.activity
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		
 		future.then(this, function(future) {
 			config.activity = null;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future; 
 	};
 	
 //
@@ -139,16 +133,20 @@ var headsetTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
-			future.nest(initExtension(config));
+			future.now(this, function(future) { 
+				initExtension(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.nest(addActivity(config));
+				future.now(this, function(future) { 
+					addActivity(future, config);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			});
 		}
@@ -162,12 +160,14 @@ var headsetTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = { returnValue: true };
+			future.result = true;
 		else {
-			future.nest(delActivity(config));
+			future.now(this, function(future) { 
+				delActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -182,11 +182,11 @@ var headsetTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0) ||
+		if((triggers.length == 0) ||
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = { returnValue: true };
+			future.result = true;
 		}
 		else {
 			if(args.$activity.trigger.scenario != undefined)
@@ -194,10 +194,12 @@ var headsetTriggers = (function() {
 			else
 				config.scenario = "unknown";
 			
-			future.nest(addActivity(config));
+			future.now(this, function(future) { 
+				addActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		

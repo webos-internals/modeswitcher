@@ -25,10 +25,10 @@ var bluetoothTriggers = (function() {
 	
 //
 	
-	var initExtension = function(config) {
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+	var initExtension = function(future, config) {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.app.bluetooth", 'service': "com.palm.btmonitor/monitor", 
-			'method': "getradiostate", 'params': {}}); 
+			'method': "getradiostate", 'params': {}})); 
 		
 		future.then(this, function(future) {
 			if(future.result.radio == "on") {
@@ -49,17 +49,15 @@ var bluetoothTriggers = (function() {
 						}
 					}
 					
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			}
 			else
-				future.result = { returnValue: true };
+				future.result = true;
 		});
-		
-		return future;
 	}
 	
-	var addActivity = function(config) {
+	var addActivity = function(future, config) {
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -78,35 +76,31 @@ var bluetoothTriggers = (function() {
 			}
 		};
 		
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
-			'method': "create", 'params': newActivity}); 
+			'method': "create", 'params': newActivity})); 
 		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-			
-		return future;
 	};
 	
-	var delActivity = function(config) {
+	var delActivity = function(future, config) {
 		var oldActivity = {
 			"activityId": config.activity
 		};
 		
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
-			'method': "cancel", 'params': oldActivity}); 
+			'method': "cancel", 'params': oldActivity}));
 		
 		future.then(this, function(future) {
 			config.activity = null;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future; 
 	};
 	
 //
@@ -208,16 +202,20 @@ var bluetoothTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
-			future.nest(initExtension(config));
+			future.now(this, function(future) { 
+				initExtension(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.nest(addActivity(config));
+				future.now(this, function(future) { 
+					addActivity(future, config);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			});
 		}
@@ -231,12 +229,14 @@ var bluetoothTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = { returnValue: true };
+			future.result = true;
 		else {
-			future.nest(delActivity(config));
+			future.now(this, function(future) { 
+				delActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -250,10 +250,11 @@ var bluetoothTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!args.$activity) || (!args.$activity.trigger) || 
+		if((triggers.length == 0) || 
+			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = { returnValue: true };
+			future.result = true;
 		}
 		else {
 			var device = "unknown";
@@ -302,10 +303,12 @@ var bluetoothTriggers = (function() {
 				var profiles = future.result.profiles;
 				console.error("DEBUG " + JSON.stringify(profiles));
 			// DEBUG END				
-			future.nest(addActivity(config));
+			future.now(this, function(future) { 
+				addActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 			// DEBUG START
 			});

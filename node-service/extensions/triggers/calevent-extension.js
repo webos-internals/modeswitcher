@@ -32,16 +32,16 @@ var caleventTriggers = (function() {
 	
 //
 	
-	var initExtension = function(config, triggers, validEvents, parentIds, page) {
+	var initExtension = function(future, config, triggers, validEvents, parentIds, page) {
 		if(!page) {
-			var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.db", 
-				'method': "find", 'params': {'query': {'from': "com.palm.calendarevent:1"}}}); 
+				'method': "find", 'params': {'query': {'from': "com.palm.calendarevent:1"}}})); 
 		}
 		else {
-			var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.db", 
-				'method': "find", 'params': {'query': {'from': "com.palm.calendarevent:1", 'page': page}}}); 
+				'method': "find", 'params': {'query': {'from': "com.palm.calendarevent:1", 'page': page}}})); 
 		}
 		
 		future.then(this, function(future) {
@@ -77,22 +77,22 @@ var caleventTriggers = (function() {
 			}
 			
 			if(result.next) {
-				future.nest(initExtension(config, triggers, validEvents, parentIds, result.next));
+				future.now(this, function(future) {
+					initExtension(future, config, triggers, validEvents, parentIds, result.next);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true, events: validEvents, parentIds: parentIds };
+					future.result = { events: validEvents, parentIds: parentIds };
 				});
 			}
 			else
-				future.result = { returnValue: true, events: validEvents, parentIds: parentIds };
+				future.result = { events: validEvents, parentIds: parentIds };
 		});
-		
-		return future;	
 	};
 	
 //
 	
-	var addActivities = function(config) {
+	var addActivities = function(future, config, events) {
 		var date = new Date();
 		
 		date.setHours(0);
@@ -151,9 +151,9 @@ var caleventTriggers = (function() {
 			}
 		};
 		
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.app.calendar", 'service': "com.palm.activitymanager", 
-			'method': "create", 'params': newUpdateActivity}); 
+			'method': "create", 'params': newUpdateActivity})); 
 		
 		future.then(this, function(future) {
 			config.activities.push(future.result.activityId);
@@ -163,20 +163,20 @@ var caleventTriggers = (function() {
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				future.result = { returnValue: true };
+				future.result = events.length;
 			});
 		});
-		
-		return future;
 	};
 	
 //
 	
-	var addActivity = function(config, parentIds, item) {
-		var future = new Future();
+	var addActivity = function(future, config, events, parentIds) {
+		var result = future.result;
+		
+		var eventData = events[result];
 	
-		if(parentIds.indexOf(item.eventId) == -1) {
-			var date = new Date(item.timestamp);
+		if(parentIds.indexOf(eventData.eventId) == -1) {
+			var date = new Date(eventData.timestamp);
 			
 			var startTime = convertDateToUtfStr(date);
 			
@@ -184,7 +184,7 @@ var caleventTriggers = (function() {
 				"start" : true,
 				"replace": true,
 				"activity": {
-					"name": "caleventEventTrigger" + item.timestamp,
+					"name": "caleventEventTrigger" + eventData.timestamp,
 					"description" : "Calendar Event Notifier",
 					"type": {"foreground": true, "persist": false},
 					"schedule" : { 
@@ -194,8 +194,8 @@ var caleventTriggers = (function() {
 					},
 					"callback" : {
 						"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
-						"params" : {"extension": "calevent", "events": item.events, 
-							"timestamp": item.timestamp}
+						"params" : {"extension": "calevent", "events": eventData.events, 
+							"timestamp": eventData.timestamp}
 					}
 				}
 			};
@@ -207,32 +207,32 @@ var caleventTriggers = (function() {
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				future.result = { returnValue: true };
+				future.result = result - 1;
 			});
 		}
 		else
-			future.result = { returnValue: true };
-		
-		return future;
+			future.result = result - 1;
 	};
 	
-	var delActivity = function(config, skip, item) {
+	var delActivity = function(future, config, skip) {
+		var result = future.result;
+		
 		var oldActivity = {
-			"activityId": item
+			"activityId": config.activities[result]
 		};
 		
-		if((config.activities[0] == item) && (!skip)) {
-			var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+		if((result == 0) && (!skip)) {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.activitymanager", 
-				'method': "cancel", 'params': oldActivity}); 
+				'method': "cancel", 'params': oldActivity})); 
 		}
 		else {
-			var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+			future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		}
 		
-		future.then(this, function(future) { future.result = { returnValue: true }; });
-		
-		return future;
+		future.then(this, function(future) { 
+			future.result = result - 1; 
+		});
 	};
 	
 //
@@ -511,26 +511,32 @@ var caleventTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
-			future.nest(initExtension(config, triggers, [], []));
+			future.now(this, function(future) {
+				initExtension(future, config, triggers, [], []);
+			});
 			
 			future.then(this, function(future) {
 				var events = future.result.events;
 				var parentIds = future.result.parentIds;
 				
-				future.nest(addActivities(config));
+				future.now(this, function(future) { 
+					addActivities(future, config, events);
+				});
 				
 				future.then(this, function(future) {
 					if(events.length == 0)
-						future.result = { returnValue: true };
+						future.result = true;
 					else {
-						future.nest(utils.futureLoop(events, 
-							addActivity.bind(this, config, parentIds)));
-						
+						future.whilst(this, function(future) { return future.result >= 0; }, 
+							function(future) {
+								addActivity(future, config, events, parentIds);
+							});					
+					
 						future.then(this, function(future) { 
-							future.result = { returnValue: true };
+							future.result = true;
 						});
 					}
 				});
@@ -547,18 +553,20 @@ var caleventTriggers = (function() {
 		if(skipFirst == undefined)
 			skipFirst = false;
 		
-		var future = new Future();
+		var future = new Future(config.activities.length - 1);
 		
 		if((!config.activities) || (config.activities.length == 0))
-			future.result = { returnValue: true };
+			future.result = true;
 		else {
-			future.nest(utils.futureLoop(config.activities, 
-				delActivity.bind(this, config, skipFirst)));
-			
+			future.whilst(this, function(future) { return future.result >= 0; }, 
+				function(future) {
+					delActivity(future, config, skipFirst);
+				});
+
 			future.then(this, function(future) { 
 				config.activities = [];
 				
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -570,12 +578,12 @@ var caleventTriggers = (function() {
 	that.reload = function(config, triggers, args) {
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0) ||
+		if((triggers.length == 0) ||
 			(!args.$activity) || ((args.$activity.trigger) && 
 			(args.$activity.trigger.returnValue == false)) ||
 			((!args.event) && ((!args.events) || (!args.timestamp))))
 		{
-			future.result = { returnValue: true };
+			future.result = true;
 		}
 		else if(args.events) {
 			var index = config.activities.indexOf(args.$activity.activityId);
@@ -603,7 +611,7 @@ var caleventTriggers = (function() {
 				}
 			}
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		}
 		else {
 			// Easier to do full reload than check which event activities 
@@ -623,7 +631,7 @@ var caleventTriggers = (function() {
 				future.nest(that.initialize(config, triggers));
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			});
 		}

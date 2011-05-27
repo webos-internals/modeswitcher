@@ -36,153 +36,149 @@ var messagingSettings = (function() {
 	
 //
 	
-	var settingsUpdate = function(settingsOld, settingsNew, item) {
-		var future = new Future();
-		
-		if(item == "msg-get") {
-			if(settingsNew.accounts) {
-					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-						'id': "com.palm.app.messaging", 'service': "com.palm.db", 
-						'method': "find", 'params': {'query': {'from': "com.palm.imloginstate:1"}}}));
-					
-					future.then(this, function(future) { 
-						var result = future.result;
-						
-						var accounts = ["sms"];
-						
-						for(var i = 0; i < result.results.length; i++)
-							accounts.push(result.results[i].accountId);
-						
-						for(var accId in settingsNew.accounts) {
-							if(accounts.indexOf(accId) == -1)
-								delete settingsNew.accounts[accId];
-						}
-						
-						future.result = { returnValue: true }; 
-					}.bind(this));
-			}
-			else
-				future.result = { returnValue: true }; 
-		}
-		else if(item == "msg-set") {
-			if(settingsNew.accounts) {
-				var objects = [];
+	var updateFetchAccounts = function(future, settingsOld, settingsNew) {
+		if(settingsNew.accounts) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.messaging", 'service': "com.palm.db", 
+					'method': "find", 'params': {'query': {'from': "com.palm.imloginstate:1"}}}));
 				
-				var notifParams = {};
-				
-				for(var accId in settingsNew.accounts) {
-					var sName = settingsNew.accounts[accId].serviceName;
+				future.then(this, function(future) { 
+					var results = future.result.results;
 					
-					if(accId == "sms") {
-						notifParams._id = settingsNew.accounts[accId].databaseId;					
-						
-						if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) ||
-							(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))
+					for(var accId in settingsNew.accounts) {
+						if((accId != "sms") && 
+							(utils.findArray(results, "accountId", accId) == -1))
 						{
-							notifParams.blinkNotification = settingsNew.blinkNotify[accId];
-						}
-						
-						if((settingsNew.notifyAlert[accId] != undefined) && ((!settingsOld.notifyAlert) ||
-							(settingsOld.notifyAlert[accId] != settingsNew.notifyAlert[accId])))
-						{
-							notifParams.notificationSound = settingsNew.notifyAlert[accId];
-						}
-						
-						if((settingsNew.ringtonePath[accId] != undefined) && ((!settingsOld.ringtonePath) ||
-							(settingsOld.ringtonePath[accId] != settingsNew.ringtonePath[accId])))
-						{
-							notifParams.ringtone = {
-								name: settingsNew.ringtoneName[accId],
-								path: settingsNew.ringtonePath[accId] };
+							delete settingsNew.accounts[accId];
 						}
 					}
-					else {
-						if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) ||
-							(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))
-						{
-							if(!notifParams.accountNotifications)
-								notifParams.accountNotifications = {};
-							
-							if(!notifParams.accountNotifications[sName])
-								notifParams.accountNotifications[sName] = {};
-							
-							notifParams.accountNotifications[sName].blinkNotification = settingsNew.blinkNotify[accId];
-						}
-						
-						if((settingsNew.notifyAlert[accId] != undefined) && ((!settingsOld.notifyAlert) ||
-							(settingsOld.notifyAlert[accId] != settingsNew.notifyAlert[accId])))
-						{
-							if(!notifParams.accountNotifications)
-								notifParams.accountNotifications = {};
-							
-							if(!notifParams.accountNotifications[sName])
-								notifParams.accountNotifications[sName] = {};
-							
-							notifParams.accountNotifications[sName].notificationSound = settingsNew.notifyAlert[accId];
-						}
-						
-						if((settingsNew.ringtonePath[accId] != undefined) && ((!settingsOld.ringtonePath) ||
-							(settingsOld.ringtonePath[accId] != settingsNew.ringtonePath[accId])))
-						{
-							if(!notifParams.accountNotifications)
-								notifParams.accountNotifications = {};
-							
-							if(!notifParams.accountNotifications[sName])
-								notifParams.accountNotifications[sName] = {};
-							
-							notifParams.accountNotifications[sName].ringtone = {
-								name: settingsNew.ringtoneName[accId],
-								path: settingsNew.ringtonePath[accId] };
-						}
-						
-						var params = {_id: settingsNew.accounts[accId].databaseId};
-						
-						if((settingsNew.availability[accId] != undefined) && ((!settingsOld.availability) ||
-							(settingsOld.availability[accId] != settingsNew.availability[accId])))
-						{
-							params.availability = parseInt(settingsNew.availability[accId]);
-						}
-						
-						if(params.availability != undefined) {
-							objects.push(params);
-						}
+					
+					future.result = 1; 
+				}.bind(this));
+		}
+		else
+			future.result = 1; 
+	};
+	
+	var updateApplySettings = function(future, settingsOld, settingsNew) {
+		if(settingsNew.accounts) {
+			var objects = [];
+			
+			var notifParams = {};
+			
+			for(var accId in settingsNew.accounts) {
+				var sName = settingsNew.accounts[accId].serviceName;
+				
+				if(accId == "sms") {
+					notifParams._id = settingsNew.accounts[accId].databaseId;					
+					
+					if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) ||
+						(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))
+					{
+						notifParams.blinkNotification = settingsNew.blinkNotify[accId];
+					}
+					
+					if((settingsNew.notifyAlert[accId] != undefined) && ((!settingsOld.notifyAlert) ||
+						(settingsOld.notifyAlert[accId] != settingsNew.notifyAlert[accId])))
+					{
+						notifParams.notificationSound = settingsNew.notifyAlert[accId];
+					}
+					
+					if((settingsNew.ringtonePath[accId] != undefined) && ((!settingsOld.ringtonePath) ||
+						(settingsOld.ringtonePath[accId] != settingsNew.ringtonePath[accId])))
+					{
+						notifParams.ringtone = {
+							name: settingsNew.ringtoneName[accId],
+							path: settingsNew.ringtonePath[accId] };
 					}
 				}
-				
-				if((notifParams.blinkNotification != undefined) || (notifParams.notificationSound != undefined) || 
-					(notifParams.ringtone != undefined) || (notifParams.accountNotifications != undefined))
-				{
-					objects.push(notifParams);
-				}
-				
-				if(objects.length > 0) {
-					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-						'id': "com.palm.app.messaging", 'service': "com.palm.db", 
-						'method': "merge", 'params': {'objects': objects}}));
+				else {
+					if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) ||
+						(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))
+					{
+						if(!notifParams.accountNotifications)
+							notifParams.accountNotifications = {};
+						
+						if(!notifParams.accountNotifications[sName])
+							notifParams.accountNotifications[sName] = {};
+						
+						notifParams.accountNotifications[sName].blinkNotification = settingsNew.blinkNotify[accId];
+					}
 					
-					future.then(this, function(future) { future.result = { returnValue: true }; });
+					if((settingsNew.notifyAlert[accId] != undefined) && ((!settingsOld.notifyAlert) ||
+						(settingsOld.notifyAlert[accId] != settingsNew.notifyAlert[accId])))
+					{
+						if(!notifParams.accountNotifications)
+							notifParams.accountNotifications = {};
+						
+						if(!notifParams.accountNotifications[sName])
+							notifParams.accountNotifications[sName] = {};
+						
+						notifParams.accountNotifications[sName].notificationSound = settingsNew.notifyAlert[accId];
+					}
+					
+					if((settingsNew.ringtonePath[accId] != undefined) && ((!settingsOld.ringtonePath) ||
+						(settingsOld.ringtonePath[accId] != settingsNew.ringtonePath[accId])))
+					{
+						if(!notifParams.accountNotifications)
+							notifParams.accountNotifications = {};
+						
+						if(!notifParams.accountNotifications[sName])
+							notifParams.accountNotifications[sName] = {};
+						
+						notifParams.accountNotifications[sName].ringtone = {
+							name: settingsNew.ringtoneName[accId],
+							path: settingsNew.ringtonePath[accId] };
+					}
+					
+					var params = {_id: settingsNew.accounts[accId].databaseId};
+					
+					if((settingsNew.availability[accId] != undefined) && ((!settingsOld.availability) ||
+						(settingsOld.availability[accId] != settingsNew.availability[accId])))
+					{
+						params.availability = parseInt(settingsNew.availability[accId]);
+					}
+					
+					if(params.availability != undefined) {
+						objects.push(params);
+					}
 				}
-				else
-					future.result = { returnValue: true }; 
+			}
+			
+			if((notifParams.blinkNotification != undefined) || (notifParams.notificationSound != undefined) || 
+				(notifParams.ringtone != undefined) || (notifParams.accountNotifications != undefined))
+			{
+				objects.push(notifParams);
+			}
+			
+			if(objects.length > 0) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.messaging", 'service': "com.palm.db", 
+					'method': "merge", 'params': {'objects': objects}}));
+				
+				future.then(this, function(future) { future.result = 2; });
 			}
 			else
-				future.result = { returnValue: true }; 
+				future.result = 2; 
 		}
-		
-		return future;
+		else
+			future.result = 2; 
 	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
-		var future = new Future();
+		var future = new Future(0);
 		
-		future.nest(utils.futureLoop(["msg-get", "msg-set"], 
-			settingsUpdate.bind(this, settingsOld, settingsNew)));
+		future.whilst(this, function(future) { return future.result < 2; },
+			function(future) {
+				if(future.result == 0)
+					updateFetchAccounts(future, settingsOld, settingsNew);
+				else if(future.result == 1)
+					updateApplySettings(future, settingsOld, settingsNew);
+			});
 		
-		future.then(this, function(future) { 
-			future.result = { returnValue: true }; 
-		});
+		future.then(this, function(future) { future.result = true; });
 				
 		return future;
 	};

@@ -20,23 +20,21 @@ var displayTriggers = (function() {
 	
 //
 	
-	var initExtension = function(config) {
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+	var initExtension = function(future, config) {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.systemmanager", 'service': "com.palm.systemmanager", 
-				'method': "getLockStatus", 'params': {}});
+				'method': "getLockStatus", 'params': {}}));
 		
 		future.then(this, function(future) {
 			config.locked = future.result.locked;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-			
-		return future;
 	};
 	
 //
 	
-	var addActivity = function(config) {
+	var addActivity = function(future, config) {
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -55,35 +53,31 @@ var displayTriggers = (function() {
 			}
 		};
 		
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
-				'method': "create", 'params': newActivity});
+				'method': "create", 'params': newActivity}));
 		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future;
 	};
 	
-	var delActivity = function(config) {
+	var delActivity = function(future, config) {
 		var oldActivity = {
 			"activityId": config.activity
 		};
 		
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
-			'method': "cancel", 'params': oldActivity});
+			'method': "cancel", 'params': oldActivity}));
 		
 		future.then(this, function(future) {
 			config.activity = null;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future; 
 	};
 	
 //
@@ -117,16 +111,20 @@ var displayTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
-			future.nest(initExtension(config));
+			future.now(this, function(future) { 
+				initExtension(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.nest(addActivity(config));
+				future.now(this, function(future) { 
+					addActivity(future, config);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			});
 		}
@@ -140,12 +138,14 @@ var displayTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = { returnValue: true };
+			future.result = true;
 		else {
-			future.nest(delActivity(config));
+			future.now(this, function(future) { 
+				delActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -160,20 +160,22 @@ var displayTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0) ||
+		if((triggers.length == 0) ||
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = { returnValue: true };
+			future.result = true;
 		}
 		else {
 			if(args.$activity.trigger.locked != undefined)
 				config.locked = args.$activity.trigger.locked;
 			
-			future.nest(addActivity(config));
+			future.now(this, function(future) { 
+				addActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});			
 		}
 		

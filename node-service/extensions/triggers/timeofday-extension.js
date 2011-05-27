@@ -22,10 +22,12 @@ var timeofdayTriggers = (function() {
 	
 //
 	
-	var addActivity = function(config, current, item) {
-		var future = new Future();
-	
-		var limits = getTimeOfDayLimits(item, current);
+	var addActivity = function(future, config, triggers, current) {
+		var result = future.result;
+		
+		var trigger = triggers[result];
+		
+		var limits = getTimeOfDayLimits(trigger, current);
 		
 		var startTime = convertDateToUtfStr(limits.startTime);
 		var closeTime = convertDateToUtfStr(limits.closeTime);
@@ -83,25 +85,23 @@ var timeofdayTriggers = (function() {
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				future.result = { returnValue: true };
+				future.result = result - 1;
 			});
 		});
-		
-		return future;
 	};
 	
-	var delActivity = function(config, item) {
+	var delActivity = function(future, config) {
+		var result = future.result;
+		
 		var oldActivity = {
-			"activityId": item
+			"activityId": config.activities[result]
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		
 		future.then(this, function(future) {
-			future.result = { returnValue: true };
+			future.result = result - 1;
 		});
-		
-		return future;
 	};
 	
 //
@@ -312,16 +312,18 @@ var timeofdayTriggers = (function() {
 	that.initialize = function(config, triggers) {
 		config.activities = [];
 		
-		var future = new Future();
+		var future = new Future(triggers.length - 1);
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
-			future.nest(utils.futureLoop(future, triggers, 
-				addActivity(config, true)));
+			future.whilst(this, function(future) { return future.result >= 0; }, 
+				function(future) {
+					addActivity(future, config, triggers, true);
+				});
 		
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -329,18 +331,20 @@ var timeofdayTriggers = (function() {
 	};
 	
 	that.shutdown = function(config) {
-		var future = new Future();
+		var future = new Future(config.activities.length - 1);
 		
-		if((!config.activities) || (config.activities.length == 0))
-			future.result = { returnValue: true };
+		if(config.activities.length == 0)
+			future.result = true;
 		else {
-			future.nest(utils.futureLoop(config.activities, 
-				delActivity.bind(this, config)));
-			
+			future.whilst(this, function(future) { return future.result >= 0; }, 
+				function(future) {
+					delActivity(future, config);
+				});
+
 			future.then(this, function(future) {
 				config.activities = [];
 				
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -352,19 +356,21 @@ var timeofdayTriggers = (function() {
 	that.reload = function(config, triggers, args) {
 		config.activities = [];
 		
-		var future = new Future();
+		var future = new Future(triggers.length - 1);
 		
-		if((!triggers) || (triggers.length == 0) || 
+		if((triggers.length == 0) || 
 			(!args.timestamp) || (!args.$activity))
 		{
-			future.result = { returnValue: true };
+			future.result = true;
 		}
 		else {
-			future.nest(utils.futureLoop(triggers, 
-				addActivity.bind(this, config, false)));
+			future.whilst(this, function(future) { return future.result >= 0; }, 
+				function(future) {
+					addActivity(future, config, triggers, false);
+				});		
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		

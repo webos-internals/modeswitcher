@@ -21,22 +21,20 @@ var modechangeTriggers = (function() {
 	
 //
 	
-	var initExtension = function(config) {
-		var future = PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "status", {});
+	var initExtension = function(future, config) {
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "status", {}));
 		
 		future.then(this, function(future) {
 			for(var i = 0; i < future.result.activeModes.length; i++)
 				config.modes.push(future.result.activeModes[i].name);
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future;
 	};
 	
 //
 	
-	var addActivity = function(config) {
+	var addActivity = function(future, config) {
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -55,31 +53,27 @@ var modechangeTriggers = (function() {
 			}
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "create", newActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newActivity));
 		
 		future.then(this, function(future) {
 			config.activity = future.result.activityId;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-			
-		return future;
 	};
 	
-	var delActivity = function(config) {
+	var delActivity = function(future, config) {
 		var oldActivity = {
 			"activityId": config.activity
 		};
 		
-		var future = PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity);
+		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 		
 		future.then(this, function(future) {
 			config.activity = null;
 			
-			future.result = { returnValue: true };
+			future.result = true;
 		});
-		
-		return future; 
 	};
 	
 //
@@ -125,16 +119,20 @@ var modechangeTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0))
-			future.result = { returnValue: true };
+		if(triggers.length == 0)
+			future.result = true;
 		else {
-			future.nest(initExtension(config));
+			future.now(this, function(future) { 
+				initExtension(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.nest(addActivity(config));
+				future.now(this, function(future) { 
+					addActivity(future, config);
+				});
 				
 				future.then(this, function(future) {
-					future.result = { returnValue: true };
+					future.result = true;
 				});
 			});
 		}
@@ -148,12 +146,14 @@ var modechangeTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = { returnValue: true };
+			future.result = true;
 		else {
-			future.nest(delActivity(config));
+			future.now(this, function(future) { 
+				delActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
@@ -168,11 +168,11 @@ var modechangeTriggers = (function() {
 		
 		var future = new Future();
 		
-		if((!triggers) || (triggers.length == 0) ||
+		if((triggers.length == 0) ||
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = { returnValue: true };
+			future.result = true;
 		}
 		else {
 			if(args.$activity.trigger.activeModes) {
@@ -180,10 +180,12 @@ var modechangeTriggers = (function() {
 					config.modes.push(args.$activity.trigger.activeModes[i].name);
 			}
 			
-			future.nest(addActivity(config));
+			future.now(this, function(future) { 
+				addActivity(future, config);
+			});
 			
 			future.then(this, function(future) {
-				future.result = { returnValue: true };
+				future.result = true;
 			});
 		}
 		
