@@ -300,8 +300,8 @@ var bluetoothTriggers = (function() {
 				'method': "profgetstate", 'params': {'profile': "all"}})); 
 				
 			future.then(this, function(future) {
-				var profiles = future.result.profiles;
-				console.error("DEBUG " + JSON.stringify(profiles));
+				var result = future.result;
+				console.error("TESTI " + JSON.stringify(result));
 			// DEBUG END				
 			future.now(this, function(future) { 
 				addActivity(future, config);
