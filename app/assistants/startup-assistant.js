@@ -16,7 +16,8 @@ function StartupAssistant() {
 	this.newMessages = [
 	{
 		version: '2.3.2', log: [
-			'Fixed couple bugs regarding the service, see wiki for details.'
+			'New group based trigger configuration and possibility to share modes, see wiki for details.',
+			'<b>Re-export your modes after upgrading, importing of modes that has been exported with older versions is not supported.</b>'
 		]
 	},
 	{

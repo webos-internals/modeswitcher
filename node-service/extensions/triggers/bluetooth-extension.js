@@ -294,15 +294,6 @@ var bluetoothTriggers = (function() {
 				}
 			}
 			
-			//DEBUG START
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.bluetooth", 'service': "com.palm.bluetooth/prof", 
-				'method': "profgetstate", 'params': {'profile': "all"}})); 
-				
-			future.then(this, function(future) {
-				var result = future.result;
-				console.error("TESTI " + JSON.stringify(result));
-			// DEBUG END				
 			future.now(this, function(future) { 
 				addActivity(future, config);
 			});
@@ -310,9 +301,6 @@ var bluetoothTriggers = (function() {
 			future.then(this, function(future) {
 				future.result = true;
 			});
-			// DEBUG START
-			});
-			// DEBUG END
 		}
 		
 		return future;
