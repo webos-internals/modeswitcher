@@ -61,7 +61,7 @@ var locationTriggers = (function() {
 			else {
 				config.location = {
 					lat: result.latitude, 
-					lng: result.longitude,
+					lng: result.longitude, 
 					acc: result.horizAccuracy};
 				
 				future.result = true;
@@ -111,7 +111,7 @@ var locationTriggers = (function() {
 	
 	var delActivity = function(future, config) {
 		var oldActivity = {
-			"activityId": config.activity 
+			"activityId": config.activity
 		};
 		
 		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
@@ -132,7 +132,7 @@ var locationTriggers = (function() {
 			var index = -1;
 			
 			for(var i = 0; i < config.active.length; i++) {
-				if((config.active[i].lat == trigger.latitude) &&
+				if((config.active[i].lat == trigger.latitude) && 
 					(config.active[i].lng == trigger.longitude))
 				{
 					index = i;
@@ -140,7 +140,7 @@ var locationTriggers = (function() {
 				}
 			}
 			
-			if(((trigger.active == 0) && (index != -1)) ||
+			if(((trigger.active == 0) && (index != -1)) || 
 				((trigger.active == 1) && (index == -1)))
 			{
 				return true;
@@ -159,7 +159,7 @@ var locationTriggers = (function() {
 			var index = -1;
 			
 			for(var i = 0; i < config.active.length; i++) {
-				if((config.active[i].lat == trigger.latitude) &&
+				if((config.active[i].lat == trigger.latitude) && 
 					(config.active[i].lng == trigger.longitude))
 				{
 					index = i;
@@ -274,7 +274,7 @@ var locationTriggers = (function() {
 			var index = -1;
 			
 			for(var j = 0; j < config.active.length; j++) {
-				if((config.active[j].lat == triggers[i].latitude) &&
+				if((config.active[j].lat == triggers[i].latitude) && 
 					(config.active[j].lng == triggers[i].longitude))
 				{
 					index = j;
@@ -313,7 +313,7 @@ var locationTriggers = (function() {
 		var future = new Future();
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
 			updateRequiredAccuracy(config, triggers);
 			
@@ -333,7 +333,7 @@ var locationTriggers = (function() {
 				});
 				
 				future.then(this, function(future) {
-					future.result = true;
+					future.result = { returnValue: true };
 				});
 			});
 		}
@@ -350,18 +350,18 @@ var locationTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
 			future.now(this, function(future) { 
 				delActivity(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
-		return future;	
+		return future;
 	};
 	
 //
@@ -374,7 +374,7 @@ var locationTriggers = (function() {
 		var future = new Future();
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
 			updateRequiredAccuracy(config, triggers);
 			
@@ -394,7 +394,7 @@ var locationTriggers = (function() {
 				});
 				
 				future.then(this, function(future) {
-					future.result = true;
+					future.result = { returnValue: true };
 				});
 			});
 		}

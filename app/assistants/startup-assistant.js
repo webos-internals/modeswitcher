@@ -21,6 +21,11 @@ function StartupAssistant() {
 		]
 	},*/
 	{
+		version: '2.3.3', log: [
+			'Fixed bug in applying settings and fine tuned bluetooth trigger.'
+		]
+	},
+	{
 		version: '2.3.2', log: [
 			'Fixed couple bugs regarding the service, see wiki for details.'
 		]

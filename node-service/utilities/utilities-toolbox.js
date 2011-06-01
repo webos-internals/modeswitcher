@@ -46,7 +46,7 @@ var utils = (function() {
 				});
 			}
 			else {
-				future.result = { returnValue: true };
+				future.result = true;
 			}
 		}
 		
@@ -55,7 +55,7 @@ var utils = (function() {
 		if(array)
 			loop(0);
 		else
-			future.result = { returnValue: true };
+			future.result = true;
 		
 		return future;
 	};

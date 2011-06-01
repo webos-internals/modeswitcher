@@ -17,7 +17,7 @@ var contactsSettings = (function() {
 	
 //
 	
-	var updateContactsSettings = function(future, settingsOld, settingsNew) {
+	var updateSettings = function(future, settingsOld, settingsNew) {
 		var params = {};
 		
 		if(settingsNew.databaseId != undefined) {
@@ -47,10 +47,12 @@ var contactsSettings = (function() {
 		var future = new Future();
 		
 		future.now(this, function(future) {
-			updateContactsSettings(future, settingsOld, settingsNew);
+			updateSettings(future, settingsOld, settingsNew);
 		});
 		
-		future.then(this, function(future) { future.result = true; });
+		future.then(this, function(future) { 
+			future.result = { returnValue: true };
+		});
 		
 		return future;
 	};

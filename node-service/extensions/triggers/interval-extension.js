@@ -23,116 +23,120 @@ var intervalTriggers = (function() {
 	
 //
 	
-	var addActivity = function(future, config, triggers) {
-		var result = future.result;
-		
-		var trigger = triggers[result];
-
-		if(((trigger.intervalHours != 0) || (trigger.intervalMinutes != 0)) &&
-			((trigger.activeHours != 0) && (trigger.activeMinutes != 0)) &&
-			((trigger.intervalHours != trigger.activeHours) || 
-			(trigger.intervalMinutes != trigger.activeMinutes)))
-		{
-			var hours = trigger.intervalHours;
-			var minutes = trigger.intervalMinutes;
+	var addActivities = function(future, config, triggers, index) {
+		if(index < triggers.length) {
+			var trigger = triggers[index];
 			
-			if(hours < 10)
-				hours = "0" + hours;
-			
-			if(minutes < 10)
-				minutes = "0" + minutes;
-			
-			var curDate = new Date();
-			var startDate = new Date();
-			
-			startDate.setHours(0);
-			startDate.setMinutes(0);
-			startDate.setSeconds(0);
-			startDate.setMilliseconds(0);
-			
-			while(startDate.getTime() <= curDate.getTime()) {
-				startDate.setHours(startDate.getHours() + trigger.intervalHours);
-				startDate.setMinutes(startDate.getMinutes() + trigger.intervalMinutes);
-			}
-			
-			var closeDate = new Date(startDate.getTime());
-			
-			closeDate.setHours(closeDate.getHours() + trigger.activeHours);
-			closeDate.setMinutes(closeDate.getMinutes() + trigger.activeMinutes);
-			
-			var startTime = convertDateToUtfStr(startDate);
-			var closeTime = convertDateToUtfStr(closeDate);
-			
-			var newStartActivity = {
-				"start" : true,
-				"replace": true,
-				"activity": {
-					"name": "intervalTrigger" + startTime,
-					"description" : "Interval Start Notifier",
-					"type": {"foreground": true, "persist": false},
-					"schedule": {
-						"precise": true,
-						"start": startTime,
-						"local": false, 
-						"skip": true
-					},
-					"callback" : {
-						"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
-						"params" : {"extension": "interval", "timestamp": startDate.getTime()}
-					}
-				}
-			};
-			
-			var newCloseActivity = {
-				"start" : true,
-				"replace": true,
-				"activity": {
-					"name": "intervalTrigger" + closeTime,
-					"description" : "Interval Close Notifier",
-					"type": {"foreground": true, "persist": false},
-					"schedule": {
-						"precise": true,
-						"start": closeTime,
-						"local": false, 
-						"skip": true
-					},
-					"callback" : {
-						"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
-						"params" : {"extension": "interval", "timestamp": closeDate.getTime()}
-					}
-				}
-			};
-			
-			future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newStartActivity));
-			
-			future.then(this, function(future) {
-				config.activities.push(future.result.activityId);
+			if(((trigger.intervalHours != 0) || (trigger.intervalMinutes != 0)) && 
+				((trigger.activeHours != 0) && (trigger.activeMinutes != 0)) && 
+				((trigger.intervalHours != trigger.activeHours) || 
+				(trigger.intervalMinutes != trigger.activeMinutes)))
+			{
+				var hours = trigger.intervalHours;
+				var minutes = trigger.intervalMinutes;
 				
-				future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newCloseActivity));
+				if(hours < 10)
+					hours = "0" + hours;
+				
+				if(minutes < 10)
+					minutes = "0" + minutes;
+				
+				var curDate = new Date();
+				var startDate = new Date();
+				
+				startDate.setHours(0);
+				startDate.setMinutes(0);
+				startDate.setSeconds(0);
+				startDate.setMilliseconds(0);
+				
+				while(startDate.getTime() <= curDate.getTime()) {
+					startDate.setHours(startDate.getHours() + trigger.intervalHours);
+					startDate.setMinutes(startDate.getMinutes() + trigger.intervalMinutes);
+				}
+				
+				var closeDate = new Date(startDate.getTime());
+				
+				closeDate.setHours(closeDate.getHours() + trigger.activeHours);
+				closeDate.setMinutes(closeDate.getMinutes() + trigger.activeMinutes);
+				
+				var startTime = convertDateToUtfStr(startDate);
+				var closeTime = convertDateToUtfStr(closeDate);
+				
+				var newStartActivity = {
+					"start" : true,
+					"replace": true,
+					"activity": {
+						"name": "intervalTrigger" + startTime,
+						"description" : "Interval Start Notifier",
+						"type": {"foreground": true, "persist": false},
+						"schedule": {
+							"precise": true,
+							"start": startTime,
+							"local": false, 
+							"skip": true
+						},
+						"callback" : {
+							"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
+							"params" : {"extension": "interval", "timestamp": startDate.getTime()}
+						}
+					}
+				};
+				
+				var newCloseActivity = {
+					"start" : true,
+					"replace": true,
+					"activity": {
+						"name": "intervalTrigger" + closeTime,
+						"description" : "Interval Close Notifier",
+						"type": {"foreground": true, "persist": false},
+						"schedule": {
+							"precise": true,
+							"start": closeTime,
+							"local": false, 
+							"skip": true
+						},
+						"callback" : {
+							"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
+							"params" : {"extension": "interval", "timestamp": closeDate.getTime()}
+						}
+					}
+				};
+				
+				future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newStartActivity));
 				
 				future.then(this, function(future) {
 					config.activities.push(future.result.activityId);
 					
-					future.result = result - 1;
+					future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newCloseActivity));
+					
+					future.then(this, function(future) {
+						config.activities.push(future.result.activityId);
+						
+						addActivities(future, config, triggers, index + 1);
+					});
 				});
+			}
+			else
+				addActivities(future, config, triggers, index + 1);
+		}
+		else
+			future.result = true;
+	};
+	
+	var delActivities = function(future, config, index) {
+		if(index < config.activities.length) {
+			var oldActivity = {
+				"activityId": config.activities[index]
+			};
+			
+			future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
+			
+			future.then(this, function(future) {
+				delActivities(future, config, index + 1);
 			});
 		}
 		else
-			future.result = result - 1;
-	};
-	
-	var delActivity = function(future, config) {
-		var result = future.result;
-
-		var oldActivity = {
-			"activityId": config.activities[result] 
-		};
-		
-		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
-		
-		future.then(this, function(future) {
-			future.result = result - 1;
-		});
+			future.result = true;
 	};
 	
 //
@@ -230,40 +234,35 @@ var intervalTriggers = (function() {
 		var future = new Future(triggers.length - 1);
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
-			future.whilst(this, function(future) { return future.result >= 0; }, 
-				function(future) {
-					addActivity(future, config, triggers);
-				});				
+			future.now(this, function(future) {
+				addActivities(future, config, triggers, 0);
+			});
 			
-			future.then(this,  function(future) { 
-				future.result = true; 
+			future.then(this,  function(future) {
+				future.result = { returnValue: true };
 			});
 		}
 		
-		return future;	
+		return future;
 	};
 	
 	that.shutdown = function(config) {
 		var future = new Future(config.activities.length - 1);
 		
 		if(config.activities.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
-			future.whilst(this, function(future) { return future.result >= 0; }, 
-				function(future) {
-					delActivity(future, config);
-				});				
-
-			future.nest(utils.futureLoop(config.activities, 
-				delActivity.bind(this)));
+			future.now(this, function(future) {
+				delActivities(future, config, 0);
+			});
 			
 			future.then(this, function(future) {
 				config.activities = [];
 				config.activeModes = [];
 				
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
@@ -276,7 +275,7 @@ var intervalTriggers = (function() {
 		var future = new Future(triggers.length - 1);
 		
 		if((triggers.length == 0) || (!args.timestamp) || (!args.$activity)) {
-			future.result = true;
+			future.result = { returnValue: true };
 		}
 		else {
 			var index = config.activities.indexOf(args.$activity.activityId);
@@ -284,13 +283,12 @@ var intervalTriggers = (function() {
 			if(index != -1)
 				config.activities.splice(index, 1);
 			
-			future.whilst(this, function(future) { return future.result >= 0; }, 
-				function(future) {
-					addActivity(future, config, triggers);
-				});				
+			future.now(this, function(future) {
+				addActivities(future, config, triggers, 0);
+			});
 			
-			future.then(this, function(future) { 
-				future.result = true;
+			future.then(this, function(future) {
+				future.result = { returnValue: true };
 			});
 		}
 		

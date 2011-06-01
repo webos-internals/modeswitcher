@@ -127,7 +127,7 @@ var batteryTriggers = (function() {
 		var future = new Future();
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
 			future.now(this, function(future) {
 				initExtension(future, config);
@@ -139,7 +139,7 @@ var batteryTriggers = (function() {
 				});
 				
 				future.then(this, function(future) {
-					future.result = true;
+					future.result = { returnValue: true };
 				});
 			});
 		}
@@ -154,14 +154,14 @@ var batteryTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
 			future.now(this, function(future) { 
 				delActivity(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
@@ -180,7 +180,7 @@ var batteryTriggers = (function() {
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = true;
+			future.result = { returnValue: true };
 		}
 		else {
 			if(args.$activity.trigger.batteryLevel != undefined) {
@@ -211,7 +211,7 @@ var batteryTriggers = (function() {
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		

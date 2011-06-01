@@ -7,7 +7,7 @@
 	
 	Bluetooth Status Object:
 	
-	activity:				integer,
+	activities:				[integer],
 	connected:				[{
 		device:					string,
 		profile:					string 
@@ -57,12 +57,12 @@ var bluetoothTriggers = (function() {
 		});
 	}
 	
-	var addActivity = function(future, config) {
-		var newActivity = {
+	var addActivities = function(future, config) {
+		var newProfActivity = {
 			"start" : true,
 			"replace": true,
 			"activity": {
-				"name": "bluetoothTrigger",
+				"name": "bluetoothTriggerProf",
 				"description" : "Bluetooth Connections Notifier",
 				"type": {"foreground": true, "persist": false},
 				"trigger" : {
@@ -75,31 +75,67 @@ var bluetoothTriggers = (function() {
 				}
 			}
 		};
-		
-		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
-			'method': "create", 'params': newActivity})); 
-		
-		future.then(this, function(future) {
-			config.activity = future.result.activityId;
-			
-			future.result = true;
-		});
-	};
-	
-	var delActivity = function(future, config) {
-		var oldActivity = {
-			"activityId": config.activity
+
+		var newGapActivity = {
+			"start" : true,
+			"replace": true,
+			"activity": {
+				"name": "bluetoothTriggerGap",
+				"description" : "Bluetooth Connections Notifier",
+				"type": {"foreground": true, "persist": false},
+				"trigger" : {
+					"method" : "palm://com.palm.bluetooth/gap/subscribenotifications",
+					"params" : {'subscribe': true}
+				},
+				"callback" : {
+					"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
+					"params" : {"extension": "bluetooth"}
+				}
+			}
 		};
 		
 		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
-			'method': "cancel", 'params': oldActivity}));
+			'method': "create", 'params': newProfActivity})); 
 		
 		future.then(this, function(future) {
-			config.activity = null;
+			config.activities.push(future.result.activityId);
+
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+				'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
+				'method': "create", 'params': newGapActivity})); 
+
+			future.then(this, function(future) {
+				config.activities.push(future.result.activityId);
 			
-			future.result = true;
+				future.result = true;
+			});
+		});
+	};
+	
+	var delActivities = function(future, config) {
+		var oldProfActivity = {
+			"activityId": config.activities[0]
+		};
+
+		var oldGapActivity = {
+			"activityId": config.activities[1]
+		};
+		
+		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+			'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
+			'method': "cancel", 'params': oldProfActivity}));
+		
+		future.then(this, function(future) {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+				'id': "com.palm.activitymanager", 'service': "com.palm.activitymanager", 
+				'method': "cancel", 'params': oldGapActivity}));
+
+			future.then(this, function(future) {
+				config.activities = [];
+			
+				future.result = true;
+			});
 		});
 	};
 	
@@ -162,10 +198,10 @@ var bluetoothTriggers = (function() {
 			}
 			
 			if(((index == -1) && (!args.$activity.trigger.error) &&
-				(args.$activity.trigger.notification == "notifnconnected")) ||
+				(args.$activity.trigger.notification == "notifnconnected")) || 
 				((index != -1) && (((args.$activity.trigger.error) &&
-				(args.$activity.trigger.notification == "notifnconnected")) ||
-				(args.$activity.trigger.notification == "notifndisconnected") ||
+				(args.$activity.trigger.notification == "notifnconnected")) || 
+				(args.$activity.trigger.notification == "notifndisconnected") || 
 				(args.$activity.trigger.notification == "notifndisconnecting"))))
 			{
 				if((trigger.state == 0) && ((trigger.profile == "any") || 
@@ -197,13 +233,13 @@ var bluetoothTriggers = (function() {
 // Asynchronous public functions
 	
 	that.initialize = function(config, triggers) {
-		config.activity = null;
+		config.activities = [];
 		config.connected = [];
 		
 		var future = new Future();
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
 			future.now(this, function(future) { 
 				initExtension(future, config);
@@ -211,11 +247,11 @@ var bluetoothTriggers = (function() {
 			
 			future.then(this, function(future) {
 				future.now(this, function(future) { 
-					addActivity(future, config);
+					addActivities(future, config);
 				});
 				
 				future.then(this, function(future) {
-					future.result = true;
+					future.result = { returnValue: true };
 				});
 			});
 		}
@@ -228,15 +264,15 @@ var bluetoothTriggers = (function() {
 		
 		var future = new Future();
 		
-		if(!config.activity)
-			future.result = true;
+		if(config.activities.length == 0)
+			future.result = { returnValue: true };
 		else {
 			future.now(this, function(future) { 
-				delActivity(future, config);
+				delActivities(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
@@ -246,7 +282,7 @@ var bluetoothTriggers = (function() {
 //
 	
 	that.reload = function(config, triggers, args) {
-		config.activity = null;
+		config.activities = [];
 		
 		var future = new Future();
 		
@@ -254,7 +290,7 @@ var bluetoothTriggers = (function() {
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = true;
+			future.result = { returnValue: true };
 		}
 		else {
 			var device = "unknown";
@@ -284,22 +320,24 @@ var bluetoothTriggers = (function() {
 					config.connected.push({'device': device, 'profile': profile});
 			}
 			else if((((args.$activity.trigger.error) &&
-				(args.$activity.trigger.notification == "notifnconnected")) ||
-				(args.$activity.trigger.notification == "notifndisconnected") ||
+				(args.$activity.trigger.notification == "notifnconnected")) || 
+				(args.$activity.trigger.notification == "notifndisconnected") || 
 				(args.$activity.trigger.notification == "notifndisconnecting")))
 			{
-				for(var i = 0; i < config.connected.length; i++) {
-					if(config.connected[i].device == device)
+					if((config.connected[i].device == device) &&
+						(config.connected[i].profile == profile))
+					{
 						config.connected.splice(i--, 1);
-				}
+						break;
+					}
 			}
 			
 			future.now(this, function(future) { 
-				addActivity(future, config);
+				addActivities(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		

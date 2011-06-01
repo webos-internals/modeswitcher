@@ -36,100 +36,91 @@ var connectionSettings = (function() {
 			future.result = 1; 
 	};
 	
-	var updateNetworkSettings = function(future, settingsOld, settingsNew) {
-		var params = {};
-		
-		if((settingsNew.dataState != undefined) && (settingsOld.dataState != settingsNew.dataState))
-			params.disablewan = settingsNew.dataState;
-		
-		if(params.disablewan != undefined) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.phone", 'service': "com.palm.wan", 
-				'method': "set", 'params': params}));
+	var updateSettings = function(future, settingsOld, settingsNew, action) {
+		if(action == 0) {
+			var params = {};
 			
-			future.then(this, function(future) { future.result = 2; });
-		}
-		else
-			future.result = 2; 
-	};
-	
-	var updateWirelessSettings = function(future, settingsOld, settingsNew) {
-		var params = {};
-		
-		if((settingsNew.wifiState != undefined) && (settingsOld.wifiState != settingsNew.wifiState))
-			params.state = settingsNew.wifiState;
-		
-		if(params.state != undefined) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.wifi", 'service': "com.palm.wifi", 
-				'method': "setstate", 'params': params}));
+			if((settingsNew.dataState != undefined) && (settingsOld.dataState != settingsNew.dataState))
+				params.disablewan = settingsNew.dataState;
 			
-			future.then(this, function(future) { future.result = 3; });
-		}
-		else
-			future.result = 3; 
-	};
-	
-	var updateBluetoothSettings = function(future, settingsOld, settingsNew) {
-		var params = {};
-		
-		if((settingsNew.btState != undefined) && (settingsOld.btState != settingsNew.btState)) {
-			params.connectable = settingsNew.btState;
-			params.visible = settingsNew.btState;
-			
-			if(settingsNew.btState)
-				var method = "radioon";
+			if(params.disablewan != undefined) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
+					'method': "set", 'params': params}));
+				
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 1); });
+			}
 			else
-				var method = "radiooff";
+				updateSettings(future, settingsOld, settingsNew, 1);
 		}
-		
-		if(params.connectable != undefined) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.wifi", 'service': "com.palm.btmonitor/monitor", 
-				'method': method, 'params': params}));
+		else if(action == 1) {
+			var params = {};
 			
-			future.then(this, function(future) { future.result = 4; });
-		}
-		else
-			future.result = 4; 
-	};
-	
-	var updateLocationSettings = function(future, settingsOld, settingsNew) {
-		var params = {};
-		
-		if((settingsNew.gpsState != undefined) && (settingsOld.gpsState != settingsNew.gpsState))
-			params.useGps = settingsNew.gpsState;
-		
-		if(params.useGps != undefined) {
-			future.nest(PalmCall.call("palm://com.palm.location/", "setUseGps", params));
+			if((settingsNew.wifiState != undefined) && (settingsOld.wifiState != settingsNew.wifiState))
+				params.state = settingsNew.wifiState;
 			
-			future.then(this, function(future) { future.result = 5; });
+			if(params.state != undefined) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.wifi", 'service': "com.palm.wifi", 
+					'method': "setstate", 'params': params}));
+				
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 2); });
+			}
+			else
+				updateSettings(future, settingsOld, settingsNew, 2);
 		}
-		else
-			future.result = 5; 
+		else if(action == 2) {
+			var params = {};
+			
+			if((settingsNew.btState != undefined) && (settingsOld.btState != settingsNew.btState)) {
+				params.connectable = settingsNew.btState;
+				params.visible = settingsNew.btState;
+				
+				if(settingsNew.btState)
+					var method = "radioon";
+				else
+					var method = "radiooff";
+			}
+			
+			if(params.connectable != undefined) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.wifi", 'service': "com.palm.btmonitor/monitor", 
+					'method': method, 'params': params}));
+				
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 3); });
+			}
+			else
+				updateSettings(future, settingsOld, settingsNew, 3);
+		}
+		else if(action == 3) {
+			var params = {};
+			
+			if((settingsNew.gpsState != undefined) && (settingsOld.gpsState != settingsNew.gpsState))
+				params.useGps = settingsNew.gpsState;
+			
+			if(params.useGps != undefined) {
+				future.nest(PalmCall.call("palm://com.palm.location/", "setUseGps", params));
+				
+				future.then(this, function(future) { future.result = true; });
+			}
+			else
+				future.result = true;
+		}
 	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
-		var future = new Future(0);
+		var future = new Future();
 		
-		future.whilst(this, function(future) { return future.result < 5; },
-			function(future) {
-				if(future.result == 0)
-					updateTelephonySettings(future, settingsOld, settingsNew);
-				else if(future.result == 1)
-					updateNetworkSettings(future, settingsOld, settingsNew);
-				else if(future.result == 2)
-					updateWirelessSettings(future, settingsOld, settingsNew);
-				else if(future.result == 3)
-					updateBluetoothSettings(future, settingsOld, settingsNew);
-				else if(future.result == 4)
-					updateLocationSettings(future, settingsOld, settingsNew);
-			});
+		future.now(this, function(future) {
+			updateSettings(future, settingsOld, settingsNew, 0);
+		});
 		
-		future.then(this, function(future) { future.result = true; });
-				
+		future.then(this, function(future) { 
+			future.result = { returnValue: true };
+		});
+		
 		return future;
 	};
 	

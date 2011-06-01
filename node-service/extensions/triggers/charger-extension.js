@@ -109,16 +109,16 @@ var chargerTriggers = (function() {
 			(args.$activity.trigger.chargerStatus))
 		{
 			if(((config.state == "none") && 
-				(args.$activity.trigger.chargerStatus.state != "none") &&
+				(args.$activity.trigger.chargerStatus.state != "none") && 
 				((trigger.charger == "none") ||
-				(args.$activity.trigger.chargerStatus.state == trigger.charger)) &&
+				(args.$activity.trigger.chargerStatus.state == trigger.charger)) && 
 				((trigger.orientation == "any") || 
-				(args.$activity.trigger.chargerStatus.orientation == trigger.orientation))) ||
+				(args.$activity.trigger.chargerStatus.orientation == trigger.orientation))) || 
 				((config.state != "none") && 
-				(args.$activity.trigger.chargerStatus.state == "none") &&
+				(args.$activity.trigger.chargerStatus.state == "none") && 
 				((trigger.charger == "none") ||
 				(config.state == trigger.charger)) && 
-				((config.orientation == "any") || (trigger.orientation == "any") ||
+				((config.orientation == "any") || (trigger.orientation == "any") || 
 				(config.orientation == trigger.orientation))))
 			{
 				return true;
@@ -138,19 +138,19 @@ var chargerTriggers = (function() {
 		var future = new Future();
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
+			future.now(this, function(future) {
 				initExtension(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.now(this, function(future) { 
+				future.now(this, function(future) {
 					addActivity(future, config);
 				});
 				
 				future.then(this, function(future) {
-					future.result = true;
+					future.result = { returnValue: true };
 				});
 			});
 		}
@@ -165,14 +165,14 @@ var chargerTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
+			future.now(this, function(future) {
 				delActivity(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
@@ -191,7 +191,7 @@ var chargerTriggers = (function() {
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = true;
+			future.result = { returnValue: true };
 		}
 		else {
 			if(args.$activity.trigger.chargerStatus != undefined) {
@@ -206,12 +206,12 @@ var chargerTriggers = (function() {
 					config.orientation = "any";
 			}
 			
-			future.now(this, function(future) { 
+			future.now(this, function(future) {
 				addActivity(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		

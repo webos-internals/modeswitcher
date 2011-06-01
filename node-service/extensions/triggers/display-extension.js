@@ -112,9 +112,9 @@ var displayTriggers = (function() {
 		var future = new Future();
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
+			future.now(this, function(future) {
 				initExtension(future, config);
 			});
 			
@@ -124,7 +124,7 @@ var displayTriggers = (function() {
 				});
 				
 				future.then(this, function(future) {
-					future.result = true;
+					future.result = { returnValue: true };
 				});
 			});
 		}
@@ -138,14 +138,14 @@ var displayTriggers = (function() {
 		var future = new Future();
 		
 		if(!config.activity)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
 			future.now(this, function(future) { 
 				delActivity(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
@@ -164,19 +164,19 @@ var displayTriggers = (function() {
 			(!args.$activity) || (!args.$activity.trigger) || 
 			(args.$activity.trigger.returnValue == false))
 		{
-			future.result = true;
+			future.result = { returnValue: true };
 		}
 		else {
 			if(args.$activity.trigger.locked != undefined)
 				config.locked = args.$activity.trigger.locked;
 			
-			future.now(this, function(future) { 
+			future.now(this, function(future) {
 				addActivity(future, config);
 			});
 			
 			future.then(this, function(future) {
-				future.result = true;
-			});			
+				future.result = { returnValue: true };
+			});
 		}
 		
 		return future;

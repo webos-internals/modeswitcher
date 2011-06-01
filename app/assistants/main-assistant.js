@@ -614,7 +614,7 @@ MainAssistant.prototype.unknownServiceError = function(response) {
 
 	this.controller.showAlertDialog({
 		title: $L("Unknown Service Error!"),
-		message: "<div align='justify'>" + $L("<i>Mode Switcher</i> service not responding.") + "</div>",
+		message: "<div align='justify'>" + $L("<i>Mode Switcher</i> service not responding. This might be because of installation problem or even a bug. See wiki and forum for more info.") + "</div>",
 		choices:[{label:$L("Continue"), value:"ok", type:'default'}],
 		preventCancel: true,
 		allowHTMLMessage: true}); 

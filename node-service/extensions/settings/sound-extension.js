@@ -17,82 +17,94 @@ var soundSettings = (function() {
 	
 //
 	
-	var updateRingerVolume = function(future, settingsOld, settingsNew) {
-		var params = {};
-		
-		if((settingsNew.ringerVolume != undefined) && (settingsOld.ringerVolume != settingsNew.ringerVolume))
-			params.volume = parseInt(settingsNew.ringerVolume);
-		
-		if(params.volume != undefined) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/ringtone", 
-				'method': "setVolume", 'params': params}));
+	var updateSettings = function(future, settingsOld, settingsNew, action) {
+		if(action == 0) {
+			var params = {};
 			
-			future.then(this, function(future) { future.result = 1; });
-		}
-		else
-			future.result = 1; 
-	};
-	
-	var updateSystemVolume = function(future, settingsOld, settingsNew) {
-		var params = {};
-		
-		if((settingsNew.systemVolume != undefined) && (settingsOld.systemVolume != settingsNew.systemVolume))
-			params.volume = parseInt(settingsNew.systemVolume);
-		
-		if(params.volume != undefined) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/system", 
-				'method': "setVolume", 'params': params}));
+			if((settingsNew.ringerVolume != undefined) && (settingsOld.ringerVolume != settingsNew.ringerVolume))
+				params.volume = parseInt(settingsNew.ringerVolume);
 			
-			future.then(this, function(future) { future.result = 2; });
+			if(params.volume != undefined) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/ringtone", 
+					'method': "setVolume", 'params': params}));
+				
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 1); });
+			}
+			else
+				updateSettings(future, settingsOld, settingsNew, 1);
 		}
-		else
-			future.result = 2; 
-	};
-	
-	var updateMediaVolume = function(future, settingsOld, settingsNew, audioScenario) {
-		var result = future.result;
-	
-		var params = {'scenario': audioScenario};
-		
-		if((settingsNew.mediaVolume != undefined) && (settingsOld.mediaVolume != settingsNew.mediaVolume))
-			params.volume = parseInt(settingsNew.mediaVolume);
-		
-		if(params.volume != undefined) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/media", 
-				'method': "setVolume", 'params': params}));
+		else if(action == 1) {
+			var params = {};
 			
-			future.then(this, function(future) { future.result = result + 1; });
+			if((settingsNew.systemVolume != undefined) && (settingsOld.systemVolume != settingsNew.systemVolume))
+				params.volume = parseInt(settingsNew.systemVolume);
+			
+			if(params.volume != undefined) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/system", 
+					'method': "setVolume", 'params': params}));
+				
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 2); });
+			}
+			else
+				updateSettings(future, settingsOld, settingsNew, 2);
 		}
-		else
-			future.result = 6; 
+		else if(action == 2) {
+			var params = {'scenario': "media_back_speaker"};
+			
+			if((settingsNew.mediaVolume != undefined) && (settingsOld.mediaVolume != settingsNew.mediaVolume))
+				params.volume = parseInt(settingsNew.mediaVolume);
+			
+			if(params.volume != undefined) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/media", 
+					'method': "setVolume", 'params': params}));
+				
+				future.then(this, function(future) {
+					params.scenario = "media_front_speaker";
+					
+					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+						'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/media", 
+						'method': "setVolume", 'params': params}));
+					
+					future.then(this, function(future) { 
+						params.scenario = "media_headset";
+						
+						future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+							'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/media", 
+							'method': "setVolume", 'params': params}));
+						
+						future.then(this, function(future) { 
+							params.scenario = "media_headset_mic";
+							
+							future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+								'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/media", 
+								'method': "setVolume", 'params': params}));
+							
+							future.then(this, function(future) { future.result = true; });
+						});
+					});
+				});
+			}
+			else
+				future.result = true;
+		}
 	};
 	
 //
 	
 	that.update = function(settingsOld, settingsNew) {
-		var future = new Future(0);
+		var future = new Future();
 		
-		future.whilst(this, function(future) { return future.result < 6; },
-			function(future) {
-				if(future.result == 0)
-					updateRingerVolume(future, settingsOld, settingsNew);
-				else if(future.result == 1)
-					updateSystemVolume(future, settingsOld, settingsNew);
-				else if(future.result == 2)
-					updateMediaVolume(future, settingsOld, settingsNew, "media_back_speaker");
-				else if(future.result == 3)
-					updateMediaVolume(future, settingsOld, settingsNew, "media_front_speaker");
-				else if(future.result == 4)
-					updateMediaVolume(future, settingsOld, settingsNew, "media_headset");
-				else if(future.result == 5)
-					updateMediaVolume(future, settingsOld, settingsNew, "media_headset_mic");
-			});
+		future.now(this, function(future) {
+			updateSettings(future, settingsOld, settingsNew, 0);
+		});
 		
-		future.then(this, function(future) { future.result = true; });
-				
+		future.then(this, function(future) {
+			future.result = { returnValue: true };
+		});
+		
 		return future;
 	};
 	

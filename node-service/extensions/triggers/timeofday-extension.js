@@ -22,86 +22,90 @@ var timeofdayTriggers = (function() {
 	
 //
 	
-	var addActivity = function(future, config, triggers, current) {
-		var result = future.result;
-		
-		var trigger = triggers[result];
-		
-		var limits = getTimeOfDayLimits(trigger, current);
-		
-		var startTime = convertDateToUtfStr(limits.startTime);
-		var closeTime = convertDateToUtfStr(limits.closeTime);
-		
-		var newStartActivity = {
-			"start" : true,
-			"replace": true,
-			"activity": {
-				"name": "timeoutTrigger" + limits.startTime.getTime(),
-				"description" : "Timeout Event Notifier",
-				"type": {"foreground": true, "persist": false},
-				"schedule" : { 
-					"start" : startTime,
-					"local" : false,
-					"skip" : true
-				},
-				"callback" : {
-					"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
-					"params" : {"extension": "timeofday", 
-						"timestamp": limits.startTime.getTime()}
-				}
-			}
-		};
-		
-		var newCloseActivity = {
-			"start" : true,
-			"replace": true,
-			"activity": {
-				"name": "timeoutTrigger" + limits.closeTime.getTime(),
-				"description" : "Timeout Event Notifier",
-				"type": {"foreground": true, "persist": false},
-				"schedule" : { 
-					"start" : closeTime,
-					"local" : false,
-					"skip" : true
-				},
-				"callback" : {
-					"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
-					"params" : {"extension": "timeofday", 
-						"timestamp": limits.closeTime.getTime()}
-				}
-			}
-		};
-		
-//		console.log("Alarm for timeofday start: " + startTime);
-//		console.log("Alarm for timeofday close: " + closeTime);
-		
-		future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newStartActivity));
-		
-		future.then(this, function(future) {
-			config.activities.push(future.result.activityId);
+	var addActivities = function(future, config, triggers, index) {
+		if(index < triggers.length) {		
+			var trigger = triggers[index];
 			
-			future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newCloseActivity));
+			var limits = getTimeOfDayLimits(trigger, false);
+			
+			var startTime = convertDateToUtfStr(limits.startTime);
+			var closeTime = convertDateToUtfStr(limits.closeTime);
+			
+			var newStartActivity = {
+				"start" : true,
+				"replace": true,
+				"activity": {
+					"name": "timeoutTrigger" + limits.startTime.getTime(),
+					"description" : "Timeout Event Notifier",
+					"type": {"foreground": true, "persist": false},
+					"schedule" : { 
+						"start" : startTime,
+						"local" : false,
+						"skip" : true
+					},
+					"callback" : {
+						"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
+						"params" : {"extension": "timeofday", 
+							"timestamp": limits.startTime.getTime()}
+					}
+				}
+			};
+			
+			var newCloseActivity = {
+				"start" : true,
+				"replace": true,
+				"activity": {
+					"name": "timeoutTrigger" + limits.closeTime.getTime(),
+					"description" : "Timeout Event Notifier",
+					"type": {"foreground": true, "persist": false},
+					"schedule" : { 
+						"start" : closeTime,
+						"local" : false,
+						"skip" : true
+					},
+					"callback" : {
+						"method" : "palm://org.webosinternals.modeswitcher.srv/trigger",
+						"params" : {"extension": "timeofday", 
+							"timestamp": limits.closeTime.getTime()}
+					}
+				}
+			};
+			
+	//		console.log("Alarm for timeofday start: " + startTime);
+	//		console.log("Alarm for timeofday close: " + closeTime);
+			
+			future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newStartActivity));
 			
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				future.result = result - 1;
+				future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newCloseActivity));
+				
+				future.then(this, function(future) {
+					config.activities.push(future.result.activityId);
+					
+					addActivities(future, config, triggers, index + 1);
+				});
 			});
-		});
+		}
+		else
+			future.result = true;
 	};
 	
-	var delActivity = function(future, config) {
-		var result = future.result;
-		
-		var oldActivity = {
-			"activityId": config.activities[result]
-		};
-		
-		future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
-		
-		future.then(this, function(future) {
-			future.result = result - 1;
-		});
+	var delActivities = function(future, config, index) {
+		if(index < config.activities.length) {
+			var oldActivity = {
+				"activityId": config.activities[index]
+			};
+			
+			future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
+			
+			future.then(this, function(future) {
+				delActivities(future, config, index + 1);
+			});
+		}
+		else
+			future.result = true;
 	};
 	
 //
@@ -315,15 +319,14 @@ var timeofdayTriggers = (function() {
 		var future = new Future(triggers.length - 1);
 		
 		if(triggers.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
-			future.whilst(this, function(future) { return future.result >= 0; }, 
-				function(future) {
-					addActivity(future, config, triggers, false);
-				});
-		
+			future.now(this, function(future) {
+				addActivities(future, config, triggers, 0);
+			});
+			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
@@ -334,17 +337,16 @@ var timeofdayTriggers = (function() {
 		var future = new Future(config.activities.length - 1);
 		
 		if(config.activities.length == 0)
-			future.result = true;
+			future.result = { returnValue: true };
 		else {
-			future.whilst(this, function(future) { return future.result >= 0; }, 
-				function(future) {
-					delActivity(future, config);
-				});
-
+			future.now(this, function(future) {
+				delActivities(future, config, 0);
+			});
+			
 			future.then(this, function(future) {
 				config.activities = [];
 				
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
@@ -361,16 +363,15 @@ var timeofdayTriggers = (function() {
 		if((triggers.length == 0) || 
 			(!args.timestamp) || (!args.$activity))
 		{
-			future.result = true;
+			future.result = { returnValue: true };
 		}
 		else {
-			future.whilst(this, function(future) { return future.result >= 0; }, 
-				function(future) {
-					addActivity(future, config, triggers, false);
-				});		
+			future.now(this, function(future) {
+				addActivities(future, config, triggers, 0);
+			});
 			
 			future.then(this, function(future) {
-				future.result = true;
+				future.result = { returnValue: true };
 			});
 		}
 		
