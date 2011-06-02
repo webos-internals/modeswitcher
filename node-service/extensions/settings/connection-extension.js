@@ -19,25 +19,24 @@ var connectionSettings = (function() {
 	
 //
 	
-	var updateTelephonySettings = function(future, settingsOld, settingsNew) {
-		var params = {};
-		
-		if((settingsNew.phoneState != undefined) && (settingsOld.phoneState != settingsNew.phoneState))
-			params.state = settingsNew.phoneState;
-		
-		if(params.state != undefined) {
-			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-				'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
-				'method': "powerSet", 'params': params}));
-			
-			future.then(this, function(future) { future.result = 1; });
-		}
-		else
-			future.result = 1; 
-	};
-	
 	var updateSettings = function(future, settingsOld, settingsNew, action) {
 		if(action == 0) {
+			var params = {};
+			
+			if((settingsNew.phoneState != undefined) && (settingsOld.phoneState != settingsNew.phoneState))
+				params.state = settingsNew.phoneState;
+			
+			if(params.state != undefined) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.phone", 'service': "com.palm.telephony", 
+					'method': "powerSet", 'params': params}));
+			
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 1); });
+			}
+			else
+				updateSettings(future, settingsOld, settingsNew, 1);
+		}
+		else if(action == 1) {
 			var params = {};
 			
 			if((settingsNew.dataState != undefined) && (settingsOld.dataState != settingsNew.dataState))
@@ -48,12 +47,12 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.phone", 'service': "com.palm.wan", 
 					'method': "set", 'params': params}));
 				
-				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 1); });
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 2); });
 			}
 			else
-				updateSettings(future, settingsOld, settingsNew, 1);
+				updateSettings(future, settingsOld, settingsNew, 2);
 		}
-		else if(action == 1) {
+		else if(action == 2) {
 			var params = {};
 			
 			if((settingsNew.wifiState != undefined) && (settingsOld.wifiState != settingsNew.wifiState))
@@ -64,12 +63,12 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.wifi", 'service': "com.palm.wifi", 
 					'method': "setstate", 'params': params}));
 				
-				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 2); });
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 3); });
 			}
 			else
-				updateSettings(future, settingsOld, settingsNew, 2);
+				updateSettings(future, settingsOld, settingsNew, 3);
 		}
-		else if(action == 2) {
+		else if(action == 3) {
 			var params = {};
 			
 			if((settingsNew.btState != undefined) && (settingsOld.btState != settingsNew.btState)) {
@@ -87,12 +86,12 @@ var connectionSettings = (function() {
 					'id': "com.palm.app.wifi", 'service': "com.palm.btmonitor/monitor", 
 					'method': method, 'params': params}));
 				
-				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 3); });
+				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 4); });
 			}
 			else
-				updateSettings(future, settingsOld, settingsNew, 3);
+				updateSettings(future, settingsOld, settingsNew, 4);
 		}
-		else if(action == 3) {
+		else if(action == 4) {
 			var params = {};
 			
 			if((settingsNew.gpsState != undefined) && (settingsOld.gpsState != settingsNew.gpsState))

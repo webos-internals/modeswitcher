@@ -14,12 +14,12 @@ function StartupAssistant() {
 	this.secondMessage = $L("Please consider making a <a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=7A4RPR9ZX3TYS&lc=FI&item_name=Mode%20Switcher%20Application&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted\">donation</a> if you wish to show your appreciation.");
 
 	this.newMessages = [
-/*	{
+	{
 		version: '2.3.4', log: [
 			'New group based trigger configuration and possibility to share modes, see wiki for details.',
 			'<b>Re-export your modes after upgrading, importing of modes that has been exported with older versions is not supported.</b>'
 		]
-	},*/
+	},
 	{
 		version: '2.3.3', log: [
 			'Fixed bug in applying settings and fine tuned bluetooth trigger.'

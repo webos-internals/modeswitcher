@@ -28,7 +28,7 @@ var intervalTriggers = (function() {
 			var trigger = triggers[index];
 			
 			if(((trigger.intervalHours != 0) || (trigger.intervalMinutes != 0)) && 
-				((trigger.activeHours != 0) && (trigger.activeMinutes != 0)) && 
+				((trigger.activeHours != 0) || (trigger.activeMinutes != 0)) && 
 				((trigger.intervalHours != trigger.activeHours) || 
 				(trigger.intervalMinutes != trigger.activeMinutes)))
 			{
@@ -101,6 +101,9 @@ var intervalTriggers = (function() {
 						}
 					}
 				};
+				
+//				console.error("Time interval start: " + startDate.getTime());
+//				console.error("Time interval close: " + closeDate.getTime());
 				
 				future.nest(PalmCall.call("palm://com.palm.activitymanager", "create", newStartActivity));
 				

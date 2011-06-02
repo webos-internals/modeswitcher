@@ -197,11 +197,8 @@ var bluetoothTriggers = (function() {
 				}
 			}
 			
-			if(((index == -1) && (!args.$activity.trigger.error) &&
-				(args.$activity.trigger.notification == "notifnconnected")) || 
-				((index != -1) && (((args.$activity.trigger.error) &&
-				(args.$activity.trigger.notification == "notifnconnected")) || 
-				(args.$activity.trigger.notification == "notifndisconnected") || 
+			if(((index == -1) && (args.$activity.trigger.notification == "notifnconnected")) || 
+				((index != -1) && ((args.$activity.trigger.notification == "notifndisconnected") || 
 				(args.$activity.trigger.notification == "notifndisconnecting"))))
 			{
 				if((trigger.state == 0) && ((trigger.profile == "any") || 
@@ -302,9 +299,7 @@ var bluetoothTriggers = (function() {
 			if(args.$activity.trigger.profile != undefined)
 				profile = args.$activity.trigger.profile;
 			
-			if((!args.$activity.trigger.error) &&
-				(args.$activity.trigger.notification == "notifnconnected"))
-			{
+			if(args.$activity.trigger.notification == "notifnconnected") {
 				var index = -1;
 				
 				for(var i = 0; i < config.connected.length; i++) {
@@ -319,10 +314,8 @@ var bluetoothTriggers = (function() {
 				if(index == -1)
 					config.connected.push({'device': device, 'profile': profile});
 			}
-			else if((((args.$activity.trigger.error) &&
-				(args.$activity.trigger.notification == "notifnconnected")) || 
-				(args.$activity.trigger.notification == "notifndisconnected") || 
-				(args.$activity.trigger.notification == "notifndisconnecting")))
+			else if((args.$activity.trigger.notification == "notifndisconnected") || 
+				(args.$activity.trigger.notification == "notifndisconnecting"))
 			{
 					if((config.connected[i].device == device) &&
 						(config.connected[i].profile == profile))

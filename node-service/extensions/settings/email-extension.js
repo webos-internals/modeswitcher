@@ -36,7 +36,7 @@ var emailSettings = (function() {
 	
 //
 	
-	var updateSettings = function(future, settingsOld, settingsNew, actions) {
+	var updateSettings = function(future, settingsOld, settingsNew, action) {
 		if(action == 0) {
 			if(settingsNew.accounts) {
 					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
