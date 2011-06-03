@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.3.5', log: [
+			'New bluetooth trigger implementation, should now work much better.'
+		]
+	},
+	{
 		version: '2.3.4', log: [
 			'New group based trigger configuration and possibility to share modes, see wiki for details.',
 			'<b>Re-export your modes after upgrading, importing of modes that has been exported with older versions is not supported.</b>'
