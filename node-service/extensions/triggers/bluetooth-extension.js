@@ -252,7 +252,7 @@ var bluetoothTriggers = (function() {
 		
 		var future = new Future();
 		
-		if(config.activities.length == 0)
+		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
 			future.nest(delActivity(config));

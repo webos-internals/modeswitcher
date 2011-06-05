@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.3.7', log: [
+			'Fixed a bug that caused an error in certain rare situations.'
+		]
+	},
+	{
 		version: '2.3.6', log: [
 			'Fixed calendar event trigger and few other bugs, see wiki for details.'
 		]
