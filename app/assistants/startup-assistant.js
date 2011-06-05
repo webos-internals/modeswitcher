@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.3.6', log: [
+			'Fixed calendar event trigger and few other bugs, see wiki for details.'
+		]
+	},
+	{
 		version: '2.3.5', log: [
 			'New bluetooth trigger implementation, should now work much better.'
 		]

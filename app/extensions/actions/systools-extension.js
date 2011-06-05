@@ -89,12 +89,12 @@ SystoolsActions.prototype.load = function(extensionPreferences) {
 			if(extensionPreferences.method.start == "lunaRestart")
 				startAction = 1;
 			else if(extensionPreferences.method.start == "deviceRestart")
-				startAction = 1;
+				startAction = 2;
 
 			if(extensionPreferences.method.close == "lunaRestart")
 				closeAction = 1;
 			else if(extensionPreferences.method.close == "deviceRestart")
-				closeAction = 1;
+				closeAction = 2;
 		}
 	}
 	

@@ -32,7 +32,9 @@ var caleventTriggers = (function() {
 	
 //
 	
-	var initExtension = function(future, config, triggers, validEvents, parentIds, page) {
+	var initExtension = function(config, triggers, validEvents, parentIds, page) {
+		var future = new Future();
+		
 		if(!page) {
 			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 				'id': "com.palm.app.calendar", 'service': "com.palm.db", 
@@ -44,6 +46,12 @@ var caleventTriggers = (function() {
 				'method': "find", 'params': {'query': {'from': "com.palm.calendarevent:1", 'page': page}}}));
 		}
 		
+		if(!validEvents)
+			validEvents = [];
+		
+		if(!parentIds)
+			parentIds = [];
+		
 		future.then(this, function(future) {
 			var result = future.result;
 			
@@ -54,7 +62,6 @@ var caleventTriggers = (function() {
 				for(var j = 0; j < triggers.length; j++) {
 					if(checkIfEventIsValid(result.results[i], triggers[j])) {
 						var eventInfo = getCurrentDayEventInfo(result.results[i], parentIds);
-						
 						if((eventInfo) && (eventInfo.start)) {
 							var index = utils.findArray(validEvents, "timestamp", eventInfo.start);
 							
@@ -77,10 +84,8 @@ var caleventTriggers = (function() {
 			}
 			
 			if(result.next) {
-				future.now(this, function(future) {
-					initExtension(future, config, triggers, validEvents, parentIds, result.next);
-				});
-				
+				future.nest(initExtension(config, triggers, validEvents, parentIds, result.next));
+					
 				future.then(this, function(future) {
 					future.result = { events: validEvents, parentIds: parentIds };
 				});
@@ -88,11 +93,15 @@ var caleventTriggers = (function() {
 			else
 				future.result = { events: validEvents, parentIds: parentIds };
 		});
+		
+		return future;
 	};
 	
 //
 	
-	var addActivity = function(future, config, events) {
+	var addActivity = function(config) {
+		var future = new Future();
+		
 		var date = new Date();
 		
 		date.setHours(0);
@@ -163,14 +172,18 @@ var caleventTriggers = (function() {
 			future.then(this, function(future) {
 				config.activities.push(future.result.activityId);
 				
-				future.result = events.length;
+				future.result = true;
 			});
 		});
+		
+		return future;
 	};
 	
 //
 	
-	var addActivities = function(future, config, events, parentIds, index) {
+	var addActivities = function(config, events, parentIds, index) {
+		var future = new Future();
+		
 		if(index < events.length) {
 			var eventData = events[index];
 			
@@ -206,17 +219,30 @@ var caleventTriggers = (function() {
 				future.then(this, function(future) {
 					config.activities.push(future.result.activityId);
 					
-					addActivities(future, config, events, parentIds, index + 1);
+					future.nest(addActivities(config, events, parentIds, index + 1));
+					
+					future.then(this, function(future) {
+						future.result = true;
+					});
 				});
 			}
-			else
-				addActivities(future, config, events, parentIds, index + 1);
+			else {
+				future.nest(addActivities(config, events, parentIds, index + 1));
+				
+				future.then(this, function(future) {
+					future.result = true;
+				});
+			}
 		}
 		else
 			future.result = true;
+		
+		return future;
 	};
 	
-	var delActivities = function(future, config, skip, index) {
+	var delActivities = function(config, skip, index) {
+		var future = new Future();
+		
 		if(index < config.activities.length) {
 			var oldActivity = {
 				"activityId": config.activities[index]
@@ -232,11 +258,17 @@ var caleventTriggers = (function() {
 			}
 			
 			future.then(this, function(future) { 
-				delActivities(future, config, skipFirst, index + 1);
+				future.nest(delActivities(config, skip, index + 1));
+				
+				future.then(this, function(future) {
+					future.result = true;
+				});
 			});
 		}
 		else
 			future.result = true;
+		
+		return future;
 	};
 	
 //
@@ -518,25 +550,19 @@ var caleventTriggers = (function() {
 		if(triggers.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) {
-				initExtension(future, config, triggers, [], []);
-			});
+			future.nest(initExtension(config, triggers));
 			
 			future.then(this, function(future) {
 				var events = future.result.events;
 				var parentIds = future.result.parentIds;
 				
-				future.now(this, function(future) { 
-					addActivity(future, config, events);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					if(events.length == 0)
 						future.result = { returnValue: true };
 					else {
-						future.now(this, function(future) {
-							addActivities(future, config, events, parentIds, 0);
-						});
+						future.nest(addActivities(config, events, parentIds, 0));
 						
 						future.then(this, function(future) {
 							future.result = { returnValue: true };
@@ -549,21 +575,19 @@ var caleventTriggers = (function() {
 		return future;
 	};
 	
-	that.shutdown = function(config, skipFirst) {
+	that.shutdown = function(config, skip) {
 		config.revision = 0;
 		config.events = [];
 		
-		if(skipFirst == undefined)
-			skipFirst = false;
+		if(skip == undefined)
+			skip = false;
 		
 		var future = new Future(config.activities.length - 1);
 		
 		if((!config.activities) || (config.activities.length == 0))
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) {
-				delActivities(future, config, skipFirst, 0);
-			});
+			future.nest(delActivities(config, skip, 0));
 			
 			future.then(this, function(future) {
 				config.activities = [];

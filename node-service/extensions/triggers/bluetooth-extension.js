@@ -22,10 +22,22 @@ var bluetoothTriggers = (function() {
 	var PalmCall = Foundations.Comms.PalmCall;
 	
 	var Future = Foundations.Control.Future;
+
+//
+
+	var waitTimeout = function(config) {
+		var future = new Future();
+		
+		setTimeout(function(future) { future.result = true; }.bind(this, future), 3000);
+		
+		return future;
+	};
 	
 //
 	
-	var initExtension = function(future, config) {
+	var initExtension = function(config) {
+		var future = new Future();
+		
 		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.app.bluetooth", 'service': "com.palm.btmonitor/monitor", 
 			'method': "getradiostate", 'params': {}})); 
@@ -55,9 +67,13 @@ var bluetoothTriggers = (function() {
 			else
 				future.result = true;
 		});
+		
+		return future;
 	};
 	
-	var addActivity = function(future, config) {
+	var addActivity = function(config) {
+		var future = new Future();
+		
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -85,9 +101,13 @@ var bluetoothTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
-	var delActivity = function(future, config) {
+	var delActivity = function(config) {
+		var future = new Future();
+		
 		var oldActivity = {
 			"activityId": config.activity
 		};
@@ -101,6 +121,8 @@ var bluetoothTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
 //
@@ -211,14 +233,10 @@ var bluetoothTriggers = (function() {
 		if(triggers.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
-				initExtension(future, config);
-			});
+			future.nest(initExtension(config));
 			
 			future.then(this, function(future) {
-				future.now(this, function(future) { 
-					addActivity(future, config);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					future.result = { returnValue: true };
@@ -237,9 +255,7 @@ var bluetoothTriggers = (function() {
 		if(config.activities.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
-				delActivity(future, config);
-			});
+			future.nest(delActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
@@ -267,15 +283,15 @@ var bluetoothTriggers = (function() {
 				(args.$activity.trigger.notification == "notifndisconnecting") ||
 				(args.$activity.trigger.notification == "notifndisconnected"))
 			{
-				future.now(this, function(future) { 
-					setTimeout(addActivity.bind(this, future, config), 3000);
-				});
+				future.nest(waitTimeout());
 				
 				future.then(this, function(future) { 
-					future.now(this, function(future) {
-						config.connected = [];					
-						
-						initExtension(future, config);
+					config.connected = [];					
+					
+					future.nest(addActivity(config));
+					
+					future.then(this, function(future) {
+						future.nest(initExtension(config));
 					});
 					
 					future.then(this, function(future) {
@@ -284,9 +300,7 @@ var bluetoothTriggers = (function() {
 				});
 			}
 			else {
-				future.now(this, function(future) { 
-					addActivity(future, config);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					future.result = { returnValue: true };
@@ -328,9 +342,7 @@ var bluetoothTriggers = (function() {
 					}
 			}
 			
-			future.now(this, function(future) { 
-				addActivity(future, config);
-			});
+			future.nest(addActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };

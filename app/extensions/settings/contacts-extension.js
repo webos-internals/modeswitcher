@@ -171,7 +171,7 @@ ContactsSettings.prototype.handleGetResponse = function(requestID, extensionConf
 				if(serviceResponse.results[0].blockedNumbers)
 					extensionConfig.contactsBlockedNumbers = 1;
 				
-				if(serviceResponse.results[0].contactsNumbers)
+				if(serviceResponse.results[0].unknownNumbers)
 					extensionConfig.contactsUnknownNumbers = 1;
 			}
 		}

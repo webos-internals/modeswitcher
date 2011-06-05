@@ -22,7 +22,9 @@ var batteryTriggers = (function() {
 	
 //
 	
-	var initExtension = function(future, config) {
+	var initExtension = function(config) {
+		var future = new Future();
+		
 		future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
 			'id': "com.palm.systemservice", 'service': "com.palm.systemservice", 
 			'method': "getPreferences", 'params': {'keys': ["batteryLevel"]}}));
@@ -35,11 +37,15 @@ var batteryTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
 //
 	
-	var addActivity = function(future, config) {
+	var addActivity = function(config) {
+		var future = new Future();
+		
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -67,9 +73,13 @@ var batteryTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
-	var delActivity = function(future, config) {
+	var delActivity = function(config) {
+		var future = new Future();
+		
 		var oldActivity = {
 			"activityId": config.activity
 		};
@@ -83,6 +93,8 @@ var batteryTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
 //
@@ -129,14 +141,10 @@ var batteryTriggers = (function() {
 		if(triggers.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) {
-				initExtension(future, config);
-			});
+			future.nest(initExtension(config));
 			
 			future.then(this, function(future) {
-				future.now(this, function(future) {
-					addActivity(future, config);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					future.result = { returnValue: true };
@@ -156,9 +164,7 @@ var batteryTriggers = (function() {
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
-				delActivity(future, config);
-			});
+			future.nest(delActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
@@ -206,9 +212,7 @@ var batteryTriggers = (function() {
 				}
 			}
 			
-			future.now(this, function(future) { 
-				addActivity(future, config);
-			});
+			future.nest(addActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };

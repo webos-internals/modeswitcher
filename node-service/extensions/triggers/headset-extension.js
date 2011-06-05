@@ -21,7 +21,9 @@ var headsetTriggers = (function() {
 	
 //
 	
-	var initExtension = function(future, config) {
+	var initExtension = function(config) {
+		var future = new Future();
+		
 		future.nest(PalmCall.call("palm://com.palm.audio/media", "status", {}));
 		
 		future.then(this, function(future) {
@@ -29,11 +31,15 @@ var headsetTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
 //
 	
-	var addActivity = function(future, config) {
+	var addActivity = function(config) {
+		var future = new Future();
+		
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -59,9 +65,13 @@ var headsetTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
-	var delActivity = function(future, config) {
+	var delActivity = function(config) {
+		var future = new Future();
+		
 		var oldActivity = {
 			"activityId": config.activity
 		};
@@ -73,6 +83,8 @@ var headsetTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
 //
@@ -136,14 +148,10 @@ var headsetTriggers = (function() {
 		if(triggers.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
-				initExtension(future, config);
-			});
+			future.nest(initExtension(config));
 			
 			future.then(this, function(future) {
-				future.now(this, function(future) {
-					addActivity(future, config);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					future.result = { returnValue: true };
@@ -162,9 +170,7 @@ var headsetTriggers = (function() {
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) {
-				delActivity(future, config);
-			});
+			future.nest(delActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
@@ -194,9 +200,7 @@ var headsetTriggers = (function() {
 			else
 				config.scenario = "unknown";
 			
-			future.now(this, function(future) { 
-				addActivity(future, config);
-			});
+			future.nest(addActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };

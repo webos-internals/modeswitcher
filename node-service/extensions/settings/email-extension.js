@@ -36,79 +36,86 @@ var emailSettings = (function() {
 	
 //
 	
-	var updateSettings = function(future, settingsOld, settingsNew, action) {
-		if(action == 0) {
-			if(settingsNew.accounts) {
-					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-						'id': "com.palm.app.email", 'service': "com.palm.db", 
-						'method': "find", 'params': {'query': {'from': "com.palm.mail.account:1"}}}));
-					
-					future.then(this, function(future) { 
-						var results = future.result.results;
-						
-						for(var accId in settingsNew.accounts) {
-							if(utils.findArray(results, "accountId", accId) == -1)
-								delete settingsNew.accounts[accId];
-						}
-						
-						updateSettings(future, settingsOld, settingsNew, 1);
-					});
-			}
-			else
-				updateSettings(future, settingsOld, settingsNew, 1);
-		}
-		else if(action == 1) {
-			if(settingsNew.accounts) {
-				var objects = [];
+	var fetchAccounts = function(settingsOld, settingsNew) {
+		var future = new Future();
+		
+		if(settingsNew.accounts) {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+				'id': "com.palm.app.email", 'service': "com.palm.db", 
+				'method': "find", 'params': {'query': {'from': "com.palm.mail.account:1"}}}));
+			
+			future.then(this, function(future) { 
+				var results = future.result.results;
 				
 				for(var accId in settingsNew.accounts) {
-					var params  = {_id: settingsNew.accounts[accId].databaseId, notifications: {}};
-					
-					if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) || 
-						(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))
-					{
-						params.notifications.blink = settingsNew.blinkNotify[accId];
-					}
-					
-					if((settingsNew.notifyAlert[accId] != undefined) && ((!settingsOld.notifyAlert) || 
-						(settingsOld.notifyAlert[accId] != settingsNew.notifyAlert[accId])))
-					{
-						params.notifications.type = settingsNew.notifyAlert[accId];
-					}
-					
-					if((settingsNew.ringtonePath[accId] != undefined) && ((!settingsOld.ringtonePath) || 
-						(settingsOld.ringtonePath[accId] != settingsNew.ringtonePath[accId])))
-					{
-						params.notifications.ringtoneName = settingsNew.ringtoneName[accId];
-						params.notifications.ringtonePath = settingsNew.ringtonePath[accId];
-					}
-					
-					if((settingsNew.syncInterval[accId] != undefined) && ((!settingsOld.syncInterval) || 
-						(settingsOld.syncInterval[accId] != settingsNew.syncInterval[accId])))
-					{
-						params.syncFrequencyMins = parseInt(settingsNew.syncInterval[accId]);
-					}
-					
-					if((params.notifications.blink != undefined) || (params.notifications.type != undefined) || 
-						(params.notifications.ringtonePath != undefined) || (params.syncFrequencyMins != undefined))
-					{
-						objects.push(params);
-					}
+					if(utils.findArray(results, "accountId", accId) == -1)
+						delete settingsNew.accounts[accId];
 				}
 				
-				if(objects.length > 0) {
-					future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-						'id': "com.palm.app.email", 'service': "com.palm.db", 
-						'method': "merge", 'params': {'objects': objects}}));
-					
-					future.then(this, function(future) { future.result = true; });
+				future.result = true;
+			});
+		}
+		else
+			future.result = true;
+		
+		return future;
+	};
+	
+	var updateSettings = function(settingsOld, settingsNew) {
+		var future = new Future();
+		
+		if(settingsNew.accounts) {
+			var objects = [];
+			
+			for(var accId in settingsNew.accounts) {
+				var params  = {_id: settingsNew.accounts[accId].databaseId, notifications: {}};
+				
+				if((settingsNew.blinkNotify[accId] != undefined) && ((!settingsOld.blinkNotify) || 
+					(settingsOld.blinkNotify[accId] != settingsNew.blinkNotify[accId])))
+				{
+					params.notifications.blink = settingsNew.blinkNotify[accId];
 				}
-				else
-					future.result = true;
+				
+				if((settingsNew.notifyAlert[accId] != undefined) && ((!settingsOld.notifyAlert) || 
+					(settingsOld.notifyAlert[accId] != settingsNew.notifyAlert[accId])))
+				{
+					params.notifications.type = settingsNew.notifyAlert[accId];
+				}
+				
+				if((settingsNew.ringtonePath[accId] != undefined) && ((!settingsOld.ringtonePath) || 
+					(settingsOld.ringtonePath[accId] != settingsNew.ringtonePath[accId])))
+				{
+					params.notifications.ringtoneName = settingsNew.ringtoneName[accId];
+					params.notifications.ringtonePath = settingsNew.ringtonePath[accId];
+				}
+				
+				if((settingsNew.syncInterval[accId] != undefined) && ((!settingsOld.syncInterval) || 
+					(settingsOld.syncInterval[accId] != settingsNew.syncInterval[accId])))
+				{
+					params.syncFrequencyMins = parseInt(settingsNew.syncInterval[accId]);
+				}
+				
+				if((params.notifications.blink != undefined) || (params.notifications.type != undefined) || 
+					(params.notifications.ringtonePath != undefined) || (params.syncFrequencyMins != undefined))
+				{
+					objects.push(params);
+				}
+			}
+			
+			if(objects.length > 0) {
+				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+					'id': "com.palm.app.email", 'service': "com.palm.db", 
+					'method': "merge", 'params': {'objects': objects}}));
+				
+				future.then(this, function(future) { future.result = true; });
 			}
 			else
 				future.result = true;
 		}
+		else
+			future.result = true;
+		
+		return future;
 	};
 	
 //
@@ -116,12 +123,14 @@ var emailSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		future.now(this, function(future) {
-			updateSettings(future, settingsOld, settingsNew, 0);
-		});
+		future.nest(fetchAccounts(settingsOld, settingsNew));
 		
 		future.then(this, function(future) {
-			future.result = { returnValue: true };
+			future.nest(updateSettings(settingsOld, settingsNew));
+			
+			future.then(this, function(future) {
+				future.result = { returnValue: true };
+			});
 		});
 		
 		return future;

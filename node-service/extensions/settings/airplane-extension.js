@@ -15,7 +15,9 @@ var airplaneSettings = (function() {
 	
 //
 	
-	var updateSettings = function(future, settingsOld, settingsNew) {
+	var updateSettings = function(settingsOld, settingsNew) {
+		var future = new Future();
+		
 		var params = {};
 		
 		if((settingsNew.flightMode != undefined) && (settingsOld.flightMode != settingsNew.flightMode))
@@ -28,6 +30,8 @@ var airplaneSettings = (function() {
 		}
 		else
 			future.result = true;
+
+		return future;
 	};
 	
 //
@@ -35,9 +39,7 @@ var airplaneSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		future.now(this, function(future) {
-			updateSettings(future, settingsOld, settingsNew);
-		});
+		future.nest(updateSettings(settingsOld, settingsNew));
 		
 		future.then(this, function(future) {
 			future.result = { returnValue: true };

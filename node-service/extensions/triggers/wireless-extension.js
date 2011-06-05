@@ -22,7 +22,9 @@ var wirelessTriggers = (function() {
 	
 //
 	
-	var initExtension = function(future, config) {
+	var initExtension = function(config) {
+		var future = new Future();
+		
 		future.nest(PalmCall.call("palm://com.palm.connectionmanager", "getstatus", {}));
 		
 		future.then(this, function(future) {
@@ -40,11 +42,15 @@ var wirelessTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
 //
 	
-	var addActivity = function(future, config) {
+	var addActivity = function(config) {
+		var future = new Future();
+		
 		var newActivity = {
 			"start" : true,
 			"replace": true,
@@ -70,9 +76,13 @@ var wirelessTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
-	var delActivity = function(future, config) {
+	var delActivity = function(config) {
+		var future = new Future();
+		
 		var oldActivity = {
 			"activityId": config.activity
 		};
@@ -84,6 +94,8 @@ var wirelessTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
 //
@@ -133,14 +145,10 @@ var wirelessTriggers = (function() {
 		if(triggers.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
-				initExtension(future, config);
-			});
+			future.nest(initExtension(config));
 			
 			future.then(this, function(future) {
-				future.now(this, function(future) { 
-					addActivity(future, config);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					future.result = { returnValue: true };
@@ -160,9 +168,7 @@ var wirelessTriggers = (function() {
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
-				delActivity(future, config);
-			});
+			future.nest(delActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
@@ -200,9 +206,7 @@ var wirelessTriggers = (function() {
 					config.ssid = "none";
 			}
 			
-			future.now(this, function(future) { 
-				addActivity(future, config);
-			});
+			future.nest(addActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };

@@ -22,8 +22,10 @@ var timeofdayTriggers = (function() {
 	
 //
 	
-	var addActivities = function(future, config, triggers, index) {
-		if(index < triggers.length) {		
+	var addActivities = function(config, triggers, index) {
+		var future = new Future();
+		
+		if(index < triggers.length) {
 			var trigger = triggers[index];
 			
 			var limits = getTimeOfDayLimits(trigger, false);
@@ -84,15 +86,23 @@ var timeofdayTriggers = (function() {
 				future.then(this, function(future) {
 					config.activities.push(future.result.activityId);
 					
-					addActivities(future, config, triggers, index + 1);
+					future.nest(addActivities(config, triggers, index + 1));
+					
+					future.then(this, function(future) {
+						future.result = true;
+					});
 				});
 			});
 		}
 		else
 			future.result = true;
+		
+		return future;
 	};
 	
-	var delActivities = function(future, config, index) {
+	var delActivities = function(config, index) {
+		var future = new Future();
+		
 		if(index < config.activities.length) {
 			var oldActivity = {
 				"activityId": config.activities[index]
@@ -101,11 +111,17 @@ var timeofdayTriggers = (function() {
 			future.nest(PalmCall.call("palm://com.palm.activitymanager", "cancel", oldActivity));
 			
 			future.then(this, function(future) {
-				delActivities(future, config, index + 1);
+				future.nest(delActivities(config, index + 1));
+				
+				future.then(this, function(future) {
+					future.result = true;
+				});
 			});
 		}
 		else
 			future.result = true;
+		
+		return future;
 	};
 	
 //
@@ -321,9 +337,7 @@ var timeofdayTriggers = (function() {
 		if(triggers.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) {
-				addActivities(future, config, triggers, 0);
-			});
+			future.nest(addActivities(config, triggers, 0));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
@@ -339,9 +353,7 @@ var timeofdayTriggers = (function() {
 		if(config.activities.length == 0)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) {
-				delActivities(future, config, 0);
-			});
+			future.nest(delActivities(config, 0));
 			
 			future.then(this, function(future) {
 				config.activities = [];
@@ -366,9 +378,7 @@ var timeofdayTriggers = (function() {
 			future.result = { returnValue: true };
 		}
 		else {
-			future.now(this, function(future) {
-				addActivities(future, config, triggers, 0);
-			});
+			future.nest(addActivities(config, triggers, 0));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };

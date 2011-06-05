@@ -34,7 +34,9 @@ var locationTriggers = (function() {
 	
 //
 	
-	var initExtension = function(future, config, triggers, accuracy, count) {
+	var initExtension = function(config, triggers, accuracy, count) {
+		var future = new Future();
+		
 		if(!accuracy)
 			accuracy = 0;
 		
@@ -49,10 +51,8 @@ var locationTriggers = (function() {
 			if((result.horizAccuracy == -1) || (result.horizAccuracy > config.accuracy))
 				console.log("Insufficient accuracy: " + result.horizAccuracy);
 			
-			if((count < 20) && (accuracy < result.horizAccuracy)) {
-				future.now(this, function(future) {
-					initExtension(future, config, triggers, result.horizAccuracy, ++count);
-				});
+			if((!future.exception) && (count < 20) && (accuracy < result.horizAccuracy)) {
+				future.nest(initExtension(config, triggers, result.horizAccuracy, count + 1));
 				
 				future.then(this, function(future) {
 					future.result = true;
@@ -67,11 +67,15 @@ var locationTriggers = (function() {
 				future.result = true;
 			}
 		});
+		
+		return future;
 	};
 	
 //
 	
-	var addActivity = function(future, config) {
+	var addActivity = function(config) {
+		var future = new Future();
+		
 		var startDate = new Date();
 		
 		startDate.setMinutes(startDate.getMinutes() + config.refresh);
@@ -107,9 +111,13 @@ var locationTriggers = (function() {
 			
 			future.result = true;
 		});
+		
+		return future;
 	};
 	
-	var delActivity = function(future, config) {
+	var delActivity = function(config) {
+		var future = new Future();
+		
 		var oldActivity = {
 			"activityId": config.activity
 		};
@@ -120,7 +128,9 @@ var locationTriggers = (function() {
 			config.activity = null;
 			
 			future.result = true;
-		}); 
+		});
+		
+		return future;
 	};
 	
 //
@@ -317,9 +327,7 @@ var locationTriggers = (function() {
 		else {
 			updateRequiredAccuracy(config, triggers);
 			
-			future.now(this, function(future) { 
-				initExtension(future, config, triggers);
-			});
+			future.nest(initExtension(config, triggers));
 			
 			future.then(this, function(future) {
 				if((config.location.lat != -1) && 
@@ -328,9 +336,7 @@ var locationTriggers = (function() {
 					updateLocationTracking(config, triggers);
 				}
 				
-				future.now(this, function(future) { 
-					addActivity(future, config);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					future.result = { returnValue: true };
@@ -352,9 +358,7 @@ var locationTriggers = (function() {
 		if(!config.activity)
 			future.result = { returnValue: true };
 		else {
-			future.now(this, function(future) { 
-				delActivity(future, config);
-			});
+			future.nest(delActivity(config));
 			
 			future.then(this, function(future) {
 				future.result = { returnValue: true };
@@ -378,9 +382,7 @@ var locationTriggers = (function() {
 		else {
 			updateRequiredAccuracy(config, triggers);
 			
-			future.now(this, function(future) { 
-				initExtension(future, config, triggers);
-			});
+			future.nest(initExtension(config, triggers));
 			
 			future.then(this, function(future) {
 				if((config.location.lat != -1) && 
@@ -389,9 +391,7 @@ var locationTriggers = (function() {
 					updateLocationTracking(config, triggers);
 				}
 				
-				future.now(this, function(future) { 
-					addActivity(future, config);
-				});
+				future.nest(addActivity(config));
 				
 				future.then(this, function(future) {
 					future.result = { returnValue: true };

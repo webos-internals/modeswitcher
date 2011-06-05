@@ -18,43 +18,50 @@ var ringerSettings = (function() {
 	
 //
 	
-	var updateSettings = function(future, settingsOld, settingsNew, action) {
-		if(action == 0) {
-			var params = {};
+	var updateSettings1 = function(settingsOld, settingsNew) {
+		var future = new Future();
+		
+		var params = {};
+		
+		if((settingsNew.switchOn != undefined) && (settingsOld.switchOn != settingsNew.switchOn))
+			params.VibrateWhenRingerOn = settingsNew.switchOn;
+		
+		if((settingsNew.switchOff != undefined) && (settingsOld.switchOff != settingsNew.switchOff))
+			params.VibrateWhenRingerOff = settingsNew.switchOff;
+		
+		if((params.VibrateWhenRingerOn != undefined) || (params.VibrateWhenRingerOff != undefined)) {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
+				'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/vibrate", 
+				'method': "set", 'params': params}));
 			
-			if((settingsNew.switchOn != undefined) && (settingsOld.switchOn != settingsNew.switchOn))
-				params.VibrateWhenRingerOn = settingsNew.switchOn;
-			
-			if((settingsNew.switchOff != undefined) && (settingsOld.switchOff != settingsNew.switchOff))
-				params.VibrateWhenRingerOff = settingsNew.switchOff;
-			
-			if((params.VibrateWhenRingerOn != undefined) || (params.VibrateWhenRingerOff != undefined)) {
-				future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.sys/", "systemCall", {
-					'id': "com.palm.app.soundsandalerts", 'service': "com.palm.audio/vibrate", 
-					'method': "set", 'params': params}));
-				
-				future.then(this, function(future) { updateSettings(future, settingsOld, settingsNew, 1); });
-			}
-			else
-				updateSettings(future, settingsOld, settingsNew, 1);
+			future.then(this, function(future) { future.result = true; });
 		}
-		else if(action == 1) {
-			var params = {};
-			
-			if((settingsNew.ringtonePath != undefined) && (settingsOld.ringtonePath != settingsNew.ringtonePath)) {
-				params.ringtone = {
-					'name': settingsNew.ringtoneName,
-					'fullPath': settingsNew.ringtonePath};
-			}
-			
-			if(params.ringtone != undefined) {
-				future.nest(PalmCall.call("palm://com.palm.systemservice/", "setPreferences", params));
-				
-				future.then(this, function(future) { future.result = true; });
-			}
-			else
-				future.result = true;
+		else
+			future.result = true;
+		
+		return future;
+	};
+	
+	var updateSettings2 = function(settingsOld, settingsNew) {
+		var future = new Future();
+	
+		var params = {};
+		
+		if((settingsNew.ringtonePath != undefined) && (settingsOld.ringtonePath != settingsNew.ringtonePath)) {
+			params.ringtone = {
+				'name': settingsNew.ringtoneName,
+				'fullPath': settingsNew.ringtonePath};
 		}
+		
+		if(params.ringtone != undefined) {
+			future.nest(PalmCall.call("palm://com.palm.systemservice/", "setPreferences", params));
+			
+			future.then(this, function(future) { future.result = true; });
+		}
+		else
+			future.result = true;
+		
+		return future;
 	};
 	
 //
@@ -62,12 +69,14 @@ var ringerSettings = (function() {
 	that.update = function(settingsOld, settingsNew) {
 		var future = new Future();
 		
-		future.now(this, function(future) {
-			updateSettings(future, settingsOld, settingsNew, 0);
-		});
-		
+		future.nest(updateSettings1(settingsOld, settingsNew));
+
 		future.then(this, function(future) {
-			future.result = { returnValue: true };
+			future.nest(updateSettings2(settingsOld, settingsNew));
+			
+			future.then(this, function(future) {
+				future.result = { returnValue: true };
+			});
 		});
 		
 		return future;
