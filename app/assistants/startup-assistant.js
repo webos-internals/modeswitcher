@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.3.8', log: [
+			'Fixed a bug that made settings fetching fail on Veer.'
+		]
+	},
+	{
 		version: '2.3.7', log: [
 			'Fixed a bug that caused an error in certain rare situations.'
 		]

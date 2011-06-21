@@ -214,7 +214,9 @@ NetworkSettings.prototype.getSystemSettings = function(requestID, extensionConfi
 NetworkSettings.prototype.handleGetResponse = function(requestID, extensionConfig, doneCallback, serviceResponse) {
 	if(serviceResponse.returnValue) {
 		if(requestID == 0) {
-			if(serviceResponse.extended.mode == "gsm")
+			if(!serviceResponse.extended)
+				extensionConfig.networkType = 1;
+			else if(serviceResponse.extended.mode == "gsm")
 				extensionConfig.networkType = 2;
 			else if(serviceResponse.extended.mode == "umts")
 				extensionConfig.networkType = 3;
