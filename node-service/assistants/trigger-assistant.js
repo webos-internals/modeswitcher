@@ -150,11 +150,11 @@ TriggerCommandAssistant.prototype.handleModeLaunching = function(future, config,
 TriggerCommandAssistant.prototype.executeModeLaunching = function(future, config, startNModes, startMModes, closeNModes, closeMModes) {
 	var newModes = [config.activeModes[0].name];
 	
-	if(startNModes.length == 1)
-		newModes[0] = startNModes[0].name;
-	
 	if(closeNModes.length == 1)
 		newModes[0] = "Default Mode";
+
+	if(startNModes.length == 1)
+		newModes[0] = startNModes[0].name;
 	
 	for(var i = 1; i < config.activeModes.length; i++) {
 		if(utils.findArray(closeMModes, "name", config.activeModes[i].name) == -1)

@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.3.9', log: [
+			'Fixed a normal modes changing bug when triggered at the same time.'
+		]
+	},
+	{
 		version: '2.3.8', log: [
 			'Fixed a bug that made settings fetching fail on Veer.'
 		]
