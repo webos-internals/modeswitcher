@@ -198,7 +198,7 @@ NetworkSettings.prototype.getSystemSettings = function(requestID, extensionConfi
 			'parameters': {
 				'id': "com.palm.app.phone", 'service': "com.palm.preferences/appProperties", 
 				'method': "Get", 'params': {'appId': "com.palm.wan", 'key': "roamguard"}}, 
-			'onComplete': requestCallback});
+			'onFailure': requestCallback, 'onSuccess': requestCallback});		
 	}
 	else if(requestID == 2) {
 		this.controller.serviceRequest("palm://org.webosinternals.modeswitcher.sys/", {'method': "systemCall",

@@ -25,11 +25,17 @@ rm -f /var/palm/event.d/${SID}
 rm -f /var/usr/sbin/${PID}
 
 # Remove the dbus service
-rm -f /usr/share/dbus-1/system-services/${PID}.service /var/palm/system-services/${PID}.service
+rm -f /var/palm/system-services/${PID}.service
+
+rm -f /var/palm/ls2/services/prv/${SID}.json
+rm -f /var/palm/ls2/services/pub/${SID}.json
 
 # Remove the ls2 roles
-rm -f /usr/share/ls2/roles/prv/${PID}.json /var/palm/ls2/roles/prv/${PID}.json
-rm -f /usr/share/ls2/roles/pub/${PID}.json /var/palm/ls2/roles/pub/${PID}.json
+rm -f /var/palm/ls2/roles/prv/${PID}.json
+rm -f /var/palm/ls2/roles/pub/${PID}.json
+
+rm -f /var/palm/ls2/roles/prv/${SID}.json
+rm -f /var/palm/ls2/roles/pub/${SID}.json
 
 # Stop the service if running
 /usr/bin/killall -9 ${PID} || true
@@ -42,10 +48,17 @@ install -m 755 $APPS/usr/palm/applications/${AID}/bin/impersonate /var/usr/sbin/
 mkdir -p /var/palm/system-services
 cp $APPS/usr/palm/applications/${AID}/cfg/${PID}.service /var/palm/system-services/${PID}.service
 
+mkdir -p /var/palm/ls2/services/prv /var/palm/ls2/services/pub
+cp $APPS/usr/palm/applications/${AID}/cfg/${SID}.service /var/palm/ls2/services/prv/${SID}.service
+cp $APPS/usr/palm/applications/${AID}/cfg/${SID}.service /var/palm/ls2/services/pub/${SID}.service
+
 # Install the ls2 roles
 mkdir -p /var/palm/ls2/roles/prv /var/palm/ls2/roles/pub
 cp $APPS/usr/palm/applications/${AID}/cfg/${PID}.json /var/palm/ls2/roles/prv/${PID}.json
 cp $APPS/usr/palm/applications/${AID}/cfg/${PID}.json /var/palm/ls2/roles/pub/${PID}.json
+
+cp $APPS/usr/palm/applications/${AID}/cfg/${SID}.json /var/palm/ls2/roles/prv/${SID}.json
+cp $APPS/usr/palm/applications/${AID}/cfg/${SID}.json /var/palm/ls2/roles/pub/${SID}.json
 
 # Install the upstart file
 mkdir -p /var/palm/event.d

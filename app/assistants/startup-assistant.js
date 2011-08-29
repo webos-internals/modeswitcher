@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.4.0', log: [
+			'Fixed a small problem that caused fetching of settings fail on Pre3.'
+		]
+	},
+	{
 		version: '2.3.9', log: [
 			'Fixed a normal modes changing bug when triggered at the same time.'
 		]
