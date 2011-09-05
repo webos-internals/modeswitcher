@@ -249,10 +249,12 @@ ScreenSettings.prototype.executeWallpaperSelect = function(eventModel) {
 				}
 	
 				var params = {'target': encodeURIComponent(serviceResponse.fullPath)};
-	
+				
+				var zoomFactor = this.controller.window.zoomFactor || 1;
+				
 				if(serviceResponse.cropInfo.window) {
 					if(serviceResponse.cropInfo.window.scale)
-						params['scale'] = serviceResponse.cropInfo.window.scale;
+						params['scale'] = serviceResponse.cropInfo.window.scale * zoomFactor;
 		
 					if(serviceResponse.cropInfo.window.focusX)
 						params['focusX'] = serviceResponse.cropInfo.window.focusX;

@@ -125,7 +125,7 @@ var wirelessTriggers = (function() {
 		if((args.$activity) && (args.$activity.trigger) &&
 			(args.$activity.trigger.wifi) && 
 			(args.$activity.trigger.wifi.state != undefined) &&
-			((config.state != args.$activity.trigger.wifi.state)) ||
+			((config.state != args.$activity.trigger.wifi.state) ||
 			(config.ssid != args.$activity.trigger.wifi.ssid.toLowerCase())))
 		{
 			return true;

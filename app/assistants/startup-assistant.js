@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.4.2', log: [
+			'Fixed typo and wallpaper config for Pre3, re-config wallpapers!'
+		]
+	},
+	{
 		version: '2.4.1', log: [
 			'Fixed wireless trigger and added fix for the UI on Pre3.'
 		]
