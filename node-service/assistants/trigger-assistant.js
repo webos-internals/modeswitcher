@@ -1,7 +1,4 @@
 var TriggerCommandAssistant = function() {
-	this.Foundations = IMPORTS.foundations;
-
-	this.PalmCall = this.Foundations.Comms.PalmCall;
 }
 
 //
@@ -10,27 +7,34 @@ TriggerCommandAssistant.prototype.setup = function() {
 }
 
 TriggerCommandAssistant.prototype.run = function(future) {
-	console.error("Trigger received: " + JSON.stringify(this.controller.args));
+	this.controller.service.assistant.appendTrigger(future, 
+		this.controller.args, this.process.bind(this));
+}
+
+TriggerCommandAssistant.prototype.cleanup = function() {
+}
+
+//
+
+TriggerCommandAssistant.prototype.process = function(future, args) {
+	console.error("Trigger received: " + JSON.stringify(args));
 	
 	future.nest(prefs.load());
 	
 	future.then(this, function(future) {
 		var config = future.result;
 		
-		if((config.activated == false) || (config.activeModes.length == 0))
+		if(config.activated == false)
 			future.result = { returnValue: false, errorText: "Not activated" };
-		else if((!this.controller.args) || (!this.controller.args.extension))
+		else if((!args) || (!args.extension))
 			future.result = { returnValue: false, errorText: "No extension set" };
-		else if(config.extensions.triggers.indexOf(this.controller.args.extension) == -1)
+		else if(config.extensions.triggers.indexOf(args.extension) == -1)
 			future.result = { returnValue: false, errorText: "Unknown extension" };
-		else if(config.statusData.triggers[this.controller.args.extension] == undefined)
+		else if(config.statusData.triggers[args.extension] == undefined)
 			future.result = { returnValue: false, errorText: "Uninitialized extension" };
 		else
-			this.checkTriggerEvent(future, config, this.controller.args);
+			this.checkTriggerEvent(future, config, args);
 	});
-}
-
-TriggerCommandAssistant.prototype.cleanup = function() {
 }
 
 //
@@ -166,10 +170,10 @@ TriggerCommandAssistant.prototype.executeModeLaunching = function(future, config
 			newModes.push(config.customModes[i].name);
 	}
 	
-	future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
+	future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
 		'action': "update", 'names': newModes, 'notify': true}));
 	
-	future.then(this, function(future) { future.result = { returnValue: true }; });
+	future.result = { returnValue: true };
 }
 
 TriggerCommandAssistant.prototype.executePopupLaunching = function(future, config, startNModes, startMModes, closeNModes, closeMModes) {
@@ -232,7 +236,7 @@ TriggerCommandAssistant.prototype.executePopupLaunching = function(future, confi
 		}
 	}
 	
-	future.nest(this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+	future.nest(PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 		'id': "org.webosinternals.modeswitcher", 'params': { 'action': "popup", 
 			'notify': notify, 'names': newModes, 'modes': { 'startN': startNModes, 
 				'closeN': closeNModes, 'startM': startMModes, 'closeM': closeMModes},

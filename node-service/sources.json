@@ -1,7 +1,9 @@
 [
-	{	"library": { "name": "foundations", "version": "1.0" } },
+	{ "library": { "name": "foundations", "version": "1.0" } },
 	
-	{	"source": "assistants/control-assistant.js" },
+	{ "source": "assistants/service-assistant.js" },
+	
+	{ "source": "assistants/control-assistant.js" },
 	{ "source": "assistants/execute-assistant.js" },
 	{ "source": "assistants/prefs-assistant.js" },
 	{ "source": "assistants/status-assistant.js" },

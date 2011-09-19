@@ -1,9 +1,4 @@
 var ExecuteCommandAssistant = function() {
-	this.Foundations = IMPORTS.foundations;
-
-	this.Future = this.Foundations.Control.Future;
-
-	this.PalmCall = this.Foundations.Comms.PalmCall;
 }
 
 //
@@ -12,7 +7,17 @@ ExecuteCommandAssistant.prototype.setup = function() {
 }
 
 ExecuteCommandAssistant.prototype.run = function(future) {
-	console.error("MS - Execute - Run - " + JSON.stringify(this.controller.args));
+	this.controller.service.assistant.appendExecute(future, 
+		this.controller.args, this.process.bind(this));
+}
+
+ExecuteCommandAssistant.prototype.cleanup = function() {
+}
+
+//
+
+ExecuteCommandAssistant.prototype.process = function(future, args) {
+	console.error("MS - Execute - Run - " + JSON.stringify(args));
 	
 	future.nest(prefs.load());
 	
@@ -22,23 +27,20 @@ ExecuteCommandAssistant.prototype.run = function(future) {
 		if(config.activated == false)
 			future.result = { returnValue: false, errorText: "Not activated" };
 		else {
-			if(this.controller.args.action == "start")
-				this.executeStartMode(future, config, this.controller.args);
-			else if(this.controller.args.action == "close")
-				this.executeCloseMode(future, config, this.controller.args);
-			else if(this.controller.args.action == "toggle")
-				this.executeToggleMode(future, config, this.controller.args);
-			else if(this.controller.args.action == "reload")
-				this.executeReloadMode(future, config, this.controller.args);
-			else if(this.controller.args.action == "update")
-				this.executeUpdateMode(future, config, this.controller.args);
-			else if(this.controller.args.action == "trigger")
-				this.executeTriggerMode(future, config, this.controller.args);
+			if(args.action == "start")
+				this.executeStartMode(future, config, args);
+			else if(args.action == "close")
+				this.executeCloseMode(future, config, args);
+			else if(args.action == "toggle")
+				this.executeToggleMode(future, config, args);
+			else if(args.action == "reload")
+				this.executeReloadMode(future, config, args);
+			else if(args.action == "update")
+				this.executeUpdateMode(future, config, args);
+			else if(args.action == "trigger")
+				this.executeTriggerMode(future, config, args);
 		}
 	});
-}
-
-ExecuteCommandAssistant.prototype.cleanup = function() {
 }
 
 //
@@ -103,17 +105,17 @@ ExecuteCommandAssistant.prototype.executeStartMode = function(future, config, ar
 				var notify = config.customModes[0].notify;
 			
 			if((requestedMode.type == "default") || (config.activeModes.length == 0)) {
-				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': notify, 'name': requestedMode.name, 'event': "start"}});
 			}
 			else if(requestedMode.type == "normal") {
-				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': notify, 'name': newActiveModes[0].name, 'event': "switch"}});
 			}
 			else if(requestedMode.type == "modifier") {
-				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': notify, 'name': requestedMode.name, 'event': "start"}});
 			}
@@ -185,17 +187,17 @@ ExecuteCommandAssistant.prototype.executeCloseMode = function(future, config, ar
 				var notify = config.customModes[0].notify;
 			
 			if(requestedMode.type == "default") {
-				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': notify, 'name': requestedMode.name, 'event': "close"}});
 			}
 			else if(requestedMode.type == "normal") {
-				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': notify, 'name': newActiveModes[0].name, 'event': "switch"}});
 			}
 			else if(requestedMode.type == "modifier") {
-				this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+				PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 					'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': notify, 'name': requestedMode.name, 'event': "close"}});
 			}			
@@ -226,7 +228,7 @@ ExecuteCommandAssistant.prototype.executeToggleMode = function(future, config, a
 		else if(utils.findArray(config.customModes, "name", args.name) != -1)
 			this.executeStartMode(future, config, args);
 		else {
-			this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 				'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 				'notify': 5, 'name': args.name, 'event': "unknown"}});
 			
@@ -252,7 +254,7 @@ ExecuteCommandAssistant.prototype.executeReloadMode = function(future, config, a
 			
 			// On reload inform the user even if notifications are disabled.
 
-			this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 				'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 				'notify': 2, 'name': "Current Mode", 'event': "reload"}});
 			
@@ -321,7 +323,7 @@ ExecuteCommandAssistant.prototype.executeUpdateMode = function(future, config, a
 				var notify = config.customModes[0].notify;
 		}
 
-		this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+		PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 			'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 			'notify': notify, 'name': "Current Mode", 'event': "update"}});
 		
@@ -540,7 +542,7 @@ ExecuteCommandAssistant.prototype.prepareModeChange = function(future, config, n
 	}
 	else {
 		if(roundCount == 5) {
-			this.PalmCall.call("palm://com.palm.applicationManager/", "launch", {
+			PalmCall.call("palm://com.palm.applicationManager/", "launch", {
 				'id': "org.webosinternals.modeswitcher", 'params': {'action': "notify", 
 					'notify': 5, 'name': "Current Mode", 'event': "error"}});
 		}
@@ -584,7 +586,7 @@ ExecuteCommandAssistant.prototype.executeSettingsUpdate = function(future, confi
 	
 	future.nest(utils.futureLoop(config.extensions.settings, 
 		function(item) {
-			var future = new this.Future();
+			var future = new Future();
 			
 			var oldModeSettings = {'extension': item};
 			var newModeSettings = {'extension': item};

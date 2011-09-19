@@ -2,11 +2,12 @@
 	"description": "Mode Switcher Service",
 	"id": "org.webosinternals.modeswitcher.srv",
 	"engine": "node",
-	"activityTimeout": 90,
-	"commandTimeout": 90,
+	"activityTimeout": 60,
+	"commandTimeout": 60,
 	"services": [ {
 		"name": "org.webosinternals.modeswitcher.srv",
 		"description": "Background service for Mode Switcher",
+		"assistant": "MainServiceAssistant",
 		"commands": [ 
 			{ 
 				"name": "control", 

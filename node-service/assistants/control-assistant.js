@@ -1,9 +1,4 @@
 var ControlCommandAssistant = function() {
-	this.Foundations = IMPORTS.foundations;
-
-	this.Future = this.Foundations.Control.Future;
-
-	this.PalmCall = this.Foundations.Comms.PalmCall;
 }
 
 //
@@ -12,7 +7,17 @@ ControlCommandAssistant.prototype.setup = function() {
 }
 
 ControlCommandAssistant.prototype.run = function(future) {
-	console.error("MS - Control - Run - " + JSON.stringify(this.controller.args));
+	this.controller.service.assistant.appendControl(future, 
+		this.controller.args, this.process.bind(this));
+}
+
+ControlCommandAssistant.prototype.cleanup = function() {
+}
+
+//
+
+ControlCommandAssistant.prototype.process = function(future, args) {
+	console.error("MS - Control - Run - " + JSON.stringify(args));
 	
 	future.nest(prefs.load());
 	
@@ -20,41 +25,38 @@ ControlCommandAssistant.prototype.run = function(future) {
 		var config = future.result;
 	
 		if(config.activated == true) {
-			if(this.controller.args.action == "startup")
+			if(args.action == "startup")
 				this.startupModeSwitcher(future, config);
-			else if(this.controller.args.action == "enable")
+			else if(args.action == "enable")
 				future.result = { returnValue: true };
-			else if(this.controller.args.action == "disable")
+			else if(args.action == "disable")
 				this.disableModeSwitcher(future, config);
-			else if(this.controller.args.action == "reload")
+			else if(args.action == "reload")
 				this.reloadModeSwitcher(future, config);
-			else if(this.controller.args.action == "lock")
+			else if(args.action == "lock")
 				this.lockModeSwitcher(future, config);
-			else if(this.controller.args.action == "unlock")
+			else if(args.action == "unlock")
 				this.unlockModeSwitcher(future, config);
 			else 
 				future.result = { returnValue: false, errorText: "Unknown Command" };
 		}
 		else {
-			if(this.controller.args.action == "enable")
+			if(args.action == "enable")
 				this.enableModeSwitcher(future, config);
-			else if(this.controller.args.action == "disable")
+			else if(args.action == "disable")
 				future.result = { returnValue: false, errorText: "Not activated" };
-			else if(this.controller.args.action == "reload")
+			else if(args.action == "reload")
 				future.result = { returnValue: false, errorText: "Not activated" };
-			else if(this.controller.args.action == "lock")
+			else if(args.action == "lock")
 				future.result = { returnValue: false, errorText: "Not activated" };
-			else if(this.controller.args.action == "unlock")
+			else if(args.action == "unlock")
 				future.result = { returnValue: false, errorText: "Not activated" };
-			else if(this.controller.args.action == "startup")
+			else if(args.action == "startup")
 				future.result = { returnValue: false, errorText: "Not activated" };
 			else 
 				future.result = { returnValue: false, errorText: "Unknown Command"  };
 		}
 	});
-}
-
-ControlCommandAssistant.prototype.cleanup = function() {
 }
 
 //
@@ -64,7 +66,7 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 	
 	future.nest(utils.futureLoop(config.extensions.triggers, 
 		function(item) {
-			var future = new this.Future();
+			var future = new Future();
 		
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
@@ -108,10 +110,10 @@ ControlCommandAssistant.prototype.startupModeSwitcher = function(future, config)
 			if(config.customModes[0].startup == 1)
 				mode = "Default Mode";
 			
-			future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
 				'action': "reload", 'name': mode, 'startup': true}));
 			
-			future.then(this, function(future) { future.result = { returnValue: true }; });
+			future.result = { returnValue: true };
 		});
 	});
 }
@@ -121,7 +123,7 @@ ControlCommandAssistant.prototype.enableModeSwitcher = function(future, config) 
 	
 	future.nest(utils.futureLoop(config.extensions.triggers, 
 		function(item) {
-			var future = new this.Future();
+			var future = new Future();
 
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
@@ -163,7 +165,7 @@ ControlCommandAssistant.prototype.disableModeSwitcher = function(future, config)
 	
 	future.nest(utils.futureLoop(config.extensions.triggers, 
 		function(item) {
-			var future = new this.Future();
+			var future = new Future();
 			
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
@@ -194,7 +196,7 @@ ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) 
 	
 	future.nest(utils.futureLoop(config.extensions.triggers, 
 		function(item) {
-			var future = new this.Future();
+			var future = new Future();
 			
 			if(!config.statusData.triggers[item])	
 				config.statusData.triggers[item] = {};
@@ -231,10 +233,10 @@ ControlCommandAssistant.prototype.reloadModeSwitcher = function(future, config) 
 		future.nest(prefs.save(newConfig));
 		
 		future.then(this, function(future) {
-			future.nest(this.PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
+			future.nest(PalmCall.call("palm://org.webosinternals.modeswitcher.srv", "execute", {
 				'action': "reload", 'name': "Current Mode"}));
 			
-			future.then(this, function(future) { future.result = { returnValue: true }; });
+			future.result = { returnValue: true };
 		});
 	});
 }

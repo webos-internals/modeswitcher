@@ -1,13 +1,15 @@
+// Global usage
+
+var Foundations = IMPORTS.foundations;
+	
+var Future = Foundations.Control.Future;
+	
+var PalmCall = Foundations.Comms.PalmCall;
+
+// Utility class
+
 var utils = (function() {
 	var that = {};
-	
-	var Foundations = IMPORTS.foundations;
-	
-	var Future = Foundations.Control.Future;
-	
-	var PalmCall = Foundations.Comms.PalmCall;
-	
-//
 	
 	that.extend = function(targetObject, sourceObject) {
 		for(key in sourceObject) {
