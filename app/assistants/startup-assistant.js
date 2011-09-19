@@ -15,7 +15,7 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
-		version: '2.4.5', log: [
+		version: '2.4.6', log: [
 			'Triggers should now work better and be much more reliable than before.'
 		]
 	},
