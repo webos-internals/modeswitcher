@@ -772,8 +772,6 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 	
 	this.controller.modelChanged(this.modelExportGDButton, this);
 
-	var docData = Object.toJSON(this.data.body);
-
 	if(!this.filter)
 		var slug = "";
 	else
@@ -792,103 +790,128 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 		onSuccess: function(response) { 
 			var auth = response.responseText.split("\n")[2].split("=")[1];
 
-			new Ajax.Request("http://docs.google.com/feeds/documents/private/full?alt=json", {
+			new Ajax.Request("http://docs.google.com/feeds/upload/create-session/default/private/full?alt=json", {
 				method: "post",
 				contentType: "text/plain",
-				postBody: docData,
 				evalJSON: true,
 				encoding: null,
 				requestHeaders: {
-					"GData-Version": "2.0",
-					"Content-Type": "text/plain",
+					"GData-Version": "3.0",
 					"Authorization": "GoogleLogin auth=" + auth,
 					"Slug": slug
 				},
 				onSuccess: function(response) {
-					if(this.modelExportGDShare.value) {
-						var aclData = "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gAcl='http://schemas.google.com/acl/2007'><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/acl/2007#accessRule'/><gAcl:role value='reader'/><gAcl:scope type='default'/></entry>";
+					var docData = Object.toJSON(this.data.body);
 
-						var url = response.responseJSON.entry.id['$t'].replace("/documents", "/default") + "/acl";
+					new Ajax.Request(response.getHeader('Location'), {
+						method: "put",
+						contentType: "text/plain",
+						encoding: null,
+						evalJSON: true,
+						postBody: docData,
+						onSuccess: function(response) {
+							if(this.modelExportGDShare.value) {
+								var aclData = "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gAcl='http://schemas.google.com/acl/2007'><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/acl/2007#accessRule'/><gAcl:role value='reader'/><gAcl:scope type='default'/></entry>";
 
-						new Ajax.Request(url, {
-							method: "post",
-							contentType: "application/atom+xml",
-							postBody: aclData,
-							encoding: null,
-							requestHeaders: {
-								"GData-Version": "3.0",
-								"Content-Type": "application/atom+xml",
-								"Authorization": "GoogleLogin auth=" + auth
-							},
-							onSuccess: function(url, response) {
+								var url = response.responseJSON.entry.id['$t'].replace("/id/","/default/private/full/");
+
+								new Ajax.Request(url + "/acl", {
+									method: "post",
+									contentType: "application/atom+xml",
+									encoding: null,
+									postBody: aclData,
+									requestHeaders: {
+										"GData-Version": "3.0",
+										"Authorization": "GoogleLogin auth=" + auth
+									},
+									onSuccess: function(url, response) {
+										this.controller.showAlertDialog({
+											title: $L("Uploading & sharing succesful!"),
+											message: "<div align='justify'>" + $L("Sharing of Google Docs document was succesful. To let others in the group to know about the document send the email which will be opened for you.") + "</div>",
+											choices:[{label:$L("OK"), value:"ok", type:'default'}],
+											preventCancel: true,
+											allowHTMLMessage: true,
+											onChoose: function(url) {
+												var date = new Date();
+
+												date = date.toString();
+
+												var index = date.indexOf(" GMT");
+
+												if(index != -1)
+													date = date.substring(0, index);
+
+												url = url.replace("feeds/default/private/full/document%3A", "document/d/") + "/edit?hl=en";
+
+												this.controller.serviceRequest("palm://com.palm.applicationManager", {
+													method: 'open', parameters: {id: "com.palm.app.email", params: {
+													summary: date + " - " + this.modelExportGDTitle.value,
+													text: this.modelExportGDDesc.value + "<br><br>" + this.filter + " <a href=" + url + ">" + url + "</a>",
+													recipients: [{
+														type: "email",
+														role: 1,
+														value: "mode-switcher@googlegroups.com",
+														contactDisplay: "Mode Switcher Group"
+													}]}}}); 
+
+												this.controller.stageController.popScene();										
+											}.bind(this, url)});
+									}.bind(this, url),
+									onFailure: function(response) {
+										this.controller.showAlertDialog({
+											title: $L("Unable to share!"),
+											message: "<div align='justify'>" + $L("Sharing of Google Docs document failed, please try again later.") + "</div>",
+											choices:[{label:$L("OK"), value:"ok", type:'default'}],
+											preventCancel: true,
+											allowHTMLMessage: true}); 
+
+										this.modelWaitSpinner.spinning = false;
+
+										this.controller.modelChanged(this.modelWaitSpinner, this);
+
+										this.controller.get("overlay-scrim").hide();
+
+										this.modelExportGDButton.disabled = false;
+
+										this.controller.modelChanged(this.modelExportGDButton, this);
+									}.bind(this)
+								});
+							}
+							else {
 								this.controller.showAlertDialog({
-									title: $L("Uploading & sharing succesful!"),
-									message: "<div align='justify'>" + $L("Sharing of Google Docs document was succesful. To let others in the group to know about the document send the email which will be opened for you.") + "</div>",
+									title: $L("Upload Succesful!"),
+									message: "<div align='justify'>" + $L("Uploading to Google Docs was succesful.") + "</div>",
 									choices:[{label:$L("OK"), value:"ok", type:'default'}],
 									preventCancel: true,
 									allowHTMLMessage: true,
-									onChoose: function(value) {
-										var date = new Date();
-										
-										date = date.toString();
-										
-										var index = date.indexOf(" GMT");
-										
-										if(index != -1)
-											date = date.substring(0, index);
-
-										url = url.replace("feeds/documents/private/full/document%3A", "document/d/") + "/edit?hl=en";
-										
-										this.controller.serviceRequest("palm://com.palm.applicationManager", {
-											method: 'open', parameters: {id: "com.palm.app.email", params: {
-											summary: date + " - " + this.modelExportGDTitle.value,
-											text: this.modelExportGDDesc.value + "<br><br>" + this.filter + " <a href=" + url + ">" + url + "</a>",
-											recipients: [{
-												type:"email",
-												role:1,
-												value:"mode-switcher@googlegroups.com",
-												contactDisplay:"Mode Switcher Group"
-											}]}}}); 
-									
+									onChoose: function() {
 										this.controller.stageController.popScene();										
 									}.bind(this)});
-							}.bind(this, response.responseJSON.entry.id['$t']),
-							onFailure: function(response) {
-								this.controller.showAlertDialog({
-									title: $L("Unable to share!"),
-									message: "<div align='justify'>" + $L("Sharing of Google Docs document failed, please try again later.") + "</div>",
-									choices:[{label:$L("OK"), value:"ok", type:'default'}],
-									preventCancel: true,
-									allowHTMLMessage: true}); 
+							}
+						}.bind(this),
+						onFailure: function(response) {
+							this.controller.showAlertDialog({
+								title: $L("Unable to upload!"),
+								message: "<div align='justify'>" + $L("Uploading to Google Docs failed, please try again later.") + "</div>",
+								choices:[{label:$L("OK"), value:"ok", type:'default'}],
+								preventCancel: true,
+								allowHTMLMessage: true}); 
 
-								this.modelWaitSpinner.spinning = false;
+							this.modelWaitSpinner.spinning = false;
 
-								this.controller.modelChanged(this.modelWaitSpinner, this);
+							this.controller.modelChanged(this.modelWaitSpinner, this);
 
-								this.controller.get("overlay-scrim").hide();
+							this.controller.get("overlay-scrim").hide();
+
+							this.modelExportGDButton.disabled = false;
 	
-								this.modelExportGDButton.disabled = false;
-	
-								this.controller.modelChanged(this.modelExportGDButton, this);
-							}.bind(this)
-						});
-					}
-					else {
-						this.controller.showAlertDialog({
-							title: $L("Upload Succesful!"),
-							message: "<div align='justify'>" + $L("Uploading to Google Docs was succesful.") + "</div>",
-							choices:[{label:$L("OK"), value:"ok", type:'default'}],
-							preventCancel: true,
-							allowHTMLMessage: true,
-							onChoose: function(value) {
-								this.controller.stageController.popScene();										
-							}.bind(this)});
-					}
+							this.controller.modelChanged(this.modelExportGDButton, this);
+						}.bind(this)});
 				}.bind(this),
 				onFailure: function(response) { 
 					this.controller.showAlertDialog({
 						title: $L("Unable to upload!"),
-						message: "<div align='justify'>" + $L("Uploading to Google Docs failed, please try again later.") + "</div>",
+						message: "<div align='justify'>" + $L("Upload request to Google Docs failed, please try again later.") + "</div>",
 						choices:[{label:$L("OK"), value:"ok", type:'default'}],
 						preventCancel: true,
 						allowHTMLMessage: true}); 

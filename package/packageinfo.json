@@ -2,7 +2,7 @@
   "id": "org.webosinternals.modeswitcher",
   "package_format_version": 2,
   "loc_name": "Mode Switcher",
-  "version": "2.4.6",
+  "version": "2.5.0",
   "icon": "icon.png",
   "miniicon": "icon.png",
   "vendor": "WebOS Internals",

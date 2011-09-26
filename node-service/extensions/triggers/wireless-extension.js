@@ -124,11 +124,18 @@ var wirelessTriggers = (function() {
 	var triggerState = function(config, trigger, args) {
 		if((args.$activity) && (args.$activity.trigger) &&
 			(args.$activity.trigger.wifi) && 
-			(args.$activity.trigger.wifi.state != undefined) &&
-			((config.state != args.$activity.trigger.wifi.state) ||
-			(config.ssid != args.$activity.trigger.wifi.ssid.toLowerCase())))
+			(args.$activity.trigger.wifi.state))
 		{
-			return true;
+			var state = "unknown";
+			var ssid = "none";
+			
+			state = args.$activity.trigger.wifi.state;
+			
+			if(args.$activity.trigger.wifi.ssid)
+				ssid = args.$activity.trigger.wifi.ssid.toLowerCase();
+			
+			if((config.state != state) || (config.ssid != ssid))
+				return true;
 		}
 		
 		return false;
