@@ -499,8 +499,8 @@ GdmAssistant.prototype.listGooglePrivate = function(event) {
 			new Ajax.Request("http://docs.google.com/feeds/documents/private/full?alt=json&title=" + match + "&" + order, {
 				method: "get",
 				contentType: "application/atom+xml",
-				evalJSON: true,
 				encoding: null,
+				evalJSON: true,
 				requestHeaders: {
 					"GData-Version": "2.0",
 					"Authorization": "GoogleLogin auth=" + auth
@@ -613,7 +613,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 	this.controller.modelChanged(this.modelWaitSpinner, this);
 
 	if(this.modelImportGDShare.value) {
-		var url = event.item.value.replace("document/d/", "feeds/download/documents/Export?docID=");
+		var url = event.item.value.replace("http://", "https://").replace("document/d/", "feeds/download/documents/Export?docID=");
 	
 		new Ajax.Request(url + "&exportFormat=txt", {
 			method: "get",
@@ -621,7 +621,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 			evalJSON: true,
 			encoding: null,
 			requestHeaders: {
-				"GData-Version": "2.0"
+				"GData-Version": "3.0"
 			},
 			onSuccess: function(title, response) {
 				this.modelWaitSpinner.spinning = false;
@@ -673,7 +673,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 			}.bind(this)});
 	}
 	else {
-		var url = event.item.value.replace("documents/private/full/document%3A", "download/documents/Export?docID=");
+		var url = event.item.value.replace("http://", "https://").replace("documents/private/full/document%3A", "download/documents/Export?docID=");
 
 		new Ajax.Request("https://www.google.com/accounts/ClientLogin?accountType=HOSTED_OR_GOOGLE&Email=" + this.modelImportGDUsername.value + "&Passwd=" + encodeURIComponent(this.modelImportGDPassword.value) + "&service=writely&source=ModeSwitcher", {
 			method: "post",
@@ -686,7 +686,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 					evalJSON: true,
 					encoding: null,
 					requestHeaders: {
-						"GData-Version": "2.0",
+						"GData-Version": "3.0",
 						"Authorization": "GoogleLogin auth=" + auth
 					},
 					onSuccess: function(title, response) {
