@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.5.3', log: [
+			'More fixes for modes export/import, should work now.'
+		]
+	},
+	{
 		version: '2.5.2', log: [
 			'Fixed modes importing to work on all webOS versions.'
 		]

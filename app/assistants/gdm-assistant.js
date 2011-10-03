@@ -374,7 +374,7 @@ GdmAssistant.prototype.listGoogleShared = function(event) {
 		this.importDocumentData({item: {value: url}});
 	}
 	else {
-		new Ajax.Request("http://groups.google.com/group/mode-switcher/feed/rss_v2_0_topics.xml?num=" + limit, {
+		new Ajax.Request("https://groups.google.com/group/mode-switcher/feed/rss_v2_0_topics.xml?num=" + limit, {
 				method: "get",
 				contentType: "application/rss+xml",
 				evalJSON: true,
@@ -460,6 +460,8 @@ GdmAssistant.prototype.listGoogleShared = function(event) {
 					this.controller.modelChanged(this.modelImportGDList, this);
 				}.bind(this),
 				onFailure: function(response) {
+					Mojo.Log.error("Unable to read Google Groups feed: " + response.responseText);
+
 					this.modelImportGDButton.disabled = false;
 
 					this.controller.modelChanged(this.modelImportGDButton, this);
@@ -496,7 +498,7 @@ GdmAssistant.prototype.listGooglePrivate = function(event) {
 		onSuccess: function(response) { 
 			var auth = response.responseText.split("\n")[2].split("=")[1];
 
-			new Ajax.Request("http://docs.google.com/feeds/documents/private/full?alt=json&title=" + match + "&" + order, {
+			new Ajax.Request("https://docs.google.com/feeds/documents/private/full?alt=json&title=" + match + "&" + order, {
 				method: "get",
 				contentType: "application/atom+xml",
 				encoding: null,
@@ -562,6 +564,8 @@ GdmAssistant.prototype.listGooglePrivate = function(event) {
 					this.controller.modelChanged(this.modelImportGDButton, this);
 				}.bind(this),
 				onFailure: function(response) { 
+					Mojo.Log.error("Unable to list Google Docs documents: " + response.responseText);
+
 					this.controller.showAlertDialog({
 							title: $L("Unable to list documents!"),
 							message: "<div align='justify'>" + $L("Failed to receive documents list from Google Docs.") + "</div>",
@@ -582,6 +586,8 @@ GdmAssistant.prototype.listGooglePrivate = function(event) {
 			});
 		}.bind(this),
 		onFailure: function(response) { 
+			Mojo.Log.error("Unable to login to Google docs: " + response.responseText);
+
 			this.controller.showAlertDialog({
 				title: $L("Unable to login!"),
 				message: "<div align='justify'>" + $L("Login to Google Docs failed, please check your username and password.") + "</div>",
@@ -613,7 +619,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 	this.controller.modelChanged(this.modelWaitSpinner, this);
 
 	if(this.modelImportGDShare.value) {
-		var url = event.item.value.replace("http://", "https://").replace("document/d/", "feeds/download/documents/Export?docID=");
+		var url = event.item.value.replace("https://", "https://").replace("document/d/", "feeds/download/documents/Export?docID=");
 	
 		new Ajax.Request(url + "&exportFormat=txt", {
 			method: "get",
@@ -658,6 +664,8 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 				}
 			}.bind(this, event.item.label),
 			onFailure: function(response) {
+				Mojo.Log.error("Unable to download from Google Docs: " + response.responseText);
+
 				this.modelWaitSpinner.spinning = false;
 	
 				this.controller.modelChanged(this.modelWaitSpinner, this);
@@ -673,7 +681,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 			}.bind(this)});
 	}
 	else {
-		var url = event.item.value.replace("http://", "https://").replace("documents/private/full/document%3A", "download/documents/Export?docID=");
+		var url = event.item.value.replace("https://", "https://").replace("documents/private/full/document%3A", "download/documents/Export?docID=");
 
 		new Ajax.Request("https://www.google.com/accounts/ClientLogin?accountType=HOSTED_OR_GOOGLE&Email=" + this.modelImportGDUsername.value + "&Passwd=" + encodeURIComponent(this.modelImportGDPassword.value) + "&service=writely&source=ModeSwitcher", {
 			method: "post",
@@ -724,6 +732,8 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 						}
 					}.bind(this, event.item.label),
 					onFailure: function(response) { 
+						Mojo.Log.error("Unable to download from Google Docs: " + response.responseText);
+
 						this.modelWaitSpinner.spinning = false;
 	
 						this.controller.modelChanged(this.modelWaitSpinner, this);
@@ -740,6 +750,8 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 				});
 			}.bind(this),
 			onFailure: function(response) { 
+				Mojo.Log.error("Unable to login to Google Docs: " + response.responseText);
+
 				this.modelWaitSpinner.spinning = false;
 	
 				this.controller.modelChanged(this.modelWaitSpinner, this);
@@ -789,8 +801,8 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 		method: "post",
 		onSuccess: function(response) { 
 			var auth = response.responseText.split("\n")[2].split("=")[1];
-
-			new Ajax.Request("http://docs.google.com/feeds/upload/create-session/default/private/full?alt=json", {
+			
+			new Ajax.Request("https://docs.google.com/feeds/upload/create-session/default/private/full?alt=json", {
 				method: "post",
 				contentType: "text/plain",
 				evalJSON: true,
@@ -811,7 +823,7 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 						postBody: docData,
 						onSuccess: function(response) {
 							if(this.modelExportGDShare.value) {
-								var aclData = "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gAcl='http://schemas.google.com/acl/2007'><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/acl/2007#accessRule'/><gAcl:role value='reader'/><gAcl:scope type='default'/></entry>";
+								var aclData = "<entry xmlns='https://www.w3.org/2005/Atom' xmlns:gAcl='http://schemas.google.com/acl/2007'><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/acl/2007#accessRule'/><gAcl:role value='reader'/><gAcl:scope type='default'/></entry>";
 
 								var url = response.responseJSON.entry.id['$t'].replace("/id/","/default/private/full/");
 
@@ -858,6 +870,8 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 											}.bind(this, url)});
 									}.bind(this, url),
 									onFailure: function(response) {
+										Mojo.Log.error("Unable to share Google Docs document: " + response.responseText);
+
 										this.controller.showAlertDialog({
 											title: $L("Unable to share!"),
 											message: "<div align='justify'>" + $L("Sharing of Google Docs document failed, please try again later.") + "</div>",
@@ -890,6 +904,8 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 							}
 						}.bind(this),
 						onFailure: function(response) {
+							Mojo.Log.error("Unable to upload to Google Docs: " + response.responseText);
+
 							this.controller.showAlertDialog({
 								title: $L("Unable to upload!"),
 								message: "<div align='justify'>" + $L("Uploading to Google Docs failed, please try again later.") + "</div>",
@@ -909,6 +925,8 @@ GdmAssistant.prototype.exportDocumentData = function(event) {
 						}.bind(this)});
 				}.bind(this),
 				onFailure: function(response) { 
+					Mojo.Log.error("Unable to upload to Google Docs: " + response.responseText);
+
 					this.controller.showAlertDialog({
 						title: $L("Unable to upload!"),
 						message: "<div align='justify'>" + $L("Upload request to Google Docs failed, please try again later.") + "</div>",
