@@ -7,7 +7,9 @@ TriggerCommandAssistant.prototype.setup = function() {
 }
 
 TriggerCommandAssistant.prototype.run = function(future) {
-	this.controller.service.assistant.appendTrigger(future, 
+	console.error("MS - Trigger - Run - " + JSON.stringify(this.controller.args));	
+	
+	this.controller.service.assistant.addProcess(future, 
 		this.controller.args, this.process.bind(this));
 }
 
@@ -17,7 +19,7 @@ TriggerCommandAssistant.prototype.cleanup = function() {
 //
 
 TriggerCommandAssistant.prototype.process = function(future, args) {
-	console.error("Trigger received: " + JSON.stringify(args));
+	console.error("MS - Trigger - Process - " + JSON.stringify(args));
 	
 	future.nest(prefs.load());
 	

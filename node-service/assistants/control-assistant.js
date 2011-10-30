@@ -7,8 +7,10 @@ ControlCommandAssistant.prototype.setup = function() {
 }
 
 ControlCommandAssistant.prototype.run = function(future) {
-	this.controller.service.assistant.appendControl(future, 
-		this.controller.args, this.process.bind(this));
+	console.error("MS - Control - Run - " + JSON.stringify(this.controller.args));
+	
+	this.controller.service.assistant.addCommand(future, 
+		this.controller.args, this.command.bind(this));
 }
 
 ControlCommandAssistant.prototype.cleanup = function() {
@@ -16,8 +18,8 @@ ControlCommandAssistant.prototype.cleanup = function() {
 
 //
 
-ControlCommandAssistant.prototype.process = function(future, args) {
-	console.error("MS - Control - Run - " + JSON.stringify(args));
+ControlCommandAssistant.prototype.command = function(future, args) {
+	console.error("MS - Control - Command - " + JSON.stringify(args));
 	
 	future.nest(prefs.load());
 	

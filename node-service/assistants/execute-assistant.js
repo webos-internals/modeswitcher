@@ -7,7 +7,9 @@ ExecuteCommandAssistant.prototype.setup = function() {
 }
 
 ExecuteCommandAssistant.prototype.run = function(future) {
-	this.controller.service.assistant.appendExecute(future, 
+	console.error("MS - Execute - Run - " + JSON.stringify(this.controller.args));
+
+	this.controller.service.assistant.addProcess(future, 
 		this.controller.args, this.process.bind(this));
 }
 
@@ -17,7 +19,7 @@ ExecuteCommandAssistant.prototype.cleanup = function() {
 //
 
 ExecuteCommandAssistant.prototype.process = function(future, args) {
-	console.error("MS - Execute - Run - " + JSON.stringify(args));
+	console.error("MS - Execute - Process - " + JSON.stringify(args));
 	
 	future.nest(prefs.load());
 	

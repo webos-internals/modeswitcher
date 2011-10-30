@@ -47,7 +47,7 @@ var modechangeTriggers = (function() {
 			"activity": {
 				"name": "modechangeTrigger",
 				"description" : "Mode Change Notifier",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"trigger" : {
 					"method": "palm://org.webosinternals.modeswitcher.srv/status", 
 					"params": { 'subscribe': true } 

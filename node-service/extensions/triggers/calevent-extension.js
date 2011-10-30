@@ -198,7 +198,7 @@ var caleventTriggers = (function() {
 					"activity": {
 						"name": "caleventEventTrigger" + eventData.timestamp,
 						"description" : "Calendar Event Notifier",
-						"type": {"foreground": true, "persist": false},
+						"type": {"cancellable": true, "foreground": true, "persist": false},
 						"schedule" : { 
 							"start" : startTime,
 							"local" : false,

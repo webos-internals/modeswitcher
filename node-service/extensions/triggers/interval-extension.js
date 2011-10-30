@@ -70,7 +70,7 @@ var intervalTriggers = (function() {
 					"activity": {
 						"name": "intervalTrigger" + startTime,
 						"description" : "Interval Start Notifier",
-						"type": {"foreground": true, "persist": false},
+						"type": {"cancellable": true, "foreground": true, "persist": false},
 						"schedule": {
 							"precise": true,
 							"start": startTime,
@@ -90,7 +90,7 @@ var intervalTriggers = (function() {
 					"activity": {
 						"name": "intervalTrigger" + closeTime,
 						"description" : "Interval Close Notifier",
-						"type": {"foreground": true, "persist": false},
+						"type": {"cancellable": true, "foreground": true, "persist": false},
 						"schedule": {
 							"precise": true,
 							"start": closeTime,

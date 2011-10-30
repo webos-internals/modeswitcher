@@ -51,7 +51,7 @@ var applicationTriggers = (function() {
 			"activity": {
 				"name": "applicationTrigger",
 				"description" : "Foreground Application Notifier",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"trigger" : {
 					"method" : "palm://com.palm.systemmanager/getForegroundApplication",
 					"params" : {"subscribe": true}

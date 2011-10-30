@@ -46,7 +46,7 @@ var headsetTriggers = (function() {
 			"activity": {
 				"name": "headsetTrigger",
 				"description" : "Headset Scenario Notifier",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"trigger" : {
 					"method" : "palm://com.palm.audio/media/status",
 					"params" : {'subscribe': true}

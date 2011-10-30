@@ -80,7 +80,7 @@ var bluetoothTriggers = (function() {
 			"activity": {
 				"name": "bluetoothTrigger",
 				"description" : "Bluetooth Connections Notifier",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"trigger" : {
 					"method" : "palm://com.palm.bluetooth/prof/subscribenotifications",
 					"params" : {'subscribe': true}

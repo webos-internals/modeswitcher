@@ -619,7 +619,7 @@ GdmAssistant.prototype.importDocumentData = function(event) {
 	this.controller.modelChanged(this.modelWaitSpinner, this);
 
 	if(this.modelImportGDShare.value) {
-		var url = event.item.value.replace("https://", "https://").replace("document/d/", "feeds/download/documents/Export?docID=");
+		var url = event.item.value.replace("document/d/", "feeds/download/documents/Export?docID=");
 	
 		new Ajax.Request(url + "&exportFormat=txt", {
 			method: "get",

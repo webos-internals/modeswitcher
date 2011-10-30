@@ -57,7 +57,7 @@ var wirelessTriggers = (function() {
 			"activity": {
 				"name": "wirelessTrigger",
 				"description" : "Wireless Network Notifier",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"trigger" : {
 					"method" : "palm://com.palm.connectionmanager/getstatus",
 					"params" : {'subscribe': true}

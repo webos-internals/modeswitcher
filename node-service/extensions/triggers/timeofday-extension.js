@@ -39,7 +39,7 @@ var timeofdayTriggers = (function() {
 				"activity": {
 					"name": "timeoutTrigger" + limits.startTime.getTime(),
 					"description" : "Timeout Event Notifier",
-					"type": {"foreground": true, "persist": false},
+					"type": {"cancellable": true, "foreground": true, "persist": false},
 					"schedule" : { 
 						"start" : startTime,
 						"local" : false,
@@ -59,7 +59,7 @@ var timeofdayTriggers = (function() {
 				"activity": {
 					"name": "timeoutTrigger" + limits.closeTime.getTime(),
 					"description" : "Timeout Event Notifier",
-					"type": {"foreground": true, "persist": false},
+					"type": {"cancellable": true, "foreground": true, "persist": false},
 					"schedule" : { 
 						"start" : closeTime,
 						"local" : false,

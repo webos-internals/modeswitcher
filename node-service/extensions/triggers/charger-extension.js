@@ -59,7 +59,7 @@ var chargerTriggers = (function() {
 			"activity": {
 				"name": "chargerTrigger",
 				"description" : "Charger Status Notifier",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"trigger" : {
 					"method" : "palm://com.palm.systemservice/getPreferences",
 					"params" : {"subscribe": true, "keys": ["chargerStatus"]}

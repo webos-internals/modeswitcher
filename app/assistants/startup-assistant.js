@@ -15,6 +15,11 @@ function StartupAssistant() {
 
 	this.newMessages = [
 	{
+		version: '2.5.4', log: [
+			'Fixed bug in mode executing and trigger processing.'
+		]
+	},
+	{
 		version: '2.5.3', log: [
 			'More fixes for modes export/import, should work now.'
 		]

@@ -90,7 +90,7 @@ var locationTriggers = (function() {
 			"activity": {
 				"name": "locationTrigger",
 				"description" : "Location Check Trigger",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"schedule": {
 					"precise": true,
 					"start": startTime,

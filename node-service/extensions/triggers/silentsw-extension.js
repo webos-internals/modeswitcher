@@ -45,7 +45,7 @@ var silentswTriggers = (function() {
 			"activity": {
 				"name": "silentswTrigger",
 				"description" : "Silent Switch Notifier",
-				"type": {"foreground": true, "persist": false},
+				"type": {"cancellable": true, "foreground": true, "persist": false},
 				"trigger" : {
 					"method" : "palm://com.palm.keys/switches/status",
 					"params" : {'subscribe': true, 'get': "ringer"}
