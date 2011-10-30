@@ -9,7 +9,7 @@ ControlCommandAssistant.prototype.setup = function() {
 ControlCommandAssistant.prototype.run = function(future) {
 	console.error("MS - Control - Run - " + JSON.stringify(this.controller.args));
 	
-	this.controller.service.assistant.addCommand(future, 
+	this.controller.service.assistant.appendCommand(future, 
 		this.controller.args, this.command.bind(this));
 }
 

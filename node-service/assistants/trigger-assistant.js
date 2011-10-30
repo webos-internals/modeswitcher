@@ -9,7 +9,7 @@ TriggerCommandAssistant.prototype.setup = function() {
 TriggerCommandAssistant.prototype.run = function(future) {
 	console.error("MS - Trigger - Run - " + JSON.stringify(this.controller.args));	
 	
-	this.controller.service.assistant.addProcess(future, 
+	this.controller.service.assistant.appendProcess(future, 
 		this.controller.args, this.process.bind(this));
 }
 

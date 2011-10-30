@@ -9,7 +9,7 @@ ExecuteCommandAssistant.prototype.setup = function() {
 ExecuteCommandAssistant.prototype.run = function(future) {
 	console.error("MS - Execute - Run - " + JSON.stringify(this.controller.args));
 
-	this.controller.service.assistant.addProcess(future, 
+	this.controller.service.assistant.appendProcess(future, 
 		this.controller.args, this.process.bind(this));
 }
 

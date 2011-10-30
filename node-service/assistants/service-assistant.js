@@ -12,18 +12,18 @@ MainServiceAssistant.prototype.cleanup = function() {
 
 //
 
-MainServiceAssistant.prototype.addCommand = function(future, args, run) {
+MainServiceAssistant.prototype.appendCommand = function(future, args, run) {
 	this.queue.commands.push({future: future, args: args, run: run});
 		
 	if((this.queue.commands.length == 1) && (this.queue.processes.length == 0))
-		this.runCommand();
+		this.executeCommand();
 }
 
-MainServiceAssistant.prototype.runCommand = function() {
+MainServiceAssistant.prototype.executeCommand = function() {
 	var future = new Future();
 
 	var command = this.queue.commands[0];
-	
+
 	future.now(this, function(future) {
 		command.run(future, command.args);
 	}).then(this, function(future) {
@@ -32,22 +32,22 @@ MainServiceAssistant.prototype.runCommand = function() {
 		this.queue.commands.shift();
 
 		if(this.queue.commands.length > 0)
-			this.runCommand();
+			this.executeCommand();
 		else if(this.queue.processes.length > 0)
-			this.runProcess();
+			this.executeProcess();
 	});			
 }
 
 //
 
-MainServiceAssistant.prototype.addProcess = function(future, args, run) {
+MainServiceAssistant.prototype.appendProcess = function(future, args, run) {
 	this.queue.processes.push({future: future, args: args, run: run});
 		
 	if((this.queue.commands.length == 0) && (this.queue.processes.length == 1))
-		this.runProcess();
+		this.executeProcess();
 }
 
-MainServiceAssistant.prototype.runProcess = function() {
+MainServiceAssistant.prototype.executeProcess = function() {
 	var future = new Future();
 
 	var process = this.queue.processes[0];
@@ -60,9 +60,9 @@ MainServiceAssistant.prototype.runProcess = function() {
 		this.queue.processes.shift();
 		
 		if(this.queue.commands.length > 0)
-			this.runCommand();
+			this.executeCommand();
 		else if(this.queue.processes.length > 0)
-			this.runProcess();
+			this.executeProcess();
 	});			
 }
 
